@@ -17,6 +17,8 @@ from ultralytics import YOLO
 # are viewing the stream)
 outputFrame = None
 lock = threading.Lock()
+
+
 # initialize a flask object
 app = Flask(__name__)
 # initialize the video stream and allow the camera sensor to
@@ -25,10 +27,10 @@ app = Flask(__name__)
 size = (640, 480)
 vs = VideoStream(src=0, framerate=25, resolution=size).start()
 time.sleep(2.0)
-model = YOLO('yolov8x.pt')
+model = YOLO('models/yolov8x.pt')
 
 
-vw = cv2.VideoWriter(f'runs/{time.strftime("%Y%m%d-%H%M%S")}.mp4',
+vw = cv2.VideoWriter(f'runs/{time.strftime("%Y%m%d-%H%M%S")}.avi',
                      cv2.VideoWriter_fourcc(*'MJPG'),
                      25, size)
 # used to record the time when we processed last frame
