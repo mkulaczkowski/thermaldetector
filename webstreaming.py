@@ -10,7 +10,7 @@ import datetime
 import imutils
 import time
 import cv2
-from ultralytics import YOLO
+#from ultralytics import YOLO
 
 # initialize the output frame and a lock used to ensure thread-safe
 # exchanges of the output frames (useful when multiple browsers/tabs
@@ -27,7 +27,7 @@ app = Flask(__name__)
 size = (640, 480)
 vs = VideoStream(src=0, framerate=25, resolution=size).start()
 time.sleep(2.0)
-model = YOLO('models/yolov8x.pt')
+#model = YOLO('models/yolov8x.pt')
 
 
 vw = cv2.VideoWriter(f'runs/{time.strftime("%Y%m%d-%H%M%S")}.avi',
@@ -66,18 +66,18 @@ def detect_motion(frameCount):
 
         # grab the current timestamp and draw it on the frame
         timestamp = datetime.datetime.now()
-        frame = object_detection_tracker(frame)
+        #frame = object_detection_tracker(frame)
         cv2.putText(frame, timestamp.strftime(
             "%A %d %B %Y %I:%M:%S%p"), (10, frame.shape[0] - 10),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.35, (0, 0, 255), 1)
-        new_frame_time = time.time()
-        fps = 1 / (new_frame_time - prev_frame_time)
-        prev_frame_time = new_frame_time
+        # new_frame_time = time.time()
+        # fps = 1 / (new_frame_time - prev_frame_time)
+        # prev_frame_time = new_frame_time
 
-        # converting the fps into integer
-        fps = str(int(fps))
-        # putting the FPS count on the frame
-        cv2.putText(frame, fps, (7, 70), cv2.FONT_HERSHEY_SIMPLEX, 3, (100, 255, 0), 3, cv2.LINE_AA)
+        # # converting the fps into integer
+        # fps = str(int(fps))
+        # # putting the FPS count on the frame
+        # cv2.putText(frame, fps, (7, 70), cv2.FONT_HERSHEY_SIMPLEX, 3, (100, 255, 0), 3, cv2.LINE_AA)
 
         # lock
         with lock:
@@ -115,9 +115,9 @@ def video_feed():
 if __name__ == '__main__':
     # construct the argument parser and parse command line arguments
     ap = argparse.ArgumentParser()
-    ap.add_argument("-i", "--ip", type=str, required=True,
+    ap.add_argument("-i", "--ip", type=str, required=True, default="0.0.0.0",
                     help="ip address of the device")
-    ap.add_argument("-o", "--port", type=int, required=True,
+    ap.add_argument("-o", "--port", type=int, required=True, default=8000,
                     help="ephemeral port number of the server (1024 to 65535)")
     ap.add_argument("-f", "--frame-count", type=int, default=25,
                     help="# of frames used to construct the background model")
