@@ -10,7 +10,7 @@ import datetime
 import imutils
 import time
 import cv2
-#from ultralytics import YOLO
+
 
 # initialize the output frame and a lock used to ensure thread-safe
 # exchanges of the output frames (useful when multiple browsers/tabs
@@ -21,23 +21,35 @@ lock = threading.Lock()
 
 # initialize a flask object
 app = Flask(__name__)
-# initialize the video stream and allow the camera sensor to
-# warmup
-# vs = VideoStream(usePiCamera=1).start()
-size = (640, 480)
-vs = VideoStream(src=0, framerate=25, resolution=size).start()
-time.sleep(2.0)
-#model = YOLO('models/yolov8x.pt')
 
 
-vw = cv2.VideoWriter(f'runs/{time.strftime("%Y%m%d-%H%M%S")}.avi',
-                     cv2.VideoWriter_fourcc(*'MJPG'),
-                     25, size)
+
+try:
+    from ultralytics import YOLO
+    model = YOLO('models/yolov8x.pt')
+except ImportError as error:
+    print("Yolo Model not available")
+
+
+
+
+
 # used to record the time when we processed last frame
 prev_frame_time = 0
 # used to record the time at which we processed current frame
 new_frame_time = 0
 
+def video_source(source=0, resolution=(640, 480), save_video=False):
+    # initialize the video stream and allow the camera sensor to
+    # warmup
+    source1_size = (640, 480)
+    vs1 = VideoStream(src=source, framerate=25, resolution=resolution).start()
+    time.sleep(2.0)
+    if save_video:
+        vw1 = cv2.VideoWriter(f'runs/{time.strftime("%Y%m%d-%H%M%S")}.avi',
+                              cv2.VideoWriter_fourcc(*'MJPG'),
+                              25, source1_size)
+    return vs1, vw1
 
 def object_detection_tracker(frame):
     results = model.track(source=frame, tracker='botsort.yaml', conf=0.3, iou=0.5, persist=True, stream=True,
@@ -128,8 +140,10 @@ if __name__ == '__main__':
     t.daemon = True
     t.start()
     # start the flask app
+    print(f'Started on port {args["ip"]}:{args["port"]}')
     app.run(host=args["ip"], port=args["port"], debug=True,
             threaded=True, use_reloader=False)
+
 # release the video stream pointer
 vs.stop()
 vw.release()
