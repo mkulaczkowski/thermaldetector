@@ -11,16 +11,44 @@ import signal
 import sys
 
 
-def gstreamer_pipeline(
+def visible_gstreamer_pipeline(
         capture_width=3840,
         capture_height=2160,
         display_width=1280,
         display_height=720,
         framerate=30,
-        flip_method=0,
+        flip_method=2,
 ):
     return (
             "nvarguscamerasrc ! "
+            "video/x-raw(memory:NVMM), "
+            "width=(int)%d, height=(int)%d, "
+            "format=(string)NV12, framerate=(fraction)%d/1 ! "
+            "nvvidconv flip-method=%d ! "
+            "video/x-raw, width=(int)%d, height=(int)%d, format=(string)BGRx ! "
+            "videoconvert ! "
+            "video/x-raw, format=(string)BGR ! appsink"
+            % (
+                capture_width,
+                capture_height,
+                framerate,
+                flip_method,
+                display_width,
+                display_height,
+            )
+    )
+
+
+def thermal_gstreamer_pipeline(
+        capture_width=640,
+        capture_height=480,
+        display_width=640,
+        display_height=480,
+        framerate=30,
+        flip_method=0,
+):
+    return (
+            "4l2src device=/dev/video1 ! "
             "video/x-raw(memory:NVMM), "
             "width=(int)%d, height=(int)%d, "
             "format=(string)NV12, framerate=(fraction)%d/1 ! "
@@ -96,12 +124,14 @@ class Camera(object):
     frame_reader = None
     cap = None
     previewer = None
+    pipeline = None
 
-    def __init__(self):
+    def __init__(self, pipeline = visible_gstreamer_pipeline()):
+        self.pipeline = pipeline
         self.open_camera()
 
     def open_camera(self):
-        self.cap = cv2.VideoCapture(gstreamer_pipeline(flip_method=0), cv2.CAP_GSTREAMER)
+        self.cap = cv2.VideoCapture(self.pipeline, cv2.CAP_GSTREAMER)
         if not self.cap.isOpened():
             raise RuntimeError("Failed to open camera!")
         if self.frame_reader == None:
