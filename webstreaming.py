@@ -11,6 +11,7 @@ import imutils
 import time
 import cv2
 
+import cameras.visible_camera
 from cameras.visible_camera import Camera
 
 # initialize the output frame and a lock used to ensure thread-safe
@@ -19,9 +20,9 @@ from cameras.visible_camera import Camera
 outputFrame = None
 lock = threading.Lock()
 
-
 # initialize a flask object
 app = Flask(__name__)
+
 
 @app.route("/")
 def index():
@@ -31,14 +32,26 @@ def index():
 
 def generate():
     visible_camera = Camera()
+    thermal_camera = Camera(pipeline=cameras.visible_camera.thermal_gstreamer_pipeline())
+
     # loop over frames from the output stream
     while True:
         # encode the frame in JPEG format
         with lock:
             outputFrame = visible_camera.getFrame()
+            thermalFrame = thermal_camera.getFrame()
+
             if outputFrame is None:
                 continue
+
+            img_gray1 = cv2.cvtColor(thermalFrame, cv2.COLOR_BGR2GRAY)
+            ret, thresh1 = cv2.threshold(img_gray1, 150, 255, cv2.THRESH_BINARY)
+            contours2, hierarchy2 = cv2.findContours(thresh1, cv2.RETR_TREE,
+                                                     cv2.CHAIN_APPROX_SIMPLE)
+            cv2.drawContours(outputFrame, contours2, -1, (0, 255, 0), 2, cv2.LINE_AA)
+
             # encode the frame in JPEG format
+
             (flag, encodedImage) = cv2.imencode(".jpg", outputFrame)
 
         # ensure the frame was successfully encoded
