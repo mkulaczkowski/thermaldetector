@@ -48,7 +48,7 @@ def thermal_gstreamer_pipeline(
         flip_method=0,
 ):
     return (
-            "4l2src device=/dev/video1 ! "
+            "v4l2src device=/dev/video1 ! "
             "video/x-raw(memory:NVMM), "
             "width=(int)%d, height=(int)%d, "
             "format=(string)NV12, framerate=(fraction)%d/1 ! "
