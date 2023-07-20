@@ -32,7 +32,7 @@ def index():
 
 def generate():
     visible_camera = Camera()
-    thermal_camera = Camera(pipeline=cameras.visible_camera.thermal_gstreamer_pipeline())
+    thermal_camera = Camera(source='thermal')
 
     # loop over frames from the output stream
     while True:
