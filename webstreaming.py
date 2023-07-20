@@ -29,36 +29,6 @@ def index():
     return render_template("index.html")
 
 
-def detect_motion(frameCount):
-    # grab global references to the video stream, output frame, and
-    # lock variables
-    global vs, vw, outputFrame, lock, new_frame_time, prev_frame_time
-    # loop over frames from the video stream
-    while True:
-        # read the next frame from the video stream, resize it,
-        # convert the frame to grayscale, and blur it
-        frame = vs.read()
-
-        # grab the current timestamp and draw it on the frame
-        timestamp = datetime.datetime.now()
-        #frame = object_detection_tracker(frame)
-        cv2.putText(frame, timestamp.strftime(
-            "%A %d %B %Y %I:%M:%S%p"), (10, frame.shape[0] - 10),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.35, (0, 0, 255), 1)
-        # new_frame_time = time.time()
-        # fps = 1 / (new_frame_time - prev_frame_time)
-        # prev_frame_time = new_frame_time
-
-        # # converting the fps into integer
-        # fps = str(int(fps))
-        # # putting the FPS count on the frame
-        # cv2.putText(frame, fps, (7, 70), cv2.FONT_HERSHEY_SIMPLEX, 3, (100, 255, 0), 3, cv2.LINE_AA)
-
-        # lock
-        with lock:
-            outputFrame = frame.copy()
-
-
 def generate():
     visible_camera = Camera()
     # loop over frames from the output stream
@@ -96,10 +66,7 @@ if __name__ == '__main__':
                     help="# of frames used to construct the background model")
     args = vars(ap.parse_args())
     # start a thread that will perform motion detection
-    t = threading.Thread(target=detect_motion, args=(
-        args["frame_count"],))
-    t.daemon = True
-    t.start()
+
     # start the flask app
     print(f'Started on port {args["ip"]}:{args["port"]}')
     app.run(host=args["ip"], port=args["port"], debug=True,
