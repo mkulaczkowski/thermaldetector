@@ -51,10 +51,11 @@ def thermal_gstreamer_pipeline(
             "v4l2src device=/dev/video1 ! "
             "video/x-raw, "
             "width=(int)%d, height=(int)%d, "
-            "framerate=(fraction)%d/1 ! "
+            "format=(string)NV12, framerate=(fraction)%d/1 ! "
             "flip-method=%d ! "
+            "video/x-raw, width=(int)%d, height=(int)%d, format=(string)BGRx ! "
             "videoconvert ! "
-            "video/x-raw, width=(int)%d, height=(int)%d, format=BGR ! appsink"
+            "video/x-raw, format=(string)BGR ! appsink"
             % (
                 capture_width,
                 capture_height,
