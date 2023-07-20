@@ -48,14 +48,14 @@ def thermal_gstreamer_pipeline(
         flip_method=0,
 ):
     return (
-            "v4l2src device=/dev/video1 ! "
-            "video/x-raw(memory:NVMM), "
+            "v4l2src device=/dev/video2 ! "
+            "video/x-raw, "
             "width=(int)%d, height=(int)%d, "
             "format=(string)NV12, framerate=(fraction)%d/1 ! "
             "nvvidconv flip-method=%d ! "
-            "video/x-raw, width=(int)%d, height=(int)%d, format=(string)BGRx ! "
             "videoconvert ! "
-            "video/x-raw, format=(string)BGR ! appsink"
+            "video/x-raw, width=(int)%d, height=(int)%d, format=BGR ! "
+            "appsink"
             % (
                 capture_width,
                 capture_height,
