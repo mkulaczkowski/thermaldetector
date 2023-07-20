@@ -126,8 +126,11 @@ class Camera(object):
     previewer = None
     pipeline = None
 
-    def __init__(self, pipeline = visible_gstreamer_pipeline()):
-        self.pipeline = pipeline
+    def __init__(self, source='visible'):
+        if source == 'visible':
+            self.pipeline = visible_gstreamer_pipeline()
+        else:
+            self.pipeline = 1
         self.open_camera()
 
     def open_camera(self):
