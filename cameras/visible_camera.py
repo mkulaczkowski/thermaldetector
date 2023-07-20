@@ -40,31 +40,14 @@ def visible_gstreamer_pipeline(
 
 
 def thermal_gstreamer_pipeline(
-        capture_width=640,
+        capture_width=720,
         capture_height=480,
-        display_width=640,
+        display_width=720,
         display_height=480,
         framerate=30,
         flip_method=0,
 ):
-    return (
-            "v4l2src device=/dev/video1 ! "
-            "video/x-raw, "
-            "width=(int)%d, height=(int)%d, "
-            "format=(string)NV12, framerate=(fraction)%d/1 ! "
-            "flip-method=%d ! "
-            "video/x-raw, width=(int)%d, height=(int)%d, format=(string)BGRx ! "
-            "videoconvert ! "
-            "video/x-raw, format=(string)BGR ! appsink"
-            % (
-                capture_width,
-                capture_height,
-                framerate,
-                flip_method,
-                display_width,
-                display_height,
-            )
-    )
+    return f"v4l2src device=/dev/video1 ! video/x-raw,format=YUY2,width={capture_width},height={capture_height},framerate={framerate}/1 ! nvvidconv ! video/x-raw(memory:NVMM) ! nvvidconv ! video/x-raw, format=BGRx ! appsink drop=1"
 
 
 class FrameReader(threading.Thread):
