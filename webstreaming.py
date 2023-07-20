@@ -35,9 +35,9 @@ def generate():
     while True:
         # encode the frame in JPEG format
         with lock:
+            outputFrame = visible_camera.getFrame()
             if outputFrame is None:
                 continue
-            outputFrame = visible_camera.getFrame()
             # encode the frame in JPEG format
             (flag, encodedImage) = cv2.imencode(".jpg", outputFrame)
 
