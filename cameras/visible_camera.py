@@ -54,8 +54,7 @@ def thermal_gstreamer_pipeline(
             "framerate=(fraction)%d/1 ! "
             "flip-method=%d ! "
             "videoconvert ! "
-            "video/x-raw, width=(int)%d, height=(int)%d, format=BGR ! "
-            "appsink"
+            "video/x-raw, width=(int)%d, height=(int)%d, format=BGR ! appsink"
             % (
                 capture_width,
                 capture_height,
@@ -130,7 +129,7 @@ class Camera(object):
         if source == 'visible':
             self.pipeline = visible_gstreamer_pipeline()
         else:
-            self.pipeline = 1
+            self.pipeline = thermal_gstreamer_pipeline()
         self.open_camera()
 
     def open_camera(self):
