@@ -32,11 +32,11 @@ def index():
 
 def generate():
     thermal_camera = cv2.VideoCapture(1, cv2.CAP_GSTREAMER)
-    if not thermal_camera.cap.isOpened():
+    if not thermal_camera.isOpened():
         raise RuntimeError("Failed to open thermal camera!")
 
     visible_camera = cv2.VideoCapture(visible_gstreamer_pipeline(), cv2.CAP_GSTREAMER)
-    if not visible_camera.cap.isOpened():
+    if not visible_camera.isOpened():
         raise RuntimeError("Failed to open visible camera!")
 
     # loop over frames from the output stream
