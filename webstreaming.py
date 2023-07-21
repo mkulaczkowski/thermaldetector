@@ -25,6 +25,16 @@ lock = threading.Lock()
 app = Flask(__name__)
 focuser = Focuser(1)
 
+thermal_camera = cv2.VideoCapture(1, cv2.CAP_GSTREAMER)
+if not thermal_camera.isOpened():
+    raise RuntimeError("Failed to open thermal camera!")
+
+visible_camera = cv2.VideoCapture(visible_gstreamer_pipeline(), cv2.CAP_GSTREAMER)
+if not visible_camera.isOpened():
+    raise RuntimeError("Failed to open visible camera!")
+
+current_source = 'visible'
+
 @app.route("/")
 def index():
     # return the rendered template
@@ -53,29 +63,40 @@ def focus(number):
     )
     return response
 
-def generate():
-    thermal_camera = cv2.VideoCapture(1, cv2.CAP_GSTREAMER)
-    if not thermal_camera.isOpened():
-        raise RuntimeError("Failed to open thermal camera!")
 
-    visible_camera = cv2.VideoCapture(visible_gstreamer_pipeline(), cv2.CAP_GSTREAMER)
-    if not visible_camera.isOpened():
-        raise RuntimeError("Failed to open visible camera!")
+@app.route('/mode/<str:mode>/')
+def change_source(mode):
+    current_source = mode
+    response = app.response_class(
+        response=f'Mode: {current_source}',
+        status=200,
+        mimetype='application/json'
+    )
+    return response
+
+
+def generate():
+
 
     # loop over frames from the output stream
     while True:
         # encode the frame in JPEG format
         with lock:
-            ret, outputFrame = visible_camera.read()
-            ret2, thermalFrame = thermal_camera.read()
 
+            if current_source == 'visible':
+                ret, outputFrame = visible_camera.read()
+            elif current_source == 'thermal':
+                ret2, outputFrame = thermal_camera.read()
+            elif current_source == 'fusion':
+                ret, outputFrame = visible_camera.read()
+                ret2, thermalFrame = thermal_camera.read()
 
-            resized = cv2.resize(thermalFrame, (1280, 853), interpolation=cv2.INTER_AREA)
-            img_gray1 = cv2.cvtColor(resized, cv2.COLOR_BGR2GRAY)
-            ret, thresh1 = cv2.threshold(img_gray1, 150, 255, cv2.THRESH_BINARY)
-            contours2, hierarchy2 = cv2.findContours(thresh1, cv2.RETR_TREE,
-                                                         cv2.CHAIN_APPROX_SIMPLE)
-            cv2.drawContours(outputFrame, contours2, -1, (0, 255, 0), 2, cv2.LINE_AA)
+                resized = cv2.resize(thermalFrame, (1280, 853), interpolation=cv2.INTER_AREA)
+                img_gray1 = cv2.cvtColor(resized, cv2.COLOR_BGR2GRAY)
+                ret, thresh1 = cv2.threshold(img_gray1, 150, 255, cv2.THRESH_BINARY)
+                contours2, hierarchy2 = cv2.findContours(thresh1, cv2.RETR_TREE,
+                                                             cv2.CHAIN_APPROX_SIMPLE)
+                cv2.drawContours(outputFrame, contours2, -1, (0, 255, 0), 2, cv2.LINE_AA)
 
             # encode the frame in JPEG format
 
