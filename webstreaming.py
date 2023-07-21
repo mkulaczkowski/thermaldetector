@@ -107,7 +107,7 @@ def generate(mode='visible'):
                 cv2.drawContours(outputFrame, contours2, -1, (0, 255, 0), 2, cv2.LINE_AA)
 
             # encode the frame in JPEG format
-            if not outputFrame:
+            if outputFrame is None:
                 continue
             (flag, encodedImage) = cv2.imencode(".jpg", outputFrame)
 
