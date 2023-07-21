@@ -70,7 +70,7 @@ def generate():
             ret2, thermalFrame = thermal_camera.read()
 
 
-            resized = cv2.resize(thermalFrame, (1280, 768), interpolation=cv2.INTER_AREA)
+            resized = cv2.resize(thermalFrame, (1280, 853), interpolation=cv2.INTER_AREA)
             img_gray1 = cv2.cvtColor(resized, cv2.COLOR_BGR2GRAY)
             ret, thresh1 = cv2.threshold(img_gray1, 150, 255, cv2.THRESH_BINARY)
             contours2, hierarchy2 = cv2.findContours(thresh1, cv2.RETR_TREE,
