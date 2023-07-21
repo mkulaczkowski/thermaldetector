@@ -47,7 +47,7 @@ def thermal_gstreamer_pipeline(
         framerate=25,
         flip_method=0,
 ):
-    return f"v4l2src device=/dev/video0 ! video/x-raw,format=YUY2,width={capture_width},height={capture_height},framerate={framerate}/1 ! videoconvert ! video/x-raw,format=BGR ! appsink"
+    return f"v4l2src device=/dev/video1 ! video/x-raw,format=YUY2,width={capture_width},height={capture_height},framerate={framerate}/1 ! videoconvert ! video/x-raw,format=BGR ! appsink"
 
 class FrameReader(threading.Thread):
     queues = []
