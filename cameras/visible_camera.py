@@ -27,7 +27,7 @@ def visible_gstreamer_pipeline(
             "nvvidconv flip-method=%d ! "
             "video/x-raw, width=(int)%d, height=(int)%d, format=(string)BGRx ! "
             "videoconvert ! "
-            "video/x-raw, format=(string)BGR ! appsink"
+            "video/x-raw, format=(string)BGR ! appsink drop=1"
             % (
                 capture_width,
                 capture_height,

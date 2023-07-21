@@ -12,7 +12,7 @@ import time
 import cv2
 
 import cameras.visible_camera
-from cameras.visible_camera import Camera
+from cameras.visible_camera import visible_gstreamer_pipeline
 
 # initialize the output frame and a lock used to ensure thread-safe
 # exchanges of the output frames (useful when multiple browsers/tabs
@@ -31,16 +31,20 @@ def index():
 
 
 def generate():
-    thermal_camera = Camera(source='thermal')
-    visible_camera = Camera(source='visible')
+    thermal_camera = cv2.VideoCapture(1, cv2.CAP_GSTREAMER)
+    if not thermal_camera.cap.isOpened():
+        raise RuntimeError("Failed to open thermal camera!")
 
+    visible_camera = cv2.VideoCapture(visible_gstreamer_pipeline(), cv2.CAP_GSTREAMER)
+    if not visible_camera.cap.isOpened():
+        raise RuntimeError("Failed to open visible camera!")
 
     # loop over frames from the output stream
     while True:
         # encode the frame in JPEG format
         with lock:
-            outputFrame = visible_camera.getFrame()
-            thermalFrame = thermal_camera.getFrame()
+            ret, outputFrame = visible_camera.read()
+            ret2, thermalFrame = thermal_camera.read()
 
 
             resized = cv2.resize(thermalFrame, (1280, 768), interpolation=cv2.INTER_AREA)
