@@ -64,7 +64,7 @@ def focus(number):
     return response
 
 
-@app.route('/mode/<str:mode>/')
+@app.route('/mode/<mode>/')
 def change_source(mode):
     current_source = mode
     response = app.response_class(
