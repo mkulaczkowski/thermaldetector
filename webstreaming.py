@@ -12,6 +12,7 @@ import time
 import cv2
 
 import cameras.visible_camera
+from cameras.Focuser import Focuser
 from cameras.visible_camera import visible_gstreamer_pipeline
 
 # initialize the output frame and a lock used to ensure thread-safe
@@ -22,13 +23,35 @@ lock = threading.Lock()
 
 # initialize a flask object
 app = Flask(__name__)
-
+focuser = Focuser(1)
 
 @app.route("/")
 def index():
     # return the rendered template
     return render_template("index.html")
 
+@app.route('/zoom/<int:number>/')
+def zoom(number):
+
+    focuser.set(Focuser.OPT_ZOOM, number)
+
+    response = app.response_class(
+        response=f'Zoom: {focuser.get(Focuser.OPT_ZOOM)}',
+        status=200,
+        mimetype='application/json'
+    )
+    return response
+
+
+@app.route('/focus/<int:number>/')
+def focus(number):
+    focuser.set(Focuser.OPT_FOCUS, number)
+    response = app.response_class(
+        response=f'Focus: {focuser.get(Focuser.OPT_FOCUS)}',
+        status=200,
+        mimetype='application/json'
+    )
+    return response
 
 def generate():
     thermal_camera = cv2.VideoCapture(1, cv2.CAP_GSTREAMER)
