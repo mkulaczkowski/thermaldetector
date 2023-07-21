@@ -166,10 +166,9 @@ def parseKey(k,focuser,auto_focus,camera):
 
 # Python curses example Written by Clay McLeod
 # https://gist.github.com/claymcleod/b670285f334acd56ad1c
-def draw_menu(stdscr, camera, i2c_bus):
+def draw_menu(stdscr, i2c_bus):
     focuser = Focuser(i2c_bus)
-    auto_focus = AutoFocus(focuser,camera)
-    
+
 
     k = 0
     cursor_x = 0
@@ -194,9 +193,6 @@ def draw_menu(stdscr, camera, i2c_bus):
         # get height and width of the window.
         height, width = stdscr.getmaxyx()
 
-        # parser input key
-        parseKey(k,focuser,auto_focus,camera)
-
         # Rendering some text
         whstr = "Width: {}, Height: {}".format(width, height)
         stdscr.addstr(0, 0, whstr, curses.color_pair(1))
@@ -216,16 +212,16 @@ def draw_menu(stdscr, camera, i2c_bus):
 def main():
     args = parse_cmdline()
     #open camera
-    camera = Camera()
-    thermal = ThermalCamera()
-    #open camera preview
-    camera.start_preview()
-    thermal.start_preview()
-    curses.wrapper(draw_menu, camera, args.i2c_bus)
-    thermal.stop_preview()
-    thermal.close()
-    camera.stop_preview()
-    camera.close()
+    # camera = Camera()
+    # thermal = ThermalCamera()
+    # #open camera preview
+    # camera.start_preview()
+    # thermal.start_preview()
+    curses.wrapper(draw_menu, args.i2c_bus)
+    # thermal.stop_preview()
+    # thermal.close()
+    # camera.stop_preview()
+    # camera.close()
 
     
 
