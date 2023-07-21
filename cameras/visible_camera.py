@@ -16,7 +16,7 @@ def visible_gstreamer_pipeline(
         capture_height=2160,
         display_width=1280,
         display_height=720,
-        framerate=30,
+        framerate=25,
         flip_method=2,
 ):
     return (
@@ -40,14 +40,14 @@ def visible_gstreamer_pipeline(
 
 
 def thermal_gstreamer_pipeline(
-        capture_width=720,
-        capture_height=480,
-        display_width=720,
-        display_height=480,
-        framerate=30,
+        capture_width=480,
+        capture_height=320,
+        display_width=480,
+        display_height=320,
+        framerate=25,
         flip_method=0,
 ):
-    return f"v4l2src device=/dev/video1 ! videoconvert ! videoscale ! video/x-raw, width={capture_width},height={capture_height}, framerate={framerate}/1  ! appsink"
+    return f"v4l2src device=/dev/video0 ! video/x-raw,format=YUY2,width={capture_width},height={capture_height},framerate={framerate}/1 ! videoconvert ! video/x-raw,format=BGR ! appsink"
 
 class FrameReader(threading.Thread):
     queues = []
