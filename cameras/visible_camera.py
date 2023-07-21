@@ -47,7 +47,7 @@ def thermal_gstreamer_pipeline(
         framerate=25,
         flip_method=0,
 ):
-    return f"v4l2src device=/dev/video1 ! video/x-raw,format=YUY2,width={capture_width},height={capture_height},framerate={framerate}/1 ! nvvidconv ! 'video/x-raw(memory:NVMM),format=NV12' ! nvoverlaysink"
+    return f"v4l2src device=/dev/video1 ! video/x-raw,format=YUY2,width={capture_width},height={capture_height},framerate={framerate}/1 ! nvvidconv ! 'video/x-raw(memory:NVMM),format=NV12' ! appsink"
 
 class FrameReader(threading.Thread):
     queues = []
