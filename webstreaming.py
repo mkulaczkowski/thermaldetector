@@ -44,7 +44,8 @@ def generate():
             if outputFrame is None:
                 continue
             if thermalFrame:
-                img_gray1 = cv2.cvtColor(thermalFrame, cv2.COLOR_BGR2GRAY)
+                resized = cv2.resize(thermalFrame, (1280, 768), interpolation=cv2.INTER_AREA)
+                img_gray1 = cv2.cvtColor(resized, cv2.COLOR_BGR2GRAY)
                 ret, thresh1 = cv2.threshold(img_gray1, 150, 255, cv2.THRESH_BINARY)
                 contours2, hierarchy2 = cv2.findContours(thresh1, cv2.RETR_TREE,
                                                          cv2.CHAIN_APPROX_SIMPLE)
