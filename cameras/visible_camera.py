@@ -116,7 +116,7 @@ class Camera(object):
         if source == 'visible':
             self.pipeline = visible_gstreamer_pipeline()
         else:
-            self.pipeline = thermal_gstreamer_pipeline()
+            self.pipeline = 1
         self.open_camera()
 
     def open_camera(self):
