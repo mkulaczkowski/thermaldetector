@@ -41,12 +41,12 @@ def index():
     return render_template("index.html")
 
 @app.route("/thermal/")
-def index():
+def thermal():
     # return the rendered template
     return render_template("thermal.html")
 
 @app.route("/fusion")
-def index():
+def fusion():
     # return the rendered template
     return render_template("fusion.html")
 
