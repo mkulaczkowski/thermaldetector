@@ -39,17 +39,17 @@ def generate():
         # encode the frame in JPEG format
         with lock:
             outputFrame = visible_camera.getFrame()
-            thermalFrame = thermal_camera.getFrame()
+            #thermalFrame = thermal_camera.getFrame()
 
             if outputFrame is None:
                 continue
-            if thermalFrame:
-                resized = cv2.resize(thermalFrame, (1280, 768), interpolation=cv2.INTER_AREA)
-                img_gray1 = cv2.cvtColor(resized, cv2.COLOR_BGR2GRAY)
-                ret, thresh1 = cv2.threshold(img_gray1, 150, 255, cv2.THRESH_BINARY)
-                contours2, hierarchy2 = cv2.findContours(thresh1, cv2.RETR_TREE,
-                                                         cv2.CHAIN_APPROX_SIMPLE)
-                cv2.drawContours(outputFrame, contours2, -1, (0, 255, 0), 2, cv2.LINE_AA)
+            # if thermalFrame is not None:
+            #     resized = cv2.resize(thermalFrame, (1280, 768), interpolation=cv2.INTER_AREA)
+            #     img_gray1 = cv2.cvtColor(resized, cv2.COLOR_BGR2GRAY)
+            #     ret, thresh1 = cv2.threshold(img_gray1, 150, 255, cv2.THRESH_BINARY)
+            #     contours2, hierarchy2 = cv2.findContours(thresh1, cv2.RETR_TREE,
+            #                                              cv2.CHAIN_APPROX_SIMPLE)
+            #     cv2.drawContours(outputFrame, contours2, -1, (0, 255, 0), 2, cv2.LINE_AA)
 
             # encode the frame in JPEG format
 
