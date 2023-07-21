@@ -32,7 +32,7 @@ def index():
 
 def generate():
     visible_camera = Camera(source='visible')
-    thermal_camera = Camera(source='thermal')
+    #thermal_camera = Camera(source='thermal')
 
     # loop over frames from the output stream
     while True:

@@ -37,7 +37,6 @@ def visible_gstreamer_pipeline(
                 display_height,
             )
     )
-    print(pipeline)
     return pipeline
 
 
