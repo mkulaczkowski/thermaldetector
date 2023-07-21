@@ -19,7 +19,7 @@ def visible_gstreamer_pipeline(
         framerate=25,
         flip_method=2,
 ):
-    return (
+    pipeline = (
             "nvarguscamerasrc ! "
             "video/x-raw(memory:NVMM), "
             "width=(int)%d, height=(int)%d, "
@@ -37,6 +37,8 @@ def visible_gstreamer_pipeline(
                 display_height,
             )
     )
+    print(pipeline)
+    return pipeline
 
 
 def thermal_gstreamer_pipeline(
@@ -49,7 +51,7 @@ def thermal_gstreamer_pipeline(
 ):
     pipeline = f"v4l2src device=/dev/video1 ! video/x-raw,format=YUY2,width={capture_width},height={capture_height},framerate={framerate}/1 ! nvvidconv ! 'video/x-raw(memory:NVMM),format=NV12' ! appsink"
     print(pipeline)
-    return pipeline
+    return (pipeline)
 
 class FrameReader(threading.Thread):
     queues = []
