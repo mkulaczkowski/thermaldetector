@@ -40,6 +40,16 @@ def index():
     # return the rendered template
     return render_template("index.html")
 
+@app.route("/thermal/")
+def index():
+    # return the rendered template
+    return render_template("thermal.html")
+
+@app.route("/fusion")
+def index():
+    # return the rendered template
+    return render_template("fusion.html")
+
 @app.route('/zoom/<int:number>/')
 def zoom(number):
 
@@ -75,19 +85,17 @@ def change_source(mode):
     return response
 
 
-def generate():
-
+def generate(mode='visible'):
 
     # loop over frames from the output stream
     while True:
         # encode the frame in JPEG format
         with lock:
-
-            if current_source == 'visible':
+            if mode == 'visible':
                 ret, outputFrame = visible_camera.read()
-            elif current_source == 'thermal':
+            elif mode == 'thermal':
                 ret2, outputFrame = thermal_camera.read()
-            elif current_source == 'fusion':
+            elif mode == 'fusion':
                 ret, outputFrame = visible_camera.read()
                 ret2, thermalFrame = thermal_camera.read()
 
@@ -107,11 +115,15 @@ def generate():
                bytearray(encodedImage) + b'\r\n')
 
 
-@app.route("/video_feed")
-def video_feed():
+
+
+
+
+@app.route("/video_feed/<mode>")
+def video_feed(mode):
     # return the response generated along with the specific media
     # type (mime type)
-    return Response(generate(),
+    return Response(generate(mode),
                     mimetype="multipart/x-mixed-replace; boundary=frame")
 
 
