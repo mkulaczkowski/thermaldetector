@@ -1,9 +1,541 @@
 <html>
-  <head>
-    <title>Pi Video Surveillance</title>
-  </head>
-  <body>
-    <h1>Day light mode</h1>
-    <img src="{{ url_for('video_feed', mode='visible') }}">
-  </body>
+<head>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <link rel="apple-touch-icon" href="app.png">
+    <meta name="viewport" content="width=1280, initial-scale=0.66, maximum-scale=1, user-scalable=no"/>
+
+    <title>Pan/Tilt Camera</title>
+
+    <script type="text/javascript" src="jquery-1.12.4.min.js"></script>
+    <script type="text/javascript" src="jquery-ui.js"></script>
+    <script type="text/javascript" src="http-live-player.js">;</script>
+    <script type="text/javascript" charset="utf-8">
+        $(document).ready(function () {
+            var canvas = $('#canvas')[0];
+            var cameraName = 'Camera',
+                positionTimer = null,
+                wsavc = null,
+                connected = false,
+                motionGranted = false,
+                controlling = false,
+                zerosSent = false;
+
+            var pan = 0, tilt = 0,
+                panMin = -90, panMax = 90,
+                tiltMin = -30, tiltMax = 35;
+
+            let port = location.port ? parseInt(location.port) : (location.protocol === 'https:' ? 443 : 80);
+            let protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            var uri = protocol + '//' + location.hostname + ':' + port + location.pathname;
+            var params = new URLSearchParams(location.search);
+
+            cameraName = params.get('id');
+            console.log(`Connecting to ${cameraName}`);
+            document.title = cameraName + ' - Pan/Tilt Camera';
+
+            connect();
+            setInterval(connect, 5000);
+
+            function connect() {
+                if (!wsavc) {
+                    try {
+                        wsavc = new WSAvcPlayer(canvas, "webgl", 1, 35);
+                        wsavc.onopen = function() {
+                            setTimeout(startStreamingControls, 500);
+                        }
+
+                        wsavc.onclose = function () {
+                            wsavc = null;
+                            connected = false;
+                            controlling = false;
+                            console.log('Disconnected');
+                        };
+                        wsavc.connect(uri, onstatus);
+                    } catch {
+                        console.error('No WsAvcPlayer available');
+                    }
+                }
+            }
+
+            function map(x, in_min, in_max, out_min, out_max) {
+                return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+            }
+
+            function showUIOverlay() {
+                $('.ui').css('opacity', 0.5);
+                $('#positioncontainer').css('opacity', 0.8);
+                if (positionTimer) {
+                    clearTimeout(positionTimer);
+                }
+                positionTimer = setTimeout(function() {
+                    $('#positioncontainer').css('opacity', 0);
+                    $('.ui').css('opacity', 0);
+                }, 5000);
+            }
+
+            function onstatus(d) {
+                if (d.data && !d.data.err) {
+                    if (d.data.name === 'Pan') {
+                        pan = d.data.pos;
+                    } else if (d.data.name === 'Tilt') {
+                        tilt = d.data.pos;
+                    }
+                    px = map(pan, panMin, panMax, 0, 305);
+                    py = map(-tilt, tiltMin, tiltMax, 0, 75);
+                    $('#position').css('left', px).css('top', py + 6);
+                    showUIOverlay();
+                }
+            }
+
+            function startStream() {
+                if (wsavc) {
+                    wsavc.playStream(cameraName);
+                }
+            }
+
+            function startStreamingControls() {
+                console.log('Connected');
+                connected = true;
+                controlling = true;
+                setTimeout(startStream, 100);
+            }
+
+            function stopStreamingControls() {
+                controlling = false;
+            }
+
+            function capitalize(s) {
+                if (typeof s !== 'string') return ''
+                if (s.length < 2) return s;
+                return s.charAt(0).toUpperCase() + s.slice(1)
+            }
+
+            function set_status(which, status) {
+                let v = capitalize(status).replace('None', '')
+                $('#' + which + '_status').css('background-color', v === '' ? 'transparent' : '#444').html(v);
+            }
+
+            function toggleControls() {
+                if (!controlling) {
+                    startStreamingControls();
+                } else {
+                    stopStreamingControls();
+                }
+                $('#toggle').css('background-image', 'url(' + (controlling ? 'unlock' : 'lock') + '.png)');
+            }
+
+            function forceReload() {
+                window.location = window.location;
+            }
+
+            function deviceMotion(e) {
+                let orient = window.orientation;
+                if (orient) {
+                    let tilt = e.rotationRate.beta * (orient < 0 ? +1 : -1),
+                        pan = e.rotationRate.alpha * (orient < 0 ? -1 : +1),
+                        tv = Math.abs(tilt) > 0.25 ? tilt.toFixed(2)/64 : 0.0,
+                        pv = Math.abs(pan) > 0.25 ? pan.toFixed(2)/64 : 0.0
+
+                    if (connected && controlling) {
+                        if (tv && pv || !zerosSent) {
+                            wsavc.ws.send('{"pan": ' + pv + ', "tilt": ' + tv + ', "relative": true}');
+                            zerosSent = !tv && !pv;
+                        }
+                    }
+                }
+            }
+
+            function deviceOrientation() {
+                set_status('motion', window.orientation === 0 ? 'Not in landscape orientation' :
+                                    motionGranted ? 'None' : 'Enable Motion');
+            }
+
+            function requestDeviceMotionPermissions() {
+                window.addEventListener('orientationchange', deviceOrientation);
+                window.DeviceMotionEvent.requestPermission()
+                    .then(response => {
+                        if (response === 'granted') {
+                            window.addEventListener('devicemotion', deviceMotion, (e) => {
+                                throw e
+                            });
+                            $('#toggle').css('display', 'block').css('background-image', 'url(unlock.png)');
+                            motionGranted = true;
+                            set_status('motion', 'None');
+                            controlling = true;
+                        } else {
+                            setStatus('DeviceMotion permissions NOT granted.', true);
+                        }
+                    })
+                    .catch(e => {
+                        console.error(e)
+                    })
+            }
+
+            function keyHandler(e) {
+                let amount = e.shiftKey ? 1 : 5,
+                    motion = '"duration": 1000';
+                if (e.ctrlKey) {
+                    console.log(e);
+                    if (e.shiftKey && e.key === 'R') {
+                        console.log(`Requesting restart...`);
+                        wsavc.ws.send(`{"cmd": "restart"}`);
+                    } else if (e.key === 'Home' || e.key === 'h') {
+                        console.log(`Setting home...`);
+                        wsavc.ws.send(`{"cmd": "setPos", "pos": "home"}`);
+                    } else if (e.key === 'a' || e.key === 'b' || e.key === 'c' || e.key === 'd') {
+                        console.log(`Setting ${e.key} position...`);
+                        wsavc.ws.send(`{"cmd": "setPos", "pos": "${e.key}"}`);
+                    }
+
+                } else if (e.key === 'ArrowLeft') {
+                    wsavc.ws.send(`{"pan": ${amount}, "tilt": 0, "relative": true}`);
+                } else if (e.key === 'ArrowRight') {
+                    wsavc.ws.send(`{"pan": -${amount}, "tilt": 0, "relative": true}`);
+                } else if (e.key === 'ArrowUp') {
+                    wsavc.ws.send(`{"pan": 0, "tilt": ${amount}, "relative": true}`);
+                } else if (e.key === 'ArrowDown') {
+                    wsavc.ws.send(`{"pan": 0, "tilt": -${amount}, "relative": true}`);
+
+                } else if (e.key === 'Home' || e.key === '0') {
+                    wsavc.ws.send(`{"pos": "home", ${motion}}`);
+                } else if (e.key === '5') {
+                    wsavc.ws.send(`{"pos": "F", ${motion}}`);
+                } else if (e.key === '4') {
+                    wsavc.ws.send(`{"pos": "L", ${motion}}`);
+                } else if (e.key === '6') {
+                    wsavc.ws.send(`{"pos": "R", ${motion}}`);
+                } else if (e.key === '8') {
+                    wsavc.ws.send(`{"pos": "U", ${motion}}`);
+                } else if (e.key === '2') {
+                    wsavc.ws.send(`{"pos": "D", ${motion}}`);
+                } else if (e.key === '7') {
+                    wsavc.ws.send(`{"pos": "LU", ${motion}}`);
+                } else if (e.key === '1') {
+                    wsavc.ws.send(`{"pos": "LD", ${motion}}`);
+                } else if (e.key === '9') {
+                    wsavc.ws.send(`{"pos": "RU", ${motion}}`);
+                } else if (e.key === '3') {
+                    wsavc.ws.send(`{"pos": "RD", ${motion}}`);
+
+                } else if (e.key && (e.key === 'a' || e.key === 'b' || e.key === 'c' || e.key === 'd')) {
+                    console.log(`Moving to ${e.key} position...`);
+                    wsavc.ws.send(`{"pos": "${e.key}", ${motion}}`);
+
+                } else if (e.key === 'h') {
+                    $('#help').css('opacity',  $('#help').css('opacity') === '0' ? 1 : 0);
+                }
+            }
+
+            function menu(topic) {
+                let container = $('#' + topic + 's');
+                let collapsed = container.css('display') === 'none'
+                container.css('display', collapsed ? 'block' : 'none');
+                $('.menu').css('display', !collapsed ? 'block' : 'none');
+                $('.status').css('display', !collapsed ? 'block' : 'none');
+                $('#view').css('display', !collapsed ? 'block' : 'none');
+                $('#' + topic).css('display', 'block');
+            }
+
+            function pick(topic, e) {
+                wsavc.ws.send(`{"pos": "${e.target.id}", "duration": 1000}`);
+                menu(topic);
+            }
+
+            $('#reload').click(forceReload);
+            $('#toggle').click(toggleControls);
+
+            $('.view.item').click(function(e) { pick('view', e)});
+            $('#view').click(function() { menu('view')});
+
+
+            // Touch and mouse events
+            let tracking = false;
+            let lp = 0, lt = 0;
+
+            // Mouse event handlers
+            function mStart(e) {
+                $('#container').css('cursor', 'grab');
+                cStart(e.pageX, e.pageY);
+            }
+
+            function mMove(e) {
+                cMove(e.pageX, e.pageY);
+            }
+
+            function mEnd(e) {
+                tracking = false;
+                $('#container').css('cursor', 'default');
+            }
+
+            // Touch event handlers
+            function tStart(e) {
+                cStart(e.originalEvent.pageX, e.originalEvent.pageY);
+            }
+
+            function atStart(e) {
+                e.preventDefault();
+                cStart(e.originalEvent.touches[0].pageX, e.originalEvent.touches[0].pageY);
+            }
+
+            function tEnd(e) {
+                tracking = false;
+            }
+
+            function tMove(e) {
+                e.preventDefault();
+                cMove(e.originalEvent.pageX, e.originalEvent.pageY);
+            }
+
+            function atMove(e) {
+                e.preventDefault();
+                cMove(e.originalEvent.touches[0].pageX, e.originalEvent.touches[0].pageY);
+            }
+
+            // Common event processors
+            function cStart(p, t) {
+                tracking = true;
+                lp = p;
+                lt = t;
+                showUIOverlay();
+            }
+
+            function cMove(p, t) {
+                if (tracking) {
+                    let pv = (p - lp)/4;
+                    let tv = (t - lt)/4;
+                    if (pv || tv) {
+                        console.log(`pv=${pv}; tv=${tv}`);
+                        wsavc.ws.send('{"pan": ' + pv + ', "tilt": ' + tv + ', "relative": true}');
+                        lp = p;
+                        lt = t;
+                    }
+                }
+            }
+
+            function hideHelp() {
+                $('#help').css('opacity', 0);
+            }
+
+            if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Tesla/i.test(navigator.userAgent)) {
+                $('#help').css('display', 'none');
+                $('#motion_status').click(requestDeviceMotionPermissions);
+                setTimeout(deviceOrientation, 100);
+                setTimeout(requestDeviceMotionPermissions, 500);
+
+                if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+                    if (location.protocol !== 'https:') {
+                        $('#motion_status').css('display', 'none');
+                    }
+
+                    // Register touch events for others....
+                    $('#container').on('touchstart', tStart).on('touchmove', tMove).on('touchend', tEnd);
+                } else {
+                    $('#motion_status').css('display', 'none');
+                    // Register touch events for Android....
+                    $('#container').on('touchstart', atStart).on('touchmove', atMove).on('touchend', tEnd);
+                }
+
+            } else {
+                $('#motion_status').css('display', 'none');
+                $('#reload').css('display', 'none');
+                $('.menu').css('display', 'none');
+                $('#positioncontainer').css('top', 600);
+
+                // Unless embedded, center the view-port on the page.
+                if (window.location.hash === '#embed') {
+                    // Running embedded w/o any decorations...
+                } else {
+                    $('#container').css('position', 'flex').css('margin', '50px auto').css('border', 'solid 4px #777');
+                }
+
+                // Register mouse events
+                $('#container').on('mousedown', mStart).on('mousemove', mMove).on('mouseup', mEnd);
+            }
+
+            $('body').keydown(keyHandler);
+            showUIOverlay();
+            setTimeout(hideHelp, 10000);
+        });
+    </script>
+
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #222;
+            color: #ddd;
+            font-family: Arial, Helvetica, Sans-Serif, serif;
+            font-size: 24px;
+        }
+
+        #container {
+            width: 1280px;
+            height: 720px;
+            position: relative;
+        }
+
+        #canvas {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            background: #333;
+            z-index: -1;
+        }
+
+        #controls {
+            width: 100%;
+            padding: 5px 10px 5px 10px;
+            position: fixed;
+        }
+
+        .overlay {
+            cursor: pointer;
+            border-radius: 8px;
+            margin: 10px;
+            padding: 8px;
+            font-weight: bold;
+            position: absolute;
+            left: 20px;
+            background-color: #444;
+            opacity: 0.5;
+        }
+
+        .ui {
+            opacity: 0.5;
+            transition: opacity 1s linear;
+        }
+
+        .menu {
+            margin: 0px;
+            padding: 0px;
+            width: 64px;
+            height: 64px;
+            background-repeat: no-repeat;
+            background-position-y: 4px;
+        }
+
+        .choices {
+            margin-top: 0px;
+            left: 80px;
+        }
+
+
+        .item {
+            padding: 8px 24px;
+            cursor: pointer;
+        }
+
+        #reload {
+            margin: 0px;
+            padding: 0px;
+            width: 64px;
+            height: 64px;
+            top: 80px;
+            background-image: url('reload.png');
+            background-repeat: no-repeat;
+            background-position-y: 4px;
+        }
+
+        #toggle {
+            display: none;
+            margin: 0px;
+            padding: 0px;
+            width: 64px;
+            height: 64px;
+            top: 200px;
+            background-image: url('lock.png');
+            background-repeat: no-repeat;
+            background-position-y: 4px;
+        }
+
+        #motion_status {
+            top: 10px;
+            left: 0px;
+        }
+
+        #view {
+            top: 320px;
+            background-image: url('camera.png');
+        }
+
+        #views {
+            display: none;
+            top: 250px;
+        }
+
+        #positioncontainer {
+            opacity: 0;
+            transition: opacity 1s linear;
+            border: solid #ccc 2px;
+            width: 320px;
+            height: 90px;
+            margin: auto;
+            top: 540px;
+            position: relative;
+        }
+
+        #position {
+            position: relative;
+            top: 37px;
+            left: 152px;
+            width: 16px;
+            height: 16px;
+            border-radius: 8px;
+            background-color: #ccc;
+        }
+
+        #help {
+            position: relative;
+            width: 1280px;
+            margin: auto;
+            font-size: 18px;
+            color: #999;
+            opacity: 1;
+            transition: opacity 0.3s linear;
+        }
+
+    </style>
+
+</head>
+<body>
+<div id="container">
+    <canvas id="canvas"></canvas>
+
+    <div id="controls">
+        <div class="overlay ui" id="motion_status">Enable Motion</div>
+        <div class="overlay ui" id="reload"></div>
+        <div class="overlay ui" id="toggle"></div>
+
+        <div class="overlay ui menu" id="view"></div>
+        <div class="overlay choices" id="views">
+            <div class="view item" id="home">Home</div>
+            <div class="view item" id="F">Forward</div>
+            <div class="view item" id="L">Left</div>
+            <div class="view item" id="R">Right</div>
+        </div>
+    </div>
+
+    <div class="ui" id="positioncontainer"><div id="position"></div></div>
+
+</div>
+<div id="help">
+    <p>
+        To control pan/tilt you can use the keyboard arrow keys. Hold down the <em>Shift</em> key for fine-grained
+        position control.
+        Alternatively, you can pan around the real-world using click-and-drag on the camera viewport.
+    </p>
+    <p>
+        The number keypad keys can be used to navigate to various limits of the pan/tilt mechanism.
+        The <em>5</em> key moves to the center and <em>0</em> or or <em>Home</em> keys navigate to the previously set home position.
+    </p>
+    <p>
+        To set home position, press <em>Ctrl-h</em> or <em>Ctrl-Home</em>.
+    </p>
+    <p>
+        To hide/show this message, press the <em>h</em> key.
+    </p>
+</div>
+</body>
 </html>

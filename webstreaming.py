@@ -1,4 +1,5 @@
 # import the necessary packages
+from flask_socketio import SocketIO
 
 from imutils.video import VideoStream
 from flask import Response
@@ -22,18 +23,13 @@ outputFrame = None
 lock = threading.Lock()
 
 # initialize a flask object
-app = Flask(__name__)
-focuser = Focuser(1)
+app = Flask(__name__, template_folder='templates', static_folder='static', static_url_path='/static')
+app.config['SECRET_KEY'] = 'Ranger'
+socketio = SocketIO(app)
 
-thermal_camera = cv2.VideoCapture(1, cv2.CAP_GSTREAMER)
-if not thermal_camera.isOpened():
-    raise RuntimeError("Failed to open thermal camera!")
 
-visible_camera = cv2.VideoCapture(visible_gstreamer_pipeline(), cv2.CAP_GSTREAMER)
-if not visible_camera.isOpened():
-    raise RuntimeError("Failed to open visible camera!")
 
-current_source = 'visible'
+
 
 @app.route("/")
 def index():
@@ -45,14 +41,14 @@ def thermal():
     # return the rendered template
     return render_template("thermal.html")
 
-@app.route("/fusion")
+@app.route("/fusion/")
 def fusion():
     # return the rendered template
     return render_template("fusion.html")
 
 @app.route('/zoom/<int:number>/')
 def zoom(number):
-
+    focuser = Focuser(1)
     focuser.set(Focuser.OPT_ZOOM, number)
 
     response = app.response_class(
@@ -65,6 +61,7 @@ def zoom(number):
 
 @app.route('/focus/<int:number>/')
 def focus(number):
+    focuser = Focuser(1)
     focuser.set(Focuser.OPT_FOCUS, number)
     response = app.response_class(
         response=f'Focus: {focuser.get(Focuser.OPT_FOCUS)}',
@@ -86,7 +83,17 @@ def change_source(mode):
 
 
 def generate(mode='visible'):
+    focuser = Focuser(1)
 
+    thermal_camera = cv2.VideoCapture(1, cv2.CAP_GSTREAMER)
+    if not thermal_camera.isOpened():
+        raise RuntimeError("Failed to open thermal camera!")
+
+    visible_camera = cv2.VideoCapture(visible_gstreamer_pipeline(), cv2.CAP_GSTREAMER)
+    if not visible_camera.isOpened():
+        raise RuntimeError("Failed to open visible camera!")
+
+    current_source = 'visible'
     # loop over frames from the output stream
     while True:
         # encode the frame in JPEG format
@@ -96,6 +103,9 @@ def generate(mode='visible'):
             elif mode == 'thermal':
                 ret2, outputFrame = thermal_camera.read()
             elif mode == 'fusion':
+
+                focuser.set(Focuser.OPT_FOCUS, 9300)
+                focuser.set(Focuser.OPT_ZOOM, 7000)
                 ret, outputFrame = visible_camera.read()
                 ret2, thermalFrame = thermal_camera.read()
 
@@ -143,5 +153,6 @@ if __name__ == '__main__':
 
     # start the flask app
     print(f'Started on port {args["ip"]}:{args["port"]}')
-    app.run(host=args["ip"], port=args["port"], debug=True,
-            threaded=True, use_reloader=False)
+    #app.run(host=args["ip"], port=args["port"], debug=True,
+    #        threaded=True, use_reloader=False)
+    socketio.run(app,host=args["ip"], port=args["port"], allow_unsafe_werkzeug=True, debug=True)
