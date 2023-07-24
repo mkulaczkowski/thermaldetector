@@ -71,6 +71,18 @@ def focus(number):
     return response
 
 
+@app.route('/IR/')
+def IR_cut(number):
+    focuser = Focuser(1)
+    focuser.set(Focuser.OPT_IRCUT,focuser.get(Focuser.OPT_IRCUT)^0x0001)
+    response = app.response_class(
+        response=f'Focus: {focuser.get(Focuser.OPT_IRCUT)}',
+        status=200,
+        mimetype='application/json'
+    )
+    return response
+
+
 @app.route('/mode/<mode>/')
 def change_source(mode):
     current_source = mode
