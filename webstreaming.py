@@ -72,7 +72,7 @@ def focus(number):
 
 
 @app.route('/IR/')
-def IR_cut(number):
+def IR_cut():
     focuser = Focuser(1)
     focuser.set(Focuser.OPT_IRCUT,focuser.get(Focuser.OPT_IRCUT)^0x0001)
     response = app.response_class(
