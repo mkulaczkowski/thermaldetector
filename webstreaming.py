@@ -105,6 +105,9 @@ def generate(mode='visible'):
     if not visible_camera.isOpened():
         raise RuntimeError("Failed to open visible camera!")
 
+    if mode == 'fusion':
+        focuser.set(Focuser.OPT_FOCUS, 9300)
+        focuser.set(Focuser.OPT_ZOOM, 7000)
     current_source = 'visible'
     # loop over frames from the output stream
     while True:
@@ -115,9 +118,6 @@ def generate(mode='visible'):
             elif mode == 'thermal':
                 ret2, outputFrame = thermal_camera.read()
             elif mode == 'fusion':
-
-                focuser.set(Focuser.OPT_FOCUS, 9300)
-                focuser.set(Focuser.OPT_ZOOM, 7000)
                 ret, outputFrame = visible_camera.read()
                 ret2, thermalFrame = thermal_camera.read()
 
