@@ -17,7 +17,7 @@ def visible_gstreamer_pipeline(
         display_width=1280,
         display_height=720,
         framerate=25,
-        flip_method=0,
+        flip_method=2,
 ):
     pipeline = (
             "nvarguscamerasrc ! "
