@@ -36,6 +36,12 @@ def index():
     # return the rendered template
     return render_template("index.html")
 
+@app.route("/visible/")
+def index():
+    # return the rendered template
+    return render_template("visible.html")
+
+
 @app.route("/thermal/")
 def thermal():
     # return the rendered template
