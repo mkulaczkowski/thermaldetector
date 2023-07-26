@@ -106,10 +106,10 @@ def generate(mode='visible'):
         thermal_camera = cv2.VideoCapture(1, cv2.CAP_GSTREAMER)
         if not thermal_camera.isOpened():
             raise RuntimeError("Failed to open thermal camera!")
-
-    visible_camera = cv2.VideoCapture(visible_gstreamer_pipeline(), cv2.CAP_GSTREAMER)
-    if not visible_camera.isOpened():
-        raise RuntimeError("Failed to open visible camera!")
+    elif mode == 'visible' or mode == 'fusion':
+        visible_camera = cv2.VideoCapture(visible_gstreamer_pipeline(), cv2.CAP_GSTREAMER)
+        if not visible_camera.isOpened():
+            raise RuntimeError("Failed to open visible camera!")
 
     if mode == 'fusion':
         focuser.set(Focuser.OPT_FOCUS, 9300)
