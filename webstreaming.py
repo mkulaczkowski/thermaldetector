@@ -28,13 +28,11 @@ app.config['SECRET_KEY'] = 'Ranger'
 socketio = SocketIO(app)
 
 
-
-
-
 @app.route("/")
 def index():
     # return the rendered template
     return render_template("index.html")
+
 
 @app.route("/visible/")
 def visible():
@@ -47,10 +45,12 @@ def thermal():
     # return the rendered template
     return render_template("thermal.html")
 
+
 @app.route("/fusion/")
 def fusion():
     # return the rendered template
     return render_template("fusion.html")
+
 
 @app.route('/zoom/<int:number>/')
 def zoom(number):
@@ -80,7 +80,7 @@ def focus(number):
 @app.route('/IR/')
 def IR_cut():
     focuser = Focuser(1)
-    focuser.set(Focuser.OPT_IRCUT,focuser.get(Focuser.OPT_IRCUT)^0x0001)
+    focuser.set(Focuser.OPT_IRCUT, focuser.get(Focuser.OPT_IRCUT) ^ 0x0001)
     response = app.response_class(
         response=f'Focus: {focuser.get(Focuser.OPT_IRCUT)}',
         status=200,
@@ -131,7 +131,7 @@ def generate(mode='visible'):
                 img_gray1 = cv2.cvtColor(resized, cv2.COLOR_BGR2GRAY)
                 ret, thresh1 = cv2.threshold(img_gray1, 150, 255, cv2.THRESH_BINARY)
                 contours2, hierarchy2 = cv2.findContours(thresh1, cv2.RETR_TREE,
-                                                             cv2.CHAIN_APPROX_SIMPLE)
+                                                         cv2.CHAIN_APPROX_SIMPLE)
                 cv2.drawContours(outputFrame, contours2, -1, (0, 255, 0), 2, cv2.LINE_AA)
 
             # encode the frame in JPEG format
@@ -142,10 +142,6 @@ def generate(mode='visible'):
         # ensure the frame was successfully encoded
         yield (b'--frame\r\n' b'Content-Type: image/jpeg\r\n\r\n' +
                bytearray(encodedImage) + b'\r\n')
-
-
-
-
 
 
 @app.route("/video_feed/<mode>")
@@ -171,6 +167,6 @@ if __name__ == '__main__':
 
     # start the flask app
     print(f'Started on port {args["ip"]}:{args["port"]}')
-    #app.run(host=args["ip"], port=args["port"], debug=True,
+    # app.run(host=args["ip"], port=args["port"], debug=True,
     #        threaded=True, use_reloader=False)
-    socketio.run(app,host=args["ip"], port=args["port"], allow_unsafe_werkzeug=True, debug=True)
+    socketio.run(app, host=args["ip"], port=args["port"], debug=True)
