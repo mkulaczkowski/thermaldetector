@@ -125,7 +125,7 @@
                     if (connected && controlling) {
 
                         if (tv && pv || !zerosSent) {
-                            socket.emit('Slider value changed', {
+                            socket.emit('motion', {
                                 pan:pv,
                                 tilt: tv,
                                 relative: true
@@ -169,23 +169,46 @@
                     console.log(e);
                     if (e.shiftKey && e.key === 'R') {
                         console.log(`Requesting restart...`);
-                        wsavc.ws.send(`{"cmd": "restart"}`);
+                        socket.emit('cmd', {
+                                'cmd': 'restart'
+                             });
                     } else if (e.key === 'Home' || e.key === 'h') {
                         console.log(`Setting home...`);
-                        wsavc.ws.send(`{"cmd": "setPos", "pos": "home"}`);
+                        socket.emit('cmd', {
+                                'cmd': 'home'
+                             });
                     } else if (e.key === 'a' || e.key === 'b' || e.key === 'c' || e.key === 'd') {
                         console.log(`Setting ${e.key} position...`);
-                        wsavc.ws.send(`{"cmd": "setPos", "pos": "${e.key}"}`);
+                        socket.emit('cmd', {
+                                'cmd': 'setPos',
+                                'pos': e.key
+                             });
                     }
 
                 } else if (e.key === 'ArrowLeft') {
-                    wsavc.ws.send(`{"pan": ${amount}, "tilt": 0, "relative": true}`);
+                    socket.emit('motion', {
+                                pan:amount,
+                                tilt: 0,
+                                relative: true
+                             });
                 } else if (e.key === 'ArrowRight') {
-                    wsavc.ws.send(`{"pan": -${amount}, "tilt": 0, "relative": true}`);
+                    socket.emit('motion', {
+                                pan:-amount,
+                                tilt: 0,
+                                relative: true
+                             });
                 } else if (e.key === 'ArrowUp') {
-                    wsavc.ws.send(`{"pan": 0, "tilt": ${amount}, "relative": true}`);
+                    socket.emit('motion', {
+                                pan:0,
+                                tilt: amount,
+                                relative: true
+                             });
                 } else if (e.key === 'ArrowDown') {
-                    wsavc.ws.send(`{"pan": 0, "tilt": -${amount}, "relative": true}`);
+                    socket.emit('motion', {
+                                pan:0,
+                                tilt: -amount,
+                                relative: true
+                             });
 
                 } else if (e.key === 'Home' || e.key === '0') {
                     wsavc.ws.send(`{"pos": "home", ${motion}}`);
