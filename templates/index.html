@@ -163,6 +163,8 @@
             }
 
             function keyHandler(e) {
+                console.log('KeyCode: ' + e.keyCode);
+                console.log('Key: ' + e.key);
                 let amount = e.shiftKey ? 1 : 5,
                     motion = '"duration": 1000';
                 if (e.ctrlKey) {
@@ -186,6 +188,7 @@
                     }
 
                 } else if (e.keyCode === 37) {
+                    console.log('Left');
                     socket.emit('motion', {
                                 pan:amount,
                                 tilt: 0,
