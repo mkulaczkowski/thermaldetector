@@ -1,4 +1,6 @@
 # import the necessary packages
+import logging
+
 from flask_socketio import SocketIO, emit
 
 from imutils.video import VideoStream
@@ -11,6 +13,7 @@ import datetime
 import imutils
 import time
 import cv2
+import logging
 
 import cameras.visible_camera
 from cameras.Focuser import Focuser
@@ -26,9 +29,10 @@ lock = threading.Lock()
 app = Flask(__name__, template_folder='templates', static_folder='static', static_url_path='/static')
 app.config['SECRET_KEY'] = 'Ranger'
 socketio = SocketIO(app, logger=True, engineio_logger=True)
-
-focuser = Focuser(1)
-
+try:
+    focuser = Focuser(1)
+except Exception as e:
+    logging.critical(f'Failed to initialize focuser: {e}')
 @socketio.on("connect")
 def test_connect():
     print("Connected")

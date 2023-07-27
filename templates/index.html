@@ -34,7 +34,7 @@
             cameraName = params.get('id');
             console.log(`Connecting to ${cameraName}`);
             document.title = cameraName + ' - Pan/Tilt Camera';
-            var socket = io.connect('http://0.0.0.0:8000');
+            var socket = io.connect(uri);
             connect();
 
             function connect() {
