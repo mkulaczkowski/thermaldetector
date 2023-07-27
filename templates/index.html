@@ -185,25 +185,25 @@
                              });
                     }
 
-                } else if (e.key === 'ArrowLeft') {
+                } else if (e.keyCode === 37) {
                     socket.emit('motion', {
                                 pan:amount,
                                 tilt: 0,
                                 relative: true
                              });
-                } else if (e.key === 'ArrowRight') {
+                } else if (e.keyCode === 39) {
                     socket.emit('motion', {
                                 pan:-amount,
                                 tilt: 0,
                                 relative: true
                              });
-                } else if (e.key === 'ArrowUp') {
+                } else if (e.keyCode === 38) {
                     socket.emit('motion', {
                                 pan:0,
                                 tilt: amount,
                                 relative: true
                              });
-                } else if (e.key === 'ArrowDown') {
+                } else if (e.keyCode === 40) {
                     socket.emit('motion', {
                                 pan:0,
                                 tilt: -amount,
