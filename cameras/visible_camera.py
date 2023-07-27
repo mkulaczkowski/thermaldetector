@@ -48,7 +48,7 @@ def thermal_gstreamer_pipeline(
         framerate=25,
         flip_method=0,
 ):
-    pipeline = f"v4l2src device=/dev/video1 ! video/x-raw,format=YUYV,width={capture_width},height={capture_height},framerate={framerate}/1 ! nvvidconv ! 'video/x-raw(memory:NVMM),format=NV12' ! appsink"
+    pipeline = f"v4l2src device=/dev/video1 ! image/jpeg, width={capture_width},height={capture_height},framerate={framerate}/1"
     print(pipeline)
     return (pipeline)
 
