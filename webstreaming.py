@@ -47,19 +47,9 @@ def handle_message(data):
 def handle_motion_event(json):
 
     if json['pan'] > 0:
-        if json['pan'] < 0.3:
-            focuser.set(Focuser.OPT_MOTOR_X, focuser.get(Focuser.OPT_MOTOR_X) + 1)
-        elif json['pan'] >= 0.3 and json['pan'] < 0.6:
-            focuser.set(Focuser.OPT_MOTOR_X, focuser.get(Focuser.OPT_MOTOR_X) + 2)
-        else:
-            focuser.set(Focuser.OPT_MOTOR_X, focuser.get(Focuser.OPT_MOTOR_X) + 5)
+       focuser.set(Focuser.OPT_MOTOR_X, focuser.get(Focuser.OPT_MOTOR_X) + 1)
     if json['pan'] < 0:
-        if json['pan'] < -0.3:
-            focuser.set(Focuser.OPT_MOTOR_X, focuser.get(Focuser.OPT_MOTOR_X) - 1)
-        elif json['pan'] >= -0.3 and json['pan'] < -0.6:
-            focuser.set(Focuser.OPT_MOTOR_X, focuser.get(Focuser.OPT_MOTOR_X) - 2)
-        else:
-            focuser.set(Focuser.OPT_MOTOR_X, focuser.get(Focuser.OPT_MOTOR_X) - 5)
+       focuser.set(Focuser.OPT_MOTOR_X, focuser.get(Focuser.OPT_MOTOR_X) - 1)
 
     if json['tilt'] > 0:
         focuser.set(Focuser.OPT_MOTOR_Y, focuser.get(Focuser.OPT_MOTOR_Y) + 1)
