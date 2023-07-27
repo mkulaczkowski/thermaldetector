@@ -1,5 +1,5 @@
 # import the necessary packages
-from flask_socketio import SocketIO
+from flask_socketio import SocketIO, emit
 
 from imutils.video import VideoStream
 from flask import Response
@@ -25,8 +25,29 @@ lock = threading.Lock()
 # initialize a flask object
 app = Flask(__name__, template_folder='templates', static_folder='static', static_url_path='/static')
 app.config['SECRET_KEY'] = 'Ranger'
-socketio = SocketIO(app)
+socketio = SocketIO(app, logger=True, engineio_logger=True)
 
+focuser = Focuser(1)
+
+@socketio.on("connect")
+def test_connect():
+    print("Connected")
+    emit("my response", {"data": "Connected"})
+@socketio.on('json')
+def handle_json(json):
+    print('received json: ' + str(json))
+@socketio.on('message')
+def handle_message(data):
+    print('received message: ' + data)
+@socketio.on('motion')
+def handle_motion_event(json):
+
+    if json['pan'] > 0:
+        focuser.set(Focuser.OPT_MOTOR_X, focuser.get(Focuser.OPT_MOTOR_X) + 1)
+    if json['pan'] < 0:
+        focuser.set(Focuser.OPT_MOTOR_X, focuser.get(Focuser.OPT_MOTOR_X) - 1)
+
+    print('received json: ' + str(json))
 
 @app.route("/")
 def index():
@@ -54,7 +75,7 @@ def fusion():
 
 @app.route('/zoom/<int:number>/')
 def zoom(number):
-    focuser = Focuser(1)
+
     focuser.set(Focuser.OPT_ZOOM, number)
 
     response = app.response_class(
@@ -67,7 +88,7 @@ def zoom(number):
 
 @app.route('/focus/<int:number>/')
 def focus(number):
-    focuser = Focuser(1)
+
     focuser.set(Focuser.OPT_FOCUS, number)
     response = app.response_class(
         response=f'Focus: {focuser.get(Focuser.OPT_FOCUS)}',
@@ -79,7 +100,7 @@ def focus(number):
 
 @app.route('/IR/')
 def IR_cut():
-    focuser = Focuser(1)
+
     focuser.set(Focuser.OPT_IRCUT, focuser.get(Focuser.OPT_IRCUT) ^ 0x0001)
     response = app.response_class(
         response=f'Focus: {focuser.get(Focuser.OPT_IRCUT)}',
@@ -101,7 +122,7 @@ def change_source(mode):
 
 
 def generate(mode='visible'):
-    focuser = Focuser(1)
+
     if mode == 'fusion' or mode == 'thermal':
         thermal_camera = cv2.VideoCapture(1, cv2.CAP_GSTREAMER)
         if not thermal_camera.isOpened():
@@ -142,6 +163,21 @@ def generate(mode='visible'):
         # ensure the frame was successfully encoded
         yield (b'--frame\r\n' b'Content-Type: image/jpeg\r\n\r\n' +
                bytearray(encodedImage) + b'\r\n')
+
+
+def gen(camera):
+    """Video streaming generator function."""
+    yield b'--frame\r\n'
+    while True:
+        frame = camera.get_frame()
+        yield b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n--frame\r\n'
+
+
+# @app.route('/video_feed')
+# def video_feed():
+#     """Video streaming route. Put this in the src attribute of an img tag."""
+#     return Response(gen(Camera()),
+#                     mimetype='multipart/x-mixed-replace; boundary=frame')
 
 
 @app.route("/video_feed/<mode>")

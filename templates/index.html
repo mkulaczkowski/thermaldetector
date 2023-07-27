@@ -5,10 +5,12 @@
     <meta name="viewport" content="width=1280, initial-scale=0.66, maximum-scale=1, user-scalable=no"/>
 
     <title>Pan/Tilt Camera</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js" integrity="sha512-q/dWJ3kcmjBLU4Qc47E4A9kTB4m3wuTY7vkFJDTZKjTs8jhyGQnaUrxa0Ytd0ssMZhbNua9hE+E7Qv1j+DyZwA=="
+            crossorigin="anonymous"></script>
 
     <script type="text/javascript" src="static/jquery-1.12.4.min.js"></script>
     <script type="text/javascript" src="static/jquery-ui.min.js"></script>
-    <script type="text/javascript" src="static/http-live-player.js">;</script>
+
     <script type="text/javascript" charset="utf-8">
         $(document).ready(function () {
             var canvas = $('#canvas')[0];
@@ -21,40 +23,24 @@
                 zerosSent = false;
 
             var pan = 0, tilt = 0,
-                panMin = -90, panMax = 90,
-                tiltMin = -30, tiltMax = 35;
+                panMin = 0, panMax = 180,
+                tiltMin = 66, tiltMax = 120;
 
             let port = location.port ? parseInt(location.port) : (location.protocol === 'https:' ? 443 : 80);
             let protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
             var uri = protocol + '//' + location.hostname + ':' + port + location.pathname;
             var params = new URLSearchParams(location.search);
-
+            console.log(`Connecting on ${uri}`);
             cameraName = params.get('id');
             console.log(`Connecting to ${cameraName}`);
             document.title = cameraName + ' - Pan/Tilt Camera';
-
+            var socket = io.connect('http://0.0.0.0:8000');
             connect();
-            setInterval(connect, 5000);
 
             function connect() {
-                if (!wsavc) {
-                    try {
-                        wsavc = new WSAvcPlayer(canvas, "webgl", 1, 35);
-                        wsavc.onopen = function() {
-                            setTimeout(startStreamingControls, 500);
-                        }
-
-                        wsavc.onclose = function () {
-                            wsavc = null;
-                            connected = false;
-                            controlling = false;
-                            console.log('Disconnected');
-                        };
-                        wsavc.connect(uri, onstatus);
-                    } catch {
-                        console.error('No WsAvcPlayer available');
-                    }
-                }
+                socket.on('connect', function () {
+                    socket.emit('my event', {data: 'I\'m connected!'});
+                });
             }
 
             function map(x, in_min, in_max, out_min, out_max) {
@@ -67,7 +53,7 @@
                 if (positionTimer) {
                     clearTimeout(positionTimer);
                 }
-                positionTimer = setTimeout(function() {
+                positionTimer = setTimeout(function () {
                     $('#positioncontainer').css('opacity', 0);
                     $('.ui').css('opacity', 0);
                 }, 5000);
@@ -133,12 +119,17 @@
                 if (orient) {
                     let tilt = e.rotationRate.beta * (orient < 0 ? +1 : -1),
                         pan = e.rotationRate.alpha * (orient < 0 ? -1 : +1),
-                        tv = Math.abs(tilt) > 0.25 ? tilt.toFixed(2)/64 : 0.0,
-                        pv = Math.abs(pan) > 0.25 ? pan.toFixed(2)/64 : 0.0
+                        tv = Math.abs(tilt) > 0.25 ? tilt.toFixed(2) / 64 : 0.0,
+                        pv = Math.abs(pan) > 0.25 ? pan.toFixed(2) / 64 : 0.0
 
                     if (connected && controlling) {
+
                         if (tv && pv || !zerosSent) {
-                            wsavc.ws.send('{"pan": ' + pv + ', "tilt": ' + tv + ', "relative": true}');
+                            socket.emit('Slider value changed', {
+                                pan:pv,
+                                tilt: tv,
+                                relative: true
+                             });
                             zerosSent = !tv && !pv;
                         }
                     }
@@ -147,7 +138,7 @@
 
             function deviceOrientation() {
                 set_status('motion', window.orientation === 0 ? 'Not in landscape orientation' :
-                                    motionGranted ? 'None' : 'Enable Motion');
+                    motionGranted ? 'None' : 'Enable Motion');
             }
 
             function requestDeviceMotionPermissions() {
@@ -222,7 +213,7 @@
                     wsavc.ws.send(`{"pos": "${e.key}", ${motion}}`);
 
                 } else if (e.key === 'h') {
-                    $('#help').css('opacity',  $('#help').css('opacity') === '0' ? 1 : 0);
+                    $('#help').css('opacity', $('#help').css('opacity') === '0' ? 1 : 0);
                 }
             }
 
@@ -244,8 +235,12 @@
             $('#reload').click(forceReload);
             $('#toggle').click(toggleControls);
 
-            $('.view.item').click(function(e) { pick('view', e)});
-            $('#view').click(function() { menu('view')});
+            $('.view.item').click(function (e) {
+                pick('view', e)
+            });
+            $('#view').click(function () {
+                menu('view')
+            });
 
 
             // Touch and mouse events
@@ -301,11 +296,15 @@
 
             function cMove(p, t) {
                 if (tracking) {
-                    let pv = (p - lp)/4;
-                    let tv = (t - lt)/4;
+                    let pv = (p - lp) / 4;
+                    let tv = (t - lt) / 4;
                     if (pv || tv) {
                         console.log(`pv=${pv}; tv=${tv}`);
-                        wsavc.ws.send('{"pan": ' + pv + ', "tilt": ' + tv + ', "relative": true}');
+                        socket.emit('motion', {
+                                pan:pv,
+                                tilt: tv,
+                                relative: true
+                             });
                         lp = p;
                         lt = t;
                     }
@@ -501,7 +500,7 @@
 </head>
 <body>
 <div id="container">
-    <canvas id="canvas"></canvas>
+    <img src="{{ url_for('video_feed', mode='thermal') }}">
 
     <div id="controls">
         <div class="overlay ui" id="motion_status">Enable Motion</div>
@@ -517,7 +516,9 @@
         </div>
     </div>
 
-    <div class="ui" id="positioncontainer"><div id="position"></div></div>
+    <div class="ui" id="positioncontainer">
+        <div id="position"></div>
+    </div>
 
 </div>
 <div id="help">
