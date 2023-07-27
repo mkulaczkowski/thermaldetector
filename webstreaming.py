@@ -17,7 +17,7 @@ import logging
 
 import cameras.visible_camera
 from cameras.Focuser import Focuser
-from cameras.visible_camera import visible_gstreamer_pipeline
+from cameras.visible_camera import visible_gstreamer_pipeline, thermal_gstreamer_pipeline
 
 # initialize the output frame and a lock used to ensure thread-safe
 # exchanges of the output frames (useful when multiple browsers/tabs
@@ -143,7 +143,7 @@ def change_source(mode):
 def generate(mode='visible'):
 
     if mode == 'fusion' or mode == 'thermal':
-        thermal_camera = cv2.VideoCapture(1, cv2.CAP_GSTREAMER)
+        thermal_camera = cv2.VideoCapture(thermal_gstreamer_pipeline(), cv2.CAP_GSTREAMER)
         if not thermal_camera.isOpened():
             raise RuntimeError("Failed to open thermal camera!")
     elif mode == 'visible' or mode == 'fusion':
