@@ -373,8 +373,7 @@
                 // Register mouse events
                 $('#container').on('mousedown', mStart).on('mousemove', mMove).on('mouseup', mEnd);
             }
-
-            $('body').keydown(keyHandler);
+            $(document).keypress(keyHandler);
             showUIOverlay();
             setTimeout(hideHelp, 10000);
         });
