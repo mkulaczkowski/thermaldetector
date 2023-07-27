@@ -51,6 +51,11 @@ def handle_motion_event(json):
     if json['pan'] < 0:
         focuser.set(Focuser.OPT_MOTOR_X, focuser.get(Focuser.OPT_MOTOR_X) - 1)
 
+    if json['tilt'] > 0:
+        focuser.set(Focuser.OPT_MOTOR_Y, focuser.get(Focuser.OPT_MOTOR_Y) + 1)
+    if json['tilt'] < 0:
+        focuser.set(Focuser.OPT_MOTOR_Y, focuser.get(Focuser.OPT_MOTOR_Y) - 1)
+    
     print('received json: ' + str(json))
 
 @app.route("/")
