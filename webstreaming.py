@@ -33,19 +33,25 @@ try:
     focuser = Focuser(1)
 except Exception as e:
     logging.critical(f'Failed to initialize focuser: {e}')
+
+
 @socketio.on("connect")
 def test_connect():
     print("Connected")
-    emit("my response", {"data": "Connected"})
+    emit("my response", {"data": "Connected", "start_pan": focuser.get(Focuser.OPT_MOTOR_X),
+                         "start_tilt": focuser.get(Focuser.OPT_MOTOR_Y)})
+
 
 @socketio.on('message')
 def handle_message(data):
     print('received message: ' + data)
+
+
 @socketio.on('motion')
 def handle_motion_event(json):
     print('Received motion event: ' + str(json))
-    value_x = int(5*json['pan'])
-    value_y = int(5*json['tilt'])
+    value_x = int(5 * json['pan'])
+    value_y = int(5 * json['tilt'])
     focuser.set(Focuser.OPT_MOTOR_X, focuser.get(Focuser.OPT_MOTOR_X) + value_x)
     focuser.set(Focuser.OPT_MOTOR_Y, focuser.get(Focuser.OPT_MOTOR_Y) + value_y)
 
@@ -79,7 +85,6 @@ def fusion():
 
 @app.route('/zoom/<int:number>/')
 def zoom(number):
-
     focuser.set(Focuser.OPT_ZOOM, number)
 
     response = app.response_class(
@@ -92,7 +97,6 @@ def zoom(number):
 
 @app.route('/focus/<int:number>/')
 def focus(number):
-
     focuser.set(Focuser.OPT_FOCUS, number)
     response = app.response_class(
         response=f'Focus: {focuser.get(Focuser.OPT_FOCUS)}',
@@ -104,7 +108,6 @@ def focus(number):
 
 @app.route('/IR/')
 def IR_cut():
-
     focuser.set(Focuser.OPT_IRCUT, focuser.get(Focuser.OPT_IRCUT) ^ 0x0001)
     response = app.response_class(
         response=f'Focus: {focuser.get(Focuser.OPT_IRCUT)}',
@@ -126,7 +129,6 @@ def change_source(mode):
 
 
 def generate(mode='visible'):
-
     if mode == 'fusion' or mode == 'thermal':
         thermal_camera = cv2.VideoCapture(thermal_gstreamer_pipeline(), cv2.CAP_GSTREAMER)
         if not thermal_camera.isOpened():
