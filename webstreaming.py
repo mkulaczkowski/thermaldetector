@@ -77,8 +77,8 @@ def handle_motion_event(json):
 @socketio.on('optic')
 def handle_optic_event(json):
     print('Received optic event: ' + str(json))
-    value_zoom = int(10 * json['zoom'])
-    value_focus = int(10 * json['focus'])
+    value_zoom = int(100 * json['zoom'])
+    value_focus = int(100 * json['focus'])
     if value_zoom != 0:
         focuser.set(Focuser.OPT_ZOOM, focuser.get(Focuser.OPT_ZOOM) + value_zoom)
     if value_focus != 0:
