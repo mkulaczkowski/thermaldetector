@@ -57,13 +57,14 @@ def handle_message(data):
         switch.thermal_camera_on()
     elif data['cmd'] == 'thermal-off':
         switch.thermal_camera_off()
+
     print('received cmd: ' + data)
 
 @socketio.on('motion')
 def handle_motion_event(json):
     print('Received motion event: ' + str(json))
-    value_x = int(4 * json['pan'])
-    value_y = int(4 * json['tilt'])
+    value_x = int(3 * json['pan'])
+    value_y = int(3 * json['tilt'])
     if value_x != 0:
         focuser.set(Focuser.OPT_MOTOR_X, focuser.get(Focuser.OPT_MOTOR_X) + value_x)
     if value_y != 0:
@@ -159,7 +160,7 @@ def generate(mode='visible'):
         thermal_camera = cv2.VideoCapture(thermal_gstreamer_pipeline(), cv2.CAP_GSTREAMER)
         if not thermal_camera.isOpened():
             raise RuntimeError("Failed to open thermal camera!")
-        
+
     # if mode == 'fusion':
     #     focuser.set(Focuser.OPT_FOCUS, 9300)
     #     focuser.set(Focuser.OPT_ZOOM, 7000)
@@ -172,6 +173,7 @@ def generate(mode='visible'):
                 ret, outputFrame = visible_camera.read()
             elif mode == 'thermal':
                 ret2, outputFrame = thermal_camera.read()
+                outputFrame = cv2.resize(outputFrame, (1280, 853), interpolation=cv2.INTER_AREA)
             elif mode == 'fusion':
                 ret, outputFrame = visible_camera.read()
                 ret2, thermalFrame = thermal_camera.read()
