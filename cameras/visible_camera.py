@@ -41,14 +41,14 @@ def visible_gstreamer_pipeline(
 
 
 def thermal_gstreamer_pipeline(
-        capture_width=720,
-        capture_height=480,
+        capture_width=480,
+        capture_height=320,
         display_width=720,
         display_height=480,
         framerate=25,
         flip_method=0,
 ):
-    pipeline = f"v4l2src device=/dev/video1 ! video/x-raw, format=YUY2, width={capture_width}, height={capture_height}, pixel-aspect-ratio=1/1, framerate={framerate}/1 ! videoconvert ! appsink"
+    pipeline = f"v4l2src device=/dev/video1 ! video/x-raw, format=YUYV, width={capture_width}, height={capture_height}, pixel-aspect-ratio=1/1, framerate={framerate}/1 ! videoconvert ! appsink"
     print(pipeline)
     return (pipeline)
 
