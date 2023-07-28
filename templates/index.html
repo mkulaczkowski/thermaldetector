@@ -204,10 +204,10 @@
                         socket.emit('cmd', {
                             'cmd': 'restart'
                         });
-                    } else if (e.key === 'Home' || e.key === 'h') {
-                        console.log(`Setting home...`);
+                    } else if (e.key === 't') {
+                        console.log(`Setting thermal camera on...`);
                         socket.emit('cmd', {
-                            'cmd': 'home'
+                            'cmd': 'thermal-on'
                         });
                     } else if (e.key === 'a' || e.key === 'b' || e.key === 'c' || e.key === 'd') {
                         console.log(`Setting ${e.key} position...`);

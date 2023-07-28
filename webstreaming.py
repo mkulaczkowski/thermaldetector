@@ -18,6 +18,7 @@ import logging
 import cameras.visible_camera
 from cameras.Focuser import Focuser
 from cameras.visible_camera import visible_gstreamer_pipeline, thermal_gstreamer_pipeline
+from controlers.swtich_controller import GPIO_switch
 
 # initialize the output frame and a lock used to ensure thread-safe
 # exchanges of the output frames (useful when multiple browsers/tabs
@@ -34,6 +35,11 @@ try:
 except Exception as e:
     logging.critical(f'Failed to initialize focuser: {e}')
 
+try:
+    switch = GPIO_switch()
+except Exception as e:
+    logging.critical(f'Failed to initialize GPIO Switch: {e}')
+
 
 @socketio.on("connect")
 def test_connect():
@@ -46,6 +52,13 @@ def test_connect():
 def handle_message(data):
     print('received message: ' + data)
 
+@socketio.on('cmd')
+def handle_message(data):
+    if data['cmd'] == 'thermal-on':
+        switch.switch_camera_on()
+    elif data['cmd'] == 'thermal-off':
+        switch.switch_camera_off()
+    print('received cmd: ' + data)
 
 @socketio.on('motion')
 def handle_motion_event(json):

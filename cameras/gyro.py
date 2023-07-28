@@ -21,4 +21,3 @@ while True:
     print("Magnetic      X:{0:7.2f}, Y:{1:7.2f}, Z:{2:7.2f} uT".format(*magnetic))
     print("")
     time.sleep(0.5)
-~
