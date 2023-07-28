@@ -9,8 +9,9 @@ class GPIO_switch():
     switch_laser = 21
 
     def __init__(self):
-        GPIO.output(self.switch_camera, GPIO.LOW)
-        GPIO.output(self.switch_laser, GPIO.LOW)
+        GPIO.setup(self.switch_camera, GPIO.OUT, initial=GPIO.LOW)
+        GPIO.setup(self.switch_laser, GPIO.OUT, initial=GPIO.LOW)
+
     # BCM pin-numbering scheme from Raspberry Pi
     # set pin as an output pin with optional initial state of HIGH
 
