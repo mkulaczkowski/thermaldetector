@@ -42,7 +42,7 @@
 
             function connect() {
                 socket.on('connect', function () {
-                    socket.emit('connect', {data: 'I\'m connected!'});
+                    socket.emit('handshake', {data: 'I\'m connected!'});
                 });
                 socket.on('handshake', function (data) {
                     console.log(data);
