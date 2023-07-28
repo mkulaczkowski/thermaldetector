@@ -59,6 +59,7 @@
                     console.log(data);
                     pan = data['start_pan']
                     tilt = data['start_tilt']
+                    is_thermal_on = data['thermal_status']
                 });
             }
 
@@ -150,7 +151,7 @@
                     }
 
                 }
-            }, 50)
+            }, 100)
 
             function showUIOverlay() {
                 $('.ui').css('opacity', 0.5);
