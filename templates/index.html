@@ -73,7 +73,45 @@
                     var right_stick = (myGamepad.axes[2].toFixed(2), myGamepad.axes[3].toFixed(2));
                     console.log(
                         `Gamepad connected at index ${myGamepad.index}: ${myGamepad.id} with ${myGamepad.buttons.length} buttons, ${myGamepad.axes.length} axes.`);
-
+                    if (myGamepad.buttons[0].pressed) {
+                       console.log('Button 0 pressed');
+                    };
+                     if (myGamepad.buttons[1].pressed) {
+                       console.log('Button 1 pressed');
+                    };
+                      if (myGamepad.buttons[2].pressed) {
+                       console.log('Button 2 pressed');
+                    };
+                        if (myGamepad.buttons[3].pressed) {
+                         console.log('Button 3 pressed');
+                        };
+                        if (myGamepad.buttons[4].pressed) {
+                         console.log('Button 4 pressed');
+                        };
+                        if (myGamepad.buttons[5].pressed) {
+                         console.log('Button 5 pressed');
+                        };
+                        if (myGamepad.buttons[6].pressed) {
+                         console.log('Button 6 pressed');
+                        };
+                        if (myGamepad.buttons[7].pressed) {
+                         console.log('Button 7 pressed');
+                        };
+                        if (myGamepad.buttons[8].pressed) {
+                         console.log('Button 8 pressed');
+                        };
+                        if (myGamepad.buttons[9].pressed) {
+                         console.log('Button 9 pressed');
+                        };
+                        if (myGamepad.buttons[10].pressed) {
+                         console.log('Button 10 pressed');
+                        };
+                        if (myGamepad.buttons[11].pressed) {
+                         console.log('Button 11 pressed');
+                        };
+                        if (myGamepad.buttons[12].pressed) {
+                         console.log('Button 12 pressed');
+                        };
                     if (myGamepad.axes[0].toFixed(2) != 0.00 || myGamepad.axes[1].toFixed(2) != 0.00) {
                         socket.emit('motion', {
                             pan: parseFloat(myGamepad.axes[0].toFixed(2)),
