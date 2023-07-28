@@ -152,6 +152,13 @@
                             relative: true
                         });
                     }
+                    if (myGamepad.axes[2].toFixed(2) != 0.00 || myGamepad.axes[3].toFixed(2) != 0.00) {
+                        socket.emit('optic', {
+                            zoom: parseFloat(myGamepad.axes[2].toFixed(2) * -1),
+                            focus: parseFloat(myGamepad.axes[3].toFixed(2) * -1),
+                            relative: true
+                        });
+                    }
 
                 }
             }, 100)

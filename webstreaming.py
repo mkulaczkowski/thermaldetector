@@ -63,8 +63,8 @@ def handle_message(data):
 @socketio.on('motion')
 def handle_motion_event(json):
     print('Received motion event: ' + str(json))
-    value_x = int(3 * json['pan'])
-    value_y = int(3 * json['tilt'])
+    value_x = int(4 * json['pan'])
+    value_y = int(4 * json['tilt'])
     if value_x != 0:
         focuser.set(Focuser.OPT_MOTOR_X, focuser.get(Focuser.OPT_MOTOR_X) + value_x)
     if value_y != 0:
@@ -72,6 +72,20 @@ def handle_motion_event(json):
 
     print('Pan: ' + str(focuser.get(Focuser.OPT_MOTOR_X)))
     print('Tilt: ' + str(focuser.get(Focuser.OPT_MOTOR_Y)))
+
+
+@socketio.on('optic')
+def handle_optic_event(json):
+    print('Received optic event: ' + str(json))
+    value_zoom = int(10 * json['zoom'])
+    value_focus = int(10 * json['focus'])
+    if value_zoom != 0:
+        focuser.set(Focuser.OPT_ZOOM, focuser.get(Focuser.OPT_ZOOM) + value_zoom)
+    if value_focus != 0:
+        focuser.set(Focuser.OPT_FOCUS, focuser.get(Focuser.OPT_FOCUS) + value_focus)
+
+    print('Zoom: ' + str(focuser.get(Focuser.OPT_ZOOM)))
+    print('Focus: ' + str(focuser.get(Focuser.OPT_FOCUS)))
 
 
 @app.route("/")
