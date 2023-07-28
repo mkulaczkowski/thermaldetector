@@ -38,7 +38,7 @@ except Exception as e:
 @socketio.on("connect")
 def test_connect():
     print("Connected")
-    emit("my response", {"data": "Connected", "start_pan": focuser.get(Focuser.OPT_MOTOR_X),
+    emit("handshake", {"data": "Connected", "start_pan": focuser.get(Focuser.OPT_MOTOR_X),
                          "start_tilt": focuser.get(Focuser.OPT_MOTOR_Y)})
 
 

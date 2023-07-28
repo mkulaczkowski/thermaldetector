@@ -41,8 +41,9 @@
             connect();
 
             function connect() {
-                socket.on('connect', function () {
-                    socket.emit('my event', {data: 'I\'m connected!'});
+                socket.on('connect', function (data) {
+                    console.log(data);
+                    socket.emit('handshake', {data: 'I\'m connected!'});
                 });
             }
 
