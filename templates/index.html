@@ -38,6 +38,11 @@
             console.log(`Connecting to ${cameraName}`);
             document.title = cameraName + ' - Pan/Tilt Camera';
             var socket = io.connect(uri);
+
+            var pan = 0, tilt = 0,
+                panMin = 0, panMax = 180,
+                tiltMin = 66, tiltMax = 120;
+
             connect();
 
             function connect() {
@@ -46,12 +51,11 @@
                 });
                 socket.on('handshake', function (data) {
                     console.log(data);
+                    pan = data['start_pan']
+                    tilt = data['start_tilt']
                 });
             }
 
-            var pan = 0, tilt = 0,
-                panMin = 0, panMax = 180,
-                tiltMin = 66, tiltMax = 120;
 
             function map(x, in_min, in_max, out_min, out_max) {
                 return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
