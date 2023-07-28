@@ -36,6 +36,7 @@ except Exception as e:
     logging.critical(f'Failed to initialize focuser: {e}')
 
 try:
+    time.sleep(5)
     switch = GPIO_switch()
 except Exception as e:
     logging.critical(f'Failed to initialize switch: {e}')
