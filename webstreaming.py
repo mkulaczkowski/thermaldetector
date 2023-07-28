@@ -44,8 +44,8 @@ def handle_message(data):
 @socketio.on('motion')
 def handle_motion_event(json):
     print('Received motion event: ' + str(json))
-    value_x = 5*json['pan']
-    value_y = 5*json['tilt']
+    value_x = int(5*json['pan'])
+    value_y = int(5*json['tilt'])
     focuser.set(Focuser.OPT_MOTOR_X, focuser.get(Focuser.OPT_MOTOR_X) + value_x)
     focuser.set(Focuser.OPT_MOTOR_X, focuser.get(Focuser.OPT_MOTOR_X) + value_y)
 
