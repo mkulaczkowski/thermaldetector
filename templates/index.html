@@ -14,6 +14,11 @@
     <script type="text/javascript" charset="utf-8">
         $(document).ready(function () {
             var canvas = $('#canvas')[0];
+
+            var fusion_feed = '{{ url_for('video_feed', mode='fusion') }}';
+            var thermal_feed = '{{ url_for('video_feed', mode='thermal') }}';
+            var visible_feed = '{{ url_for('video_feed', mode='visible') }}';
+
             var cameraName = 'Camera',
                 positionTimer = null,
                 wsavc = null,
@@ -242,19 +247,19 @@
                         tilt: -amount,
                         relative: true
                     });
-                 } else if (e.key === 't') {
+                } else if (e.key === 't') {
                     console.log(`Setting thermal camera off...`);
-                        socket.emit('cmd', {
-                            'cmd': 'thermal-off'
-                        });
+                    socket.emit('cmd', {
+                        'cmd': 'thermal-off'
+                    });
                 } else if (e.key === 'Home' || e.key === '0') {
                     wsavc.ws.send(`{"pos": "home", ${motion}}`);
-                } else if (e.key === '5') {
-                    wsavc.ws.send(`{"pos": "F", ${motion}}`);
-                } else if (e.key === '4') {
-                    wsavc.ws.send(`{"pos": "L", ${motion}}`);
-                } else if (e.key === '6') {
-                    wsavc.ws.send(`{"pos": "R", ${motion}}`);
+                } else if (e.key === '1') {
+                    $("#primary_video").attr("src", visible_feed);
+                } else if (e.key === '2') {
+                    $("#primary_video").attr("src", thermal_feed);
+                } else if (e.key === '2') {
+                    $("#primary_video").attr("src", fusion_feed);
                 } else if (e.key === '8') {
                     wsavc.ws.send(`{"pos": "U", ${motion}}`);
                 } else if (e.key === '2') {
@@ -496,7 +501,7 @@
             width: 64px;
             height: 64px;
             top: 80px;
-            background-image: url('reload.png');
+            background-image: url('static/reload.png');
             background-repeat: no-repeat;
             background-position-y: 4px;
         }
@@ -508,7 +513,7 @@
             width: 64px;
             height: 64px;
             top: 200px;
-            background-image: url('lock.png');
+            background-image: url('static/lock.png');
             background-repeat: no-repeat;
             background-position-y: 4px;
         }
@@ -520,7 +525,7 @@
 
         #view {
             top: 320px;
-            background-image: url('camera.png');
+            background-image: url('static/camera.png');
         }
 
         #views {
@@ -564,7 +569,7 @@
 </head>
 <body>
 <div id="container">
-    <img style="width: 100%" src="{{ url_for('video_feed', mode='fusion') }}">
+    <img id="primary_video" style="width: 100%" src="">
 
     <div id="controls">
         <div class="overlay ui" id="motion_status">Enable Motion</div>
