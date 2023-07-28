@@ -1,14 +1,12 @@
 import RPi.GPIO as GPIO
 import time
 
-GPIO.setmode(GPIO.BOARD)
-
-
 class GPIO_switch():
     switch_camera = 23
     switch_laser = 21
 
     def __init__(self):
+        GPIO.setmode(GPIO.BOARD)
         GPIO.setup(self.switch_camera, GPIO.OUT, initial=GPIO.LOW)
         GPIO.setup(self.switch_laser, GPIO.OUT, initial=GPIO.LOW)
 
