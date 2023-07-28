@@ -8,8 +8,8 @@ output_pin = 21  # BCM pin 18, BOARD pin 12
 
 
 class GPIO_switch():
-    switch_camera = 21
-    switch_laser = 20
+    switch_camera = 22
+    switch_laser = 21
 
     def __init__(self):
         GPIO.setmode(GPIO.BOARD)  # BCM pin-numbering scheme from Raspberry Pi
