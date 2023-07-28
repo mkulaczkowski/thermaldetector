@@ -28,6 +28,7 @@
                 controlling = false,
                 zerosSent = false;
 
+            $("#primary_video").attr("src", thermal_feed);
 
             //Gamepad
             let gamepadIndex;
@@ -112,11 +113,11 @@
                         current_feed = (current_feed + 1) % 3;
                         console.log(current_feed)
                         if (current_feed == 0) {
-                            $("#primary_video").attr("src", fusion_feed);
-                        } else if (current_feed == 1) {
                             $("#primary_video").attr("src", visible_feed);
-                        } else if (current_feed == 2) {
+                        } else if (current_feed == 1) {
                             $("#primary_video").attr("src", thermal_feed);
+                        } else if (current_feed == 2) {
+                            $("#primary_video").attr("src", fusion_feed);
                         }
                     };
                     if (myGamepad.buttons[9].pressed) {
