@@ -109,9 +109,6 @@
                         if (myGamepad.buttons[11].pressed) {
                          console.log('Button 11 pressed');
                         };
-                        if (myGamepad.buttons[12].pressed) {
-                         console.log('Button 12 pressed');
-                        };
                     if (myGamepad.axes[0].toFixed(2) != 0.00 || myGamepad.axes[1].toFixed(2) != 0.00) {
                         socket.emit('motion', {
                             pan: parseFloat(myGamepad.axes[0].toFixed(2)),
