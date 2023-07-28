@@ -121,6 +121,7 @@
                     ;
                     if (myGamepad.buttons[9].pressed) {
                         console.log('Button 9 pressed');
+                        is_thermal_on = !is_thermal_on
                         if(is_thermal_on){
                             socket.emit('cmd', {
                             'cmd': 'thermal-off'
