@@ -59,8 +59,8 @@
                     var right_stick = (myGamepad.axes[2].toFixed(2), myGamepad.axes[3].toFixed(2));
                     if(myGamepad.axes[0].toFixed(2) != 0.00 || myGamepad.axes[1].toFixed(2) != 0.00){
                         socket.emit('motion', {
-                            pan: myGamepad.axes[0].toFixed(2),
-                            tilt: myGamepad.axes[1].toFixed(2),
+                            pan: parseFloat(myGamepad.axes[0].toFixed(2)),
+                            tilt: parseFloat(myGamepad.axes[1].toFixed(2)),
                             relative: true
                         });
                     }
