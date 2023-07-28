@@ -1,14 +1,18 @@
 import RPi.GPIO as GPIO
 import time
 
+switch_camera = 23
+switch_laser = 21
+GPIO.setmode(GPIO.BOARD)
+GPIO.setup(switch_camera, GPIO.OUT, initial=GPIO.HIGH)
+GPIO.setup(switch_laser, GPIO.OUT, initial=GPIO.HIGH)
+
+
 class GPIO_switch():
     switch_camera = 23
     switch_laser = 21
-
     def __init__(self):
-        GPIO.setmode(GPIO.BOARD)
-        GPIO.setup(self.switch_camera, GPIO.OUT, initial=GPIO.HIGH)
-        GPIO.setup(self.switch_laser, GPIO.OUT, initial=GPIO.HIGH)
+        pass
 
     # BCM pin-numbering scheme from Raspberry Pi
     # set pin as an output pin with optional initial state of HIGH
