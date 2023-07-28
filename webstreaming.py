@@ -58,7 +58,7 @@ def handle_message(data):
     elif data['cmd'] == 'thermal-off':
         switch.thermal_camera_off()
 
-    print('received cmd: ' + data)
+    print(f'received cmd: {str(data)}')
 
 @socketio.on('motion')
 def handle_motion_event(json):
