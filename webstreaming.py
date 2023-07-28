@@ -143,19 +143,26 @@ def change_source(mode):
 
 
 def generate(mode='visible'):
-    if mode == 'fusion' or mode == 'thermal':
+    if mode == 'thermal':
         #turn on the camera
         thermal_camera = cv2.VideoCapture(thermal_gstreamer_pipeline(), cv2.CAP_GSTREAMER)
         if not thermal_camera.isOpened():
             raise RuntimeError("Failed to open thermal camera!")
-    elif mode == 'visible' or mode == 'fusion':
+    elif mode == 'visible':
         visible_camera = cv2.VideoCapture(visible_gstreamer_pipeline(), cv2.CAP_GSTREAMER)
         if not visible_camera.isOpened():
             raise RuntimeError("Failed to open visible camera!")
-
-    if mode == 'fusion':
-        focuser.set(Focuser.OPT_FOCUS, 9300)
-        focuser.set(Focuser.OPT_ZOOM, 7000)
+    elif mode=='fusion':
+        visible_camera = cv2.VideoCapture(visible_gstreamer_pipeline(), cv2.CAP_GSTREAMER)
+        if not visible_camera.isOpened():
+            raise RuntimeError("Failed to open visible camera!")
+        thermal_camera = cv2.VideoCapture(thermal_gstreamer_pipeline(), cv2.CAP_GSTREAMER)
+        if not thermal_camera.isOpened():
+            raise RuntimeError("Failed to open thermal camera!")
+        
+    # if mode == 'fusion':
+    #     focuser.set(Focuser.OPT_FOCUS, 9300)
+    #     focuser.set(Focuser.OPT_ZOOM, 7000)
     current_source = 'visible'
     # loop over frames from the output stream
     while True:
