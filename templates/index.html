@@ -82,14 +82,17 @@
                     ;
                     if (myGamepad.buttons[1].pressed) {
                         console.log('Button 1 pressed');
+                        $("#primary_video").attr("src", visible_feed);
                     }
                     ;
                     if (myGamepad.buttons[2].pressed) {
                         console.log('Button 2 pressed');
+                        $("#primary_video").attr("src", thermal_feed);
                     }
                     ;
                     if (myGamepad.buttons[3].pressed) {
                         console.log('Button 3 pressed');
+                        $("#primary_video").attr("src", fusion_feed);
                     }
                     ;
                     if (myGamepad.buttons[4].pressed) {
@@ -122,9 +125,9 @@
                     };
                     if (myGamepad.buttons[9].pressed) {
                         console.log('Button 9 pressed');
-                        is_thermal_on = !is_thermal_on
+
                         console.log(is_thermal_on)
-                        if(is_thermal_on){
+                        if(is_thermal_on == false){
                             socket.emit('cmd', {
                             'cmd': 'thermal-off'
                         });
