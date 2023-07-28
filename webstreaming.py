@@ -47,7 +47,7 @@ def handle_motion_event(json):
     value_x = int(5*json['pan'])
     value_y = int(5*json['tilt'])
     focuser.set(Focuser.OPT_MOTOR_X, focuser.get(Focuser.OPT_MOTOR_X) + value_x)
-    focuser.set(Focuser.OPT_MOTOR_X, focuser.get(Focuser.OPT_MOTOR_X) + value_y)
+    focuser.set(Focuser.OPT_MOTOR_Y, focuser.get(Focuser.OPT_MOTOR_Y) + value_y)
 
     print('Pan: ' + str(focuser.get(Focuser.OPT_MOTOR_X)))
     print('Tilt: ' + str(focuser.get(Focuser.OPT_MOTOR_Y)))
