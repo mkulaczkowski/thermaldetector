@@ -110,6 +110,7 @@
                     if (myGamepad.buttons[8].pressed) {
                         console.log('Button 8 pressed');
                         current_feed = (current_feed + 1) % 3;
+                        console.log(current_feed)
                         if (current_feed == 0) {
                             $("#primary_video").attr("src", fusion_feed);
                         } else if (current_feed == 1) {
@@ -117,6 +118,7 @@
                         } else if (current_feed == 2) {
                             $("#primary_video").attr("src", thermal_feed);
                         }
+
                     }
                     ;
                     if (myGamepad.buttons[9].pressed) {
