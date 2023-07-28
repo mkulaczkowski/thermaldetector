@@ -71,6 +71,9 @@
                     // a gamepad is connected and has an index
                     const myGamepad = navigator.getGamepads()[gamepadIndex];
                     var right_stick = (myGamepad.axes[2].toFixed(2), myGamepad.axes[3].toFixed(2));
+                    console.log(
+                        `Gamepad connected at index ${gp.index}: ${gp.id} with ${gp.buttons.length} buttons, ${gp.axes.length} axes.`);
+
                     if (myGamepad.axes[0].toFixed(2) != 0.00 || myGamepad.axes[1].toFixed(2) != 0.00) {
                         socket.emit('motion', {
                             pan: parseFloat(myGamepad.axes[0].toFixed(2)),
@@ -368,10 +371,6 @@
                 }
             }
 
-            function canGame() {
-                return "getGamepads" in navigator;
-            }
-
             function hideHelp() {
                 $('#help').css('opacity', 0);
             }
@@ -580,8 +579,6 @@
     <div class="ui" id="positioncontainer">
         <div id="position"></div>
     </div>
-    <div id="gamepadPrompt"></div>
-
 </div>
 
 </body>
