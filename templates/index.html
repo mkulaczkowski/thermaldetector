@@ -242,7 +242,11 @@
                         tilt: -amount,
                         relative: true
                     });
-
+                 } else if (e.key === 't') {
+                    console.log(`Setting thermal camera on...`);
+                        socket.emit('cmd', {
+                            'cmd': 'thermal-off'
+                        });
                 } else if (e.key === 'Home' || e.key === '0') {
                     wsavc.ws.send(`{"pos": "home", ${motion}}`);
                 } else if (e.key === '5') {

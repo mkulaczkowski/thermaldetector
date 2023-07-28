@@ -35,10 +35,7 @@ try:
 except Exception as e:
     logging.critical(f'Failed to initialize focuser: {e}')
 
-try:
-    switch = GPIO_switch()
-except Exception as e:
-    logging.critical(f'Failed to initialize GPIO Switch: {e}')
+switch = GPIO_switch()
 
 
 @socketio.on("connect")
@@ -54,6 +51,8 @@ def handle_message(data):
 
 @socketio.on('cmd')
 def handle_message(data):
+
+
     if data['cmd'] == 'thermal-on':
         switch.switch_camera_on()
     elif data['cmd'] == 'thermal-off':

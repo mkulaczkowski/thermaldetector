@@ -1,10 +1,7 @@
 import RPi.GPIO as GPIO
 import time
 
-# Pin Definitions
-input_pin = 21  # BCM pin 18, BOARD pin 12
-# Pin Definitions
-output_pin = 21  # BCM pin 18, BOARD pin 12
+GPIO.setmode(GPIO.BOARD)
 
 
 class GPIO_switch():
@@ -12,12 +9,17 @@ class GPIO_switch():
     switch_laser = 21
 
     def __init__(self):
-        GPIO.setmode(GPIO.BOARD)  # BCM pin-numbering scheme from Raspberry Pi
-        # set pin as an output pin with optional initial state of HIGH
-        GPIO.setup(self.switch_camera, GPIO.OUT, initial=GPIO.LOW)
-        GPIO.setup(self.switch_laser, GPIO.OUT, initial=GPIO.LOW)
+        GPIO.output(self.switch_camera, GPIO.LOW)
+        GPIO.output(self.switch_laser, GPIO.LOW)
+    # BCM pin-numbering scheme from Raspberry Pi
+    # set pin as an output pin with optional initial state of HIGH
 
     def thermal_camera_on(self):
+        GPIO.output(self.switch_camera, GPIO.HIGH)
+
+    def thermal_camera_restart(self):
+        GPIO.output(self.switch_camera, GPIO.LOW)
+        time.sleep(5)
         GPIO.output(self.switch_camera, GPIO.HIGH)
 
     def laser_on(self):
