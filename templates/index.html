@@ -72,7 +72,7 @@
                     const myGamepad = navigator.getGamepads()[gamepadIndex];
                     var right_stick = (myGamepad.axes[2].toFixed(2), myGamepad.axes[3].toFixed(2));
                     console.log(
-                        `Gamepad connected at index ${gp.index}: ${gp.id} with ${gp.buttons.length} buttons, ${gp.axes.length} axes.`);
+                        `Gamepad connected at index ${myGamepad.index}: ${myGamepad.id} with ${myGamepad.buttons.length} buttons, ${myGamepad.axes.length} axes.`);
 
                     if (myGamepad.axes[0].toFixed(2) != 0.00 || myGamepad.axes[1].toFixed(2) != 0.00) {
                         socket.emit('motion', {
