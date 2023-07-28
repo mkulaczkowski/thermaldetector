@@ -54,9 +54,9 @@ def handle_message(data):
     except Exception as e:
         logging.critical(f'Failed to initialize switch: {e}')
     if data['cmd'] == 'thermal-on':
-        switch.switch_camera_on()
+        switch.thermal_camera_on()
     elif data['cmd'] == 'thermal-off':
-        switch.switch_camera_off()
+        switch.thermal_camera_off()
     print('received cmd: ' + data)
 
 @socketio.on('motion')
