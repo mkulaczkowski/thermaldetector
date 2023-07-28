@@ -144,6 +144,7 @@ def change_source(mode):
 
 def generate(mode='visible'):
     if mode == 'fusion' or mode == 'thermal':
+        #turn on the camera
         thermal_camera = cv2.VideoCapture(thermal_gstreamer_pipeline(), cv2.CAP_GSTREAMER)
         if not thermal_camera.isOpened():
             raise RuntimeError("Failed to open thermal camera!")
