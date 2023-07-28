@@ -8,7 +8,7 @@ output_pin = 21  # BCM pin 18, BOARD pin 12
 
 
 class GPIO_switch():
-    switch_camera = 22
+    switch_camera = 23
     switch_laser = 21
 
     def __init__(self):
