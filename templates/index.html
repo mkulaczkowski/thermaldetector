@@ -329,23 +329,14 @@
                 } else if (e.key === 'Home' || e.key === '0') {
                     wsavc.ws.send(`{"pos": "home", ${motion}}`);
                 } else if (e.key === '1') {
+                    current_feed = 0;
                     $("#primary_video").attr("src", visible_feed);
                 } else if (e.key === '2') {
+                    current_feed = 1;
                     $("#primary_video").attr("src", thermal_feed);
-                } else if (e.key === '2') {
-                    $("#primary_video").attr("src", fusion_feed);
-                } else if (e.key === '8') {
-                    wsavc.ws.send(`{"pos": "U", ${motion}}`);
-                } else if (e.key === '2') {
-                    wsavc.ws.send(`{"pos": "D", ${motion}}`);
-                } else if (e.key === '7') {
-                    wsavc.ws.send(`{"pos": "LU", ${motion}}`);
-                } else if (e.key === '1') {
-                    wsavc.ws.send(`{"pos": "LD", ${motion}}`);
-                } else if (e.key === '9') {
-                    wsavc.ws.send(`{"pos": "RU", ${motion}}`);
                 } else if (e.key === '3') {
-                    wsavc.ws.send(`{"pos": "RD", ${motion}}`);
+                    current_feed = 2;
+                    $("#primary_video").attr("src", fusion_feed);
 
                 } else if (e.key && (e.key === 'a' || e.key === 'b' || e.key === 'c' || e.key === 'd')) {
                     console.log(`Moving to ${e.key} position...`);
