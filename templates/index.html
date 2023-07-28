@@ -292,17 +292,9 @@
                 $('#' + topic).css('display', 'block');
             }
 
-            function pick(topic, e) {
-                wsavc.ws.send(`{"pos": "${e.target.id}", "duration": 1000}`);
-                menu(topic);
-            }
-
             $('#reload').click(forceReload);
             $('#toggle').click(toggleControls);
 
-            $('.view.item').click(function (e) {
-                pick('view', e)
-            });
             $('#view').click(function () {
                 menu('view')
             });
@@ -591,22 +583,6 @@
     <div id="gamepadPrompt"></div>
 
 </div>
-<div id="help">
-    <p>
-        To control pan/tilt you can use the keyboard arrow keys. Hold down the <em>Shift</em> key for fine-grained
-        position control.
-        Alternatively, you can pan around the real-world using click-and-drag on the camera viewport.
-    </p>
-    <p>
-        The number keypad keys can be used to navigate to various limits of the pan/tilt mechanism.
-        The <em>5</em> key moves to the center and <em>0</em> or or <em>Home</em> keys navigate to the previously set home position.
-    </p>
-    <p>
-        To set home position, press <em>Ctrl-h</em> or <em>Ctrl-Home</em>.
-    </p>
-    <p>
-        To hide/show this message, press the <em>h</em> key.
-    </p>
-</div>
+
 </body>
 </html>
