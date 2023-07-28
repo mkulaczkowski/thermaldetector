@@ -14,6 +14,7 @@
     <script type="text/javascript" charset="utf-8">
         $(document).ready(function () {
             var canvas = $('#canvas')[0];
+            var current_feed = 0;
 
             var fusion_feed = '{{ url_for('video_feed', mode='fusion') }}';
             var thermal_feed = '{{ url_for('video_feed', mode='thermal') }}';
@@ -99,10 +100,22 @@
                         };
                         if (myGamepad.buttons[8].pressed) {
                          console.log('Button 8 pressed');
+                        current_feed = (current_feed+1) % 3;
+                         if(current_feed == 0){
+                            $("#primary_video").attr("src", fusion_feed);
+                         }
+                         else if (current_feed == 1){
+                            $("#primary_video").attr("src", visible_feed);
+                         }
+                         else if (current_feed == 2){
+                            $("#primary_video").attr("src", thermal_feed);
+                         }
                         };
                         if (myGamepad.buttons[9].pressed) {
                          console.log('Button 9 pressed');
-                        };
+                         socket.emit('cmd', {
+                            'cmd': 'thermal-on'
+                         };
                         if (myGamepad.buttons[10].pressed) {
                          console.log('Button 10 pressed');
                         };
