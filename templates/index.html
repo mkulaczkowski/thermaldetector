@@ -68,16 +68,15 @@
             function map(x, in_min, in_max, out_min, out_max) {
                 return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
             }
-
-
-            const myGamepad = navigator.getGamepads()[gamepadIndex];
-                    console.log(
-                        `Gamepad connected at index ${myGamepad.index}: ${myGamepad.id} with ${myGamepad.buttons.length} buttons, ${myGamepad.axes.length} axes.`);
-                    console.log(myGamepad.axes);
+            
             setInterval(() => {
                 if (gamepadIndex !== undefined) {
                     // a gamepad is connected and has an inde
+                      const myGamepad = navigator.getGamepads()[gamepadIndex];
 
+                    console.log(
+                        `Gamepad connected at index ${myGamepad.index}: ${myGamepad.id} with ${myGamepad.buttons.length} buttons, ${myGamepad.axes.length} axes.`);
+                    console.log(myGamepad.axes);
                     if (myGamepad.buttons[0].pressed) {
                         console.log('Button 0 pressed');
                           console.log('Button 3 pressed');
