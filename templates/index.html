@@ -342,7 +342,9 @@
                     wsavc.ws.send(`{"pos": "home", ${motion}}`);
                 } else if (e.key === '1') {
                     current_feed = 0;
-                    $("#primary_video").attr("src", visible_feed);
+                    $("#primary_video").attr("src", '');
+                    setTimeout($("#primary_video").attr("src", visible_feed), 10000);
+
                 } else if (e.key === '2') {
                     current_feed = 1;
                     $("#primary_video").attr("src", thermal_feed);
