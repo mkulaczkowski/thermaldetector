@@ -48,13 +48,12 @@ def handle_message(data):
 
 @socketio.on('cmd')
 def handle_message(data):
-    try:
-        switch = GPIO_switch()
-    except Exception as e:
-        logging.critical(f'Failed to initialize switch: {e}')
+
     if data['cmd'] == 'thermal-on':
+        switch = GPIO_switch()
         switch.thermal_camera_on()
     elif data['cmd'] == 'thermal-off':
+        switch = GPIO_switch()
         switch.thermal_camera_off()
     elif data['cmd'] == 'ir-cut':
         focuser.set(Focuser.OPT_IRCUT, focuser.get(Focuser.OPT_IRCUT) ^ 0x0001)
