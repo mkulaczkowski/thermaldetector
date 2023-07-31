@@ -33,13 +33,8 @@ class VisibleCamera(BaseCamera):
     video_source = visible_gstreamer_pipeline()
 
     def __init__(self):
-        if os.environ.get('OPENCV_CAMERA_SOURCE'):
-            VisibleCamera.set_video_source(int(os.environ['OPENCV_CAMERA_SOURCE']))
+        print('VisibleCamera init')
         super(VisibleCamera, self).__init__()
-
-    @staticmethod
-    def set_video_source(source):
-        VisibleCamera.video_source = source
 
     @staticmethod
     def frames():

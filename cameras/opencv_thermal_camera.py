@@ -18,13 +18,8 @@ class ThermalCamera(BaseCamera):
     video_source = thermal_gstreamer_pipeline()
 
     def __init__(self):
-        if os.environ.get('OPENCV_CAMERA_SOURCE'):
-            ThermalCamera.set_video_source(int(os.environ['OPENCV_CAMERA_SOURCE']))
+        print('Thermal init')
         super(ThermalCamera, self).__init__()
-
-    @staticmethod
-    def set_video_source(source):
-        ThermalCamera.video_source = source
 
     @staticmethod
     def frames():

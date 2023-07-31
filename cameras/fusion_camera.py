@@ -11,7 +11,7 @@ class FusionCamera(BaseCamera):
     video_source1 = thermal_gstreamer_pipeline()
 
     def __init__(self):
-
+        print('FusionCamera init')
         super(FusionCamera, self).__init__()
 
     @staticmethod
