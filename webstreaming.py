@@ -15,16 +15,12 @@ import time
 import cv2
 import logging
 
-import cameras.visible_camera
 from cameras.Focuser import Focuser
-from cameras.visible_camera import visible_gstreamer_pipeline, thermal_gstreamer_pipeline
-from controlers.swtich_controller import GPIO_switch
 
-# initialize the output frame and a lock used to ensure thread-safe
-# exchanges of the output frames (useful when multiple browsers/tabs
-# are viewing the stream)
-outputFrame = None
-lock = threading.Lock()
+from cameras.fusion_camera import FusionCamera
+from cameras.opencv_thermal_camera import ThermalCamera
+from cameras.opencv_visible_camera import VisibleCamera
+from controlers.swtich_controller import GPIO_switch
 
 # initialize a flask object
 app = Flask(__name__, template_folder='templates', static_folder='static', static_url_path='/static')
@@ -40,12 +36,13 @@ except Exception as e:
 def test_connect():
     print("Connected")
     emit("handshake", {"data": "Connected", "start_pan": focuser.get(Focuser.OPT_MOTOR_X),
-                         "start_tilt": focuser.get(Focuser.OPT_MOTOR_Y)})
+                       "start_tilt": focuser.get(Focuser.OPT_MOTOR_Y)})
 
 
 @socketio.on('message')
 def handle_message(data):
     print('received message: ' + data)
+
 
 @socketio.on('cmd')
 def handle_message(data):
@@ -59,6 +56,7 @@ def handle_message(data):
         switch.thermal_camera_off()
 
     print(f'received cmd: {str(data)}')
+
 
 @socketio.on('motion')
 def handle_motion_event(json):
@@ -79,134 +77,22 @@ def handle_optic_event(json):
     print('Received optic event: ' + str(json))
     value_zoom = int(100 * json['zoom'])
     value_focus = int(100 * json['focus'])
+    ir_cut = json['ir_cut']
     if value_zoom != 0:
         focuser.set(Focuser.OPT_ZOOM, focuser.get(Focuser.OPT_ZOOM) + value_zoom)
     if value_focus != 0:
         focuser.set(Focuser.OPT_FOCUS, focuser.get(Focuser.OPT_FOCUS) + value_focus)
-
+    if ir_cut:
+        focuser.set(Focuser.OPT_IRCUT, focuser.get(Focuser.OPT_IRCUT) ^ 0x0001)
     print('Zoom: ' + str(focuser.get(Focuser.OPT_ZOOM)))
     print('Focus: ' + str(focuser.get(Focuser.OPT_FOCUS)))
+    print('IR: ' + str(focuser.get(Focuser.OPT_IRCUT)))
 
 
 @app.route("/")
 def index():
     # return the rendered template
     return render_template("index.html")
-
-
-@app.route("/visible/")
-def visible():
-    # return the rendered template
-    return render_template("visible.html")
-
-
-@app.route("/thermal/")
-def thermal():
-    # return the rendered template
-    return render_template("thermal.html")
-
-
-@app.route("/fusion/")
-def fusion():
-    # return the rendered template
-    return render_template("fusion.html")
-
-
-@app.route('/zoom/<int:number>/')
-def zoom(number):
-    focuser.set(Focuser.OPT_ZOOM, number)
-
-    response = app.response_class(
-        response=f'Zoom: {focuser.get(Focuser.OPT_ZOOM)}',
-        status=200,
-        mimetype='application/json'
-    )
-    return response
-
-
-@app.route('/focus/<int:number>/')
-def focus(number):
-    focuser.set(Focuser.OPT_FOCUS, number)
-    response = app.response_class(
-        response=f'Focus: {focuser.get(Focuser.OPT_FOCUS)}',
-        status=200,
-        mimetype='application/json'
-    )
-    return response
-
-
-@app.route('/IR/')
-def IR_cut():
-    focuser.set(Focuser.OPT_IRCUT, focuser.get(Focuser.OPT_IRCUT) ^ 0x0001)
-    response = app.response_class(
-        response=f'Focus: {focuser.get(Focuser.OPT_IRCUT)}',
-        status=200,
-        mimetype='application/json'
-    )
-    return response
-
-
-@app.route('/mode/<mode>/')
-def change_source(mode):
-    current_source = mode
-    response = app.response_class(
-        response=f'Mode: {current_source}',
-        status=200,
-        mimetype='application/json'
-    )
-    return response
-
-
-def generate(mode='visible'):
-    if mode == 'thermal':
-        #turn on the camera
-        thermal_camera = cv2.VideoCapture(thermal_gstreamer_pipeline(), cv2.CAP_GSTREAMER)
-        if not thermal_camera.isOpened():
-            raise RuntimeError("Failed to open thermal camera!")
-    elif mode == 'visible':
-        visible_camera = cv2.VideoCapture(visible_gstreamer_pipeline(), cv2.CAP_GSTREAMER)
-        if not visible_camera.isOpened():
-            raise RuntimeError("Failed to open visible camera!")
-    elif mode=='fusion':
-        visible_camera = cv2.VideoCapture(visible_gstreamer_pipeline(), cv2.CAP_GSTREAMER)
-        if not visible_camera.isOpened():
-            raise RuntimeError("Failed to open visible camera!")
-        thermal_camera = cv2.VideoCapture(thermal_gstreamer_pipeline(), cv2.CAP_GSTREAMER)
-        if not thermal_camera.isOpened():
-            raise RuntimeError("Failed to open thermal camera!")
-
-    # if mode == 'fusion':
-    #     focuser.set(Focuser.OPT_FOCUS, 9300)
-    #     focuser.set(Focuser.OPT_ZOOM, 7000)
-    current_source = 'visible'
-    # loop over frames from the output stream
-    while True:
-        # encode the frame in JPEG format
-        with lock:
-            if mode == 'visible':
-                ret, outputFrame = visible_camera.read()
-            elif mode == 'thermal':
-                ret2, outputFrame = thermal_camera.read()
-                outputFrame = cv2.resize(outputFrame, (1280, 853), interpolation=cv2.INTER_AREA)
-            elif mode == 'fusion':
-                ret, outputFrame = visible_camera.read()
-                ret2, thermalFrame = thermal_camera.read()
-
-                resized = cv2.resize(thermalFrame, (1280, 853), interpolation=cv2.INTER_AREA)
-                img_gray1 = cv2.cvtColor(resized, cv2.COLOR_BGR2GRAY)
-                ret, thresh1 = cv2.threshold(img_gray1, 150, 255, cv2.THRESH_BINARY)
-                contours2, hierarchy2 = cv2.findContours(thresh1, cv2.RETR_TREE,
-                                                         cv2.CHAIN_APPROX_SIMPLE)
-                cv2.drawContours(outputFrame, contours2, -1, (0, 255, 0), 2, cv2.LINE_AA)
-
-            # encode the frame in JPEG format
-            if outputFrame is None:
-                continue
-            (flag, encodedImage) = cv2.imencode(".jpg", outputFrame)
-
-        # ensure the frame was successfully encoded
-        yield (b'--frame\r\n' b'Content-Type: image/jpeg\r\n\r\n' +
-               bytearray(encodedImage) + b'\r\n')
 
 
 def gen(camera):
@@ -217,19 +103,25 @@ def gen(camera):
         yield b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n--frame\r\n'
 
 
-# @app.route('/video_feed')
-# def video_feed():
-#     """Video streaming route. Put this in the src attribute of an img tag."""
-#     return Response(gen(Camera()),
-#                     mimetype='multipart/x-mixed-replace; boundary=frame')
+@app.route('/video_feed/visible/')
+def visible_video_feed():
+    """Video streaming route. Put this in the src attribute of an img tag."""
+    return Response(gen(VisibleCamera()),
+                    mimetype='multipart/x-mixed-replace; boundary=frame')
 
 
-@app.route("/video_feed/<mode>")
-def video_feed(mode):
-    # return the response generated along with the specific media
-    # type (mime type)
-    return Response(generate(mode),
-                    mimetype="multipart/x-mixed-replace; boundary=frame")
+@app.route('/video_feed/thermal/')
+def thermal_video_feed():
+    """Video streaming route. Put this in the src attribute of an img tag."""
+    return Response(gen(ThermalCamera()),
+                    mimetype='multipart/x-mixed-replace; boundary=frame')
+
+
+@app.route('/video_feed/fusion/')
+def fusion_video_feed():
+    """Video streaming route. Put this in the src attribute of an img tag."""
+    return Response(gen(FusionCamera()),
+                    mimetype='multipart/x-mixed-replace; boundary=frame')
 
 
 # check to see if this is the main thread of execution

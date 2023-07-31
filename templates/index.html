@@ -16,9 +16,9 @@
             var canvas = $('#canvas')[0];
             var current_feed = 0;
             var is_thermal_on = false
-            var fusion_feed = '{{ url_for('video_feed', mode='fusion') }}';
-            var thermal_feed = '{{ url_for('video_feed', mode='thermal') }}';
-            var visible_feed = '{{ url_for('video_feed', mode='visible') }}';
+            var fusion_feed = '{{ url_for('fusion_video_feed') }}';
+            var thermal_feed = '{{ url_for('thermal_video_feed') }}';
+            var visible_feed = '{{ url_for('visible_video_feed') }}';
 
             var cameraName = 'Camera',
                 positionTimer = null,
@@ -28,7 +28,7 @@
                 controlling = false,
                 zerosSent = false;
 
-            $("#primary_video").attr("src", thermal_feed);
+            $("#primary_video").attr("src", visible_feed);
 
             //Gamepad
             let gamepadIndex;
@@ -69,14 +69,15 @@
                 return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
             }
 
-            setInterval(() => {
-                if (gamepadIndex !== undefined) {
-                    // a gamepad is connected and has an index
-                    const myGamepad = navigator.getGamepads()[gamepadIndex];
-                    var right_stick = (myGamepad.axes[2].toFixed(2), myGamepad.axes[3].toFixed(2));
+
+            const myGamepad = navigator.getGamepads()[gamepadIndex];
                     console.log(
                         `Gamepad connected at index ${myGamepad.index}: ${myGamepad.id} with ${myGamepad.buttons.length} buttons, ${myGamepad.axes.length} axes.`);
                     console.log(myGamepad.axes);
+            setInterval(() => {
+                if (gamepadIndex !== undefined) {
+                    // a gamepad is connected and has an inde
+
                     if (myGamepad.buttons[0].pressed) {
                         console.log('Button 0 pressed');
                           console.log('Button 3 pressed');
