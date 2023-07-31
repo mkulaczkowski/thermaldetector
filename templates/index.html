@@ -76,8 +76,11 @@
                     var right_stick = (myGamepad.axes[2].toFixed(2), myGamepad.axes[3].toFixed(2));
                     console.log(
                         `Gamepad connected at index ${myGamepad.index}: ${myGamepad.id} with ${myGamepad.buttons.length} buttons, ${myGamepad.axes.length} axes.`);
+                    console.log(myGamepad.axes);
                     if (myGamepad.buttons[0].pressed) {
                         console.log('Button 0 pressed');
+                          console.log('Button 3 pressed');
+                        $("#primary_video").attr("src", fusion_feed);
                     }
                     ;
                     if (myGamepad.buttons[1].pressed) {
@@ -91,8 +94,7 @@
                     }
                     ;
                     if (myGamepad.buttons[3].pressed) {
-                        console.log('Button 3 pressed');
-                        $("#primary_video").attr("src", fusion_feed);
+
                     }
                     ;
                     if (myGamepad.buttons[4].pressed) {
