@@ -54,7 +54,9 @@ def handle_message(data):
         switch.thermal_camera_on()
     elif data['cmd'] == 'thermal-off':
         switch.thermal_camera_off()
-
+    elif data['cmd'] == 'ir-cut':
+        focuser.set(Focuser.OPT_IRCUT, focuser.get(Focuser.OPT_IRCUT) ^ 0x0001)
+        print('IR: ' + str(focuser.get(Focuser.OPT_IRCUT)))
     print(f'received cmd: {str(data)}')
 
 
@@ -77,16 +79,15 @@ def handle_optic_event(json):
     print('Received optic event: ' + str(json))
     value_zoom = int(100 * json['zoom'])
     value_focus = int(100 * json['focus'])
-    ir_cut = json['ir_cut']
+
     if value_zoom != 0:
         focuser.set(Focuser.OPT_ZOOM, focuser.get(Focuser.OPT_ZOOM) + value_zoom)
     if value_focus != 0:
         focuser.set(Focuser.OPT_FOCUS, focuser.get(Focuser.OPT_FOCUS) + value_focus)
-    if ir_cut:
-        focuser.set(Focuser.OPT_IRCUT, focuser.get(Focuser.OPT_IRCUT) ^ 0x0001)
+
     print('Zoom: ' + str(focuser.get(Focuser.OPT_ZOOM)))
     print('Focus: ' + str(focuser.get(Focuser.OPT_FOCUS)))
-    print('IR: ' + str(focuser.get(Focuser.OPT_IRCUT)))
+
 
 
 @app.route("/")
