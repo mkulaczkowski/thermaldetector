@@ -129,9 +129,6 @@ def fusion_video_feed():
 # check to see if this is the main thread of execution
 if __name__ == '__main__':
 
-    GPIO.setmode(GPIO.BOARD)
-    GPIO.setup(switch_camera, GPIO.OUT, initial=GPIO.HIGH)
-    GPIO.setup(switch_laser, GPIO.OUT, initial=GPIO.HIGH)
 
     # construct the argument parser and parse command line arguments
     ap = argparse.ArgumentParser()
