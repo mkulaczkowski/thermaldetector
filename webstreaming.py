@@ -14,13 +14,14 @@ import imutils
 import time
 import cv2
 import logging
+import Jetson.GPIO as GPIO
 
 from cameras.Focuser import Focuser
 
 from cameras.fusion_camera import FusionCamera
 from cameras.opencv_thermal_camera import ThermalCamera
 from cameras.opencv_visible_camera import VisibleCamera
-from controlers.swtich_controller import GPIO_switch
+from controlers.swtich_controller import GPIO_switch, switch_camera, switch_laser
 
 # initialize a flask object
 app = Flask(__name__, template_folder='templates', static_folder='static', static_url_path='/static')
@@ -127,6 +128,11 @@ def fusion_video_feed():
 
 # check to see if this is the main thread of execution
 if __name__ == '__main__':
+
+    GPIO.setmode(GPIO.BOARD)
+    GPIO.setup(switch_camera, GPIO.OUT)
+    GPIO.setup(switch_laser, GPIO.OUT)
+
     # construct the argument parser and parse command line arguments
     ap = argparse.ArgumentParser()
     ap.add_argument("-i", "--ip", type=str, required=True, default="0.0.0.0",
