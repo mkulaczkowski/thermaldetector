@@ -31,8 +31,8 @@ class FusionCamera(BaseCamera):
         while True:
             # read current frame
             ret, outputFrame = visible_camera.read()
-            ret2, thermalFrame = thermal_camera.read()
-
+            ret2, _thermalFrame = thermal_camera.read()
+            thermalFrame = _thermalFrame[0:100, 0:200]
             resized = cv2.resize(thermalFrame, (1280, 853), interpolation=cv2.INTER_AREA)
             img_gray1 = cv2.cvtColor(resized, cv2.COLOR_BGR2GRAY)
             ret, thresh1 = cv2.threshold(img_gray1, 150, 255, cv2.THRESH_BINARY)
