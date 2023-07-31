@@ -1,6 +1,6 @@
 import os
 import cv2
-from base_camera import BaseCamera
+from cameras.base_camera import BaseCamera
 
 def thermal_gstreamer_pipeline(
         capture_width=480,

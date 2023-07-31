@@ -1,6 +1,7 @@
 import os
 import cv2
-from base_camera import BaseCamera
+
+from cameras.base_camera import BaseCamera
 from cameras.opencv_thermal_camera import thermal_gstreamer_pipeline
 from cameras.opencv_visible_camera import visible_gstreamer_pipeline
 

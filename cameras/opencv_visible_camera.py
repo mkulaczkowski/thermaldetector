@@ -1,7 +1,6 @@
 import os
 import cv2
-from base_camera import BaseCamera
-
+from cameras.base_camera import BaseCamera
 def visible_gstreamer_pipeline(
         capture_width=3840,
         capture_height=2160,
