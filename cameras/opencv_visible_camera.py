@@ -38,9 +38,8 @@ class VisibleCamera(BaseCamera):
 
     @staticmethod
     def frames():
-        camera = cv2.VideoCapture(VisibleCamera.video_source, cv2.CAP_GSTREAMER)
-        camera.release()
         cv2.destroyAllWindows()
+        camera = cv2.VideoCapture(VisibleCamera.video_source, cv2.CAP_GSTREAMER)
         if not camera.isOpened():
             raise RuntimeError('Could not start visible camera.')
 
