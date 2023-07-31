@@ -14,7 +14,7 @@ import imutils
 import time
 import cv2
 import logging
-import Jetson.GPIO as GPIO
+import RPi.GPIO as GPIO
 
 from cameras.Focuser import Focuser
 
