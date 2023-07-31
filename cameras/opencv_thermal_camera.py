@@ -23,7 +23,9 @@ class ThermalCamera(BaseCamera):
 
     @staticmethod
     def frames():
-        camera = cv2.VideoCapture(1, cv2.CAP_GSTREAMER)
+        camera = cv2.VideoCapture(ThermalCamera.video_source, cv2.CAP_GSTREAMER)
+        camera.release()
+        cv2.destroyAllWindows()
         if not camera.isOpened():
             raise RuntimeError('Could not start thermal camera.')
 
@@ -33,3 +35,4 @@ class ThermalCamera(BaseCamera):
 
             # encode as a jpeg image and return it
             yield cv2.imencode('.jpg', img)[1].tobytes()
+
