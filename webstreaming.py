@@ -130,8 +130,8 @@ def fusion_video_feed():
 if __name__ == '__main__':
 
     GPIO.setmode(GPIO.BOARD)
-    GPIO.setup(switch_camera, GPIO.OUT)
-    GPIO.setup(switch_laser, GPIO.OUT)
+    GPIO.setup(switch_camera, GPIO.OUT, initial=GPIO.HIGH)
+    GPIO.setup(switch_laser, GPIO.OUT, initial=GPIO.HIGH)
 
     # construct the argument parser and parse command line arguments
     ap = argparse.ArgumentParser()
