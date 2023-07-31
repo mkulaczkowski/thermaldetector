@@ -21,7 +21,7 @@ from cameras.Focuser import Focuser
 from cameras.fusion_camera import FusionCamera
 from cameras.opencv_thermal_camera import ThermalCamera
 from cameras.opencv_visible_camera import VisibleCamera
-from controlers.swtich_controller import GPIO_switch, switch_camera, switch_laser
+from controlers.swtich_controller import GPIO_switch
 
 # initialize a flask object
 app = Flask(__name__, template_folder='templates', static_folder='static', static_url_path='/static')
