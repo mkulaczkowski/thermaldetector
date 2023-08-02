@@ -23,8 +23,7 @@ class ThermalCamera(BaseCamera):
 
     @staticmethod
     def frames():
-        cv2.destroyAllWindows()
-        camera = cv2.VideoCapture(ThermalCamera.video_source, cv2.CAP_GSTREAMER)
+        camera = cv2.VideoCapture(1, cv2.CAP_GSTREAMER)
         if not camera.isOpened():
             raise RuntimeError('Could not start thermal camera.')
 
