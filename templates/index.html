@@ -72,25 +72,29 @@
             setInterval(() => {
                 if (gamepadIndex !== undefined) {
                     // a gamepad is connected and has an inde
-                   const myGamepad = navigator.getGamepads()[gamepadIndex];
+                    const myGamepad = navigator.getGamepads()[gamepadIndex];
                     if (myGamepad.buttons[0].pressed) {
                         console.log('Button 0 pressed');
-                        $("#primary_video").attr("src", '');
-                        setTimeout('', 5000);
                         $("#primary_video").attr("src", fusion_feed);
+                        socket.emit('cmd', {
+                            'cmd': 'changestream'
+                        });
                     }
                     ;
                     if (myGamepad.buttons[1].pressed) {
                         console.log('Button 1 pressed');
-                        $("#primary_video").attr("src", '');
-                        setTimeout('', 5000);
                         $("#primary_video").attr("src", visible_feed);
+                        socket.emit('cmd', {
+                            'cmd': 'changestream'
+                        });
                     }
                     ;
                     if (myGamepad.buttons[2].pressed) {
-                        $("#primary_video").attr("src", '');
-                         setTimeout('', 5000);
+                        console.log('Button 2 pressed');
                         $("#primary_video").attr("src", thermal_feed);
+                        socket.emit('cmd', {
+                            'cmd': 'changestream'
+                        });
                     }
                     ;
                     if (myGamepad.buttons[3].pressed) {
@@ -127,18 +131,18 @@
                         } else if (current_feed == 2) {
                             $("#primary_video").attr("src", fusion_feed);
                         }
-                    };
+                    }
+                    ;
                     if (myGamepad.buttons[9].pressed) {
                         console.log('Button 9 pressed');
 
                         console.log(is_thermal_on)
-                        if(is_thermal_on == false){
+                        if (is_thermal_on == false) {
                             socket.emit('cmd', {
-                            'cmd': 'thermal-off'
-                        });
-                        }
-                        else {
-                             console.log(`Setting thermal camera on...`);
+                                'cmd': 'thermal-off'
+                            });
+                        } else {
+                            console.log(`Setting thermal camera on...`);
                             socket.emit('cmd', {
                                 'cmd': 'thermal-on'
                             });
@@ -159,7 +163,8 @@
                             tilt: parseFloat(myGamepad.axes[1].toFixed(2) * -1),
                             relative: true
                         });
-                    };
+                    }
+                    ;
                     if (myGamepad.axes[2].toFixed(2) != 0.00 || myGamepad.axes[5].toFixed(2) != 0.00) {
                         socket.emit('optic', {
                             zoom: parseFloat(myGamepad.axes[2].toFixed(2) * -1),

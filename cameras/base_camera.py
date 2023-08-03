@@ -8,6 +8,7 @@ except ImportError:
     except ImportError:
         from _thread import get_ident
 
+stop_threads = False
 
 class CameraEvent(object):
     """An Event-like class that signals all active clients when a new frame is
@@ -89,6 +90,9 @@ class BaseCamera(object):
         """Camera background thread."""
         print('Starting camera thread.')
         frames_iterator = cls.frames()
+
+        global stop_threads
+
         for frame in frames_iterator:
             BaseCamera.frame = frame
             BaseCamera.event.set()  # send signal to clients
@@ -96,7 +100,7 @@ class BaseCamera(object):
 
             # if there hasn't been any clients asking for frames in
             # the last 10 seconds then stop the thread
-            if time.time() - BaseCamera.last_access > 5:
+            if time.time() - BaseCamera.last_access > 5 or stop_threads:
                 frames_iterator.close()
                 print('Stopping camera thread due to inactivity.')
                 break

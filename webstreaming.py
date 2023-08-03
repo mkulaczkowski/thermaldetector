@@ -55,6 +55,10 @@ def handle_message(data):
     elif data['cmd'] == 'thermal-off':
         switch = GPIO_switch()
         switch.thermal_camera_off()
+    elif data['cmd'] == 'changestream':
+        global stop_threads
+        stop_threads = True
+
     elif data['cmd'] == 'ir-cut':
         focuser.set(Focuser.OPT_IRCUT, focuser.get(Focuser.OPT_IRCUT) ^ 0x0001)
         print('IR: ' + str(focuser.get(Focuser.OPT_IRCUT)))
