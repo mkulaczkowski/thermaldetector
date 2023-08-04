@@ -84,13 +84,15 @@
                     const myGamepad = navigator.getGamepads()[gamepadIndex];
                     if (myGamepad.buttons[0].pressed) {
                         console.log('Button 0 pressed');
-                        if(is_video) {
+                        if(is_video===true) {
                             $("#primary_video").attr("src", fusion_feed_stop);
                             is_video = false;
+
                         } else {
                             $("#primary_video").attr("src", fusion_feed);
                             is_video = true;
                         }
+                        console.log(is_video);
                     }
                     ;
                     if (myGamepad.buttons[1].pressed) {
