@@ -1,5 +1,6 @@
 import time
 import threading
+
 try:
     from greenlet import getcurrent as get_ident
 except ImportError:
@@ -10,10 +11,12 @@ except ImportError:
 
 stop_threads = False
 
+
 class CameraEvent(object):
     """An Event-like class that signals all active clients when a new frame is
     available.
     """
+
     def __init__(self):
         self.events = {}
 
@@ -55,7 +58,7 @@ class CameraEvent(object):
 class BaseCamera(object):
     thread = None  # background thread that reads frames from camera
     frame = None  # current frame is stored here by background thread
-    last_access = 0 # time of last client access to the camera
+    last_access = 0  # time of last client access to the camera
     thread_stop = False
     event = CameraEvent()
 
@@ -73,7 +76,6 @@ class BaseCamera(object):
 
     def get_frame(self):
         """Return the current camera frame."""
-
         BaseCamera.last_access = time.time()
 
         # wait for a signal from the camera thread
@@ -81,6 +83,12 @@ class BaseCamera(object):
         BaseCamera.event.clear()
 
         return BaseCamera.frame
+
+    def stop(self):
+        BaseCamera.thread_stop = True
+
+    def start(self):
+        BaseCamera.thread_stop = False
 
     @staticmethod
     def frames():
@@ -93,6 +101,8 @@ class BaseCamera(object):
         print('Starting camera thread.')
         frames_iterator = cls.frames()
 
+        global stop_threads
+
         for frame in frames_iterator:
             BaseCamera.frame = frame
             BaseCamera.event.set()  # send signal to clients
@@ -100,8 +110,9 @@ class BaseCamera(object):
 
             # if there hasn't been any clients asking for frames in
             # the last 10 seconds then stop the thread
-            if time.time() - BaseCamera.last_access > 5:
+            if time.time() - BaseCamera.last_access > 5 or BaseCamera.thread_stop:
                 frames_iterator.close()
                 print('Stopping camera thread due to inactivity.')
                 break
         BaseCamera.thread = None
+        BaseCamera.thread_stop = False
