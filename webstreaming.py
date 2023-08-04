@@ -73,9 +73,6 @@ def handle_message(data):
     elif data['cmd'] == 'thermal-off':
         switch = GPIO_switch()
         switch.thermal_camera_off()
-    elif data['cmd'] == 'changestream':
-        global stop_threads
-        stop_threads = True
 
     elif data['cmd'] == 'ir-cut':
         focuser.set(Focuser.OPT_IRCUT, focuser.get(Focuser.OPT_IRCUT) ^ 0x0001)
@@ -118,35 +115,38 @@ def index():
     return render_template("index.html")
 
 
-def gen(camera):
+def gen(camera, status):
     """Video streaming generator function."""
     yield b'--frame\r\n'
     while True:
+        if status == 'stop':
+            camera.stop()
+            break
         frame = camera.get_frame()
         yield b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n--frame\r\n'
 
 
-@app.route('/video_feed/visible/')
-def visible_video_feed():
+@app.route('/video_feed/visible/<status>')
+def visible_video_feed(status):
     """Video streaming route. Put this in the src attribute of an img tag."""
     app.logger.info('Visible video feed')
-    return Response(gen(VisibleCamera()),
+    return Response(gen(VisibleCamera(), status),
                     mimetype='multipart/x-mixed-replace; boundary=frame')
 
 
-@app.route('/video_feed/thermal/')
-def thermal_video_feed():
+@app.route('/video_feed/thermal/<status>')
+def thermal_video_feed(status):
     """Video streaming route. Put this in the src attribute of an img tag."""
     app.logger.info('Thermal video feed')
-    return Response(gen(ThermalCamera()),
+    return Response(gen(ThermalCamera(), status),
                     mimetype='multipart/x-mixed-replace; boundary=frame')
 
 
-@app.route('/video_feed/fusion/')
-def fusion_video_feed():
+@app.route('/video_feed/fusion/<status>')
+def fusion_video_feed(status):
     """Video streaming route. Put this in the src attribute of an img tag."""
     app.logger.info('Fusion video feed')
-    return Response(gen(FusionCamera()),
+    return Response(gen(FusionCamera(), status),
                     mimetype='multipart/x-mixed-replace; boundary=frame')
 
 

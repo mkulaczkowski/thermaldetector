@@ -16,9 +16,13 @@
             var canvas = $('#canvas')[0];
             var current_feed = 0;
             var is_thermal_on = false
-            var fusion_feed = '{{ url_for('fusion_video_feed') }}';
-            var thermal_feed = '{{ url_for('thermal_video_feed') }}';
-            var visible_feed = '{{ url_for('visible_video_feed') }}';
+            var fusion_feed = '{{ url_for('fusion_video_feed', status="play") }}';
+            var thermal_feed = '{{ url_for('thermal_video_feed', status="play") }}';
+            var visible_feed = '{{ url_for('visible_video_feed', status="play") }}';
+
+            var fusion_feed_stop = '{{ url_for('fusion_video_feed', status="stop") }}';
+            var thermal_feed_stop = '{{ url_for('thermal_video_feed', status="stop") }}';
+            var visible_feed_stop = '{{ url_for('visible_video_feed', status="stop") }}';
 
             var cameraName = 'Camera',
                 positionTimer = null,
@@ -75,26 +79,18 @@
                     const myGamepad = navigator.getGamepads()[gamepadIndex];
                     if (myGamepad.buttons[0].pressed) {
                         console.log('Button 0 pressed');
-                        $("#primary_video").attr("src", fusion_feed);
-                        socket.emit('cmd', {
-                            'cmd': 'changestream'
-                        });
+                        $("#primary_video").attr("src", fusion_feed_stop);
+
                     }
                     ;
                     if (myGamepad.buttons[1].pressed) {
                         console.log('Button 1 pressed');
-                        $("#primary_video").attr("src", visible_feed);
-                        socket.emit('cmd', {
-                            'cmd': 'changestream'
-                        });
+                        $("#primary_video").attr("src", visible_feed_stop);
                     }
                     ;
                     if (myGamepad.buttons[2].pressed) {
                         console.log('Button 2 pressed');
-                        $("#primary_video").attr("src", thermal_feed);
-                        socket.emit('cmd', {
-                            'cmd': 'changestream'
-                        });
+                        $("#primary_video").attr("src", thermal_feed_stop);
                     }
                     ;
                     if (myGamepad.buttons[3].pressed) {

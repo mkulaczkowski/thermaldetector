@@ -4,8 +4,8 @@ from cameras.base_camera import BaseCamera
 def visible_gstreamer_pipeline(
         capture_width=3840,
         capture_height=2160,
-        display_width=1280,
-        display_height=720,
+        display_width=1920,
+        display_height=1080,
         framerate=25,
         flip_method=2,
 ):
