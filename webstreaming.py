@@ -146,6 +146,8 @@ def thermal_video_feed(status):
 def fusion_video_feed(status):
     """Video streaming route. Put this in the src attribute of an img tag."""
     app.logger.info('Fusion video feed')
+    focuser.set(Focuser.OPT_ZOOM, 7000)
+    focuser.set(Focuser.OPT_FOCUS, 20000)
     return Response(gen(FusionCamera(), status),
                     mimetype='multipart/x-mixed-replace; boundary=frame')
 
