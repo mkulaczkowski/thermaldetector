@@ -75,7 +75,10 @@ def handle_message(data):
         switch.thermal_camera_off()
     elif data['cmd'] == 'max-zoom':
         focuser.set(Focuser.OPT_ZOOM, 7700)
-        focuser.set(Focuser.OPT_FOCUS, 0)
+        focuser.set(Focuser.OPT_FOCUS, 190)
+    elif data['cmd'] == 'min-zoom':
+        focuser.set(Focuser.OPT_ZOOM, 7000)
+        focuser.set(Focuser.OPT_FOCUS, 20000)
     elif data['cmd'] == 'min-zoom':
         focuser.set(Focuser.OPT_ZOOM, 7000)
         focuser.set(Focuser.OPT_FOCUS, 20000)
