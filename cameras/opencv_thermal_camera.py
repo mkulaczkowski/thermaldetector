@@ -29,11 +29,6 @@ class ThermalCamera(BaseCamera):
 
         while True:
             # read current frame
-            global stop_threads
-            if stop_threads:
-
-                break
-
             _, img = camera.read()
 
             # encode as a jpeg image and return it
