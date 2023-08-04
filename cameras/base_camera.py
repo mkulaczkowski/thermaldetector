@@ -81,6 +81,8 @@ class BaseCamera(object):
 
         return BaseCamera.frame
 
+    def stop(self):
+        BaseCamera.thread_stop = True
     @staticmethod
     def frames():
         """"Generator that returns frames from the camera."""
