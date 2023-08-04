@@ -71,10 +71,9 @@ class BaseCamera(object):
             # wait until first frame is available
             BaseCamera.event.wait()
 
-    def get_frame(self, status):
+    def get_frame(self):
         """Return the current camera frame."""
-        if status == 'stop':
-            return
+
         BaseCamera.last_access = time.time()
 
         # wait for a signal from the camera thread
