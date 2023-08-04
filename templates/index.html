@@ -13,7 +13,7 @@
 
     <script type="text/javascript" charset="utf-8">
         $(document).ready(function () {
-            var canvas = $('#canvas')[0];
+
             var current_feed = 0;
             var is_thermal_on = false
             var is_video = true
@@ -28,7 +28,6 @@
 
             var cameraName = 'Camera',
                 positionTimer = null,
-                wsavc = null,
                 connected = false,
                 motionGranted = false,
                 controlling = false,
@@ -55,9 +54,6 @@
             var pan = 0, tilt = 0,
                 panMin = 0, panMax = 180,
                 tiltMin = 66, tiltMax = 120;
-
-
-
 
             connect();
 
@@ -198,7 +194,7 @@
                     }
 
                 }
-            }, 200)
+            }, 100)
 
             function showUIOverlay() {
                 $('.ui').css('opacity', 0.5);
