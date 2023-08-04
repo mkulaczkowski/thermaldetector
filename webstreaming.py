@@ -120,7 +120,6 @@ def gen(camera, status):
     yield b'--frame\r\n'
     while True:
         if status == 'stop':
-            camera.stop()
             break
         frame = camera.get_frame()
         yield b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n--frame\r\n'
