@@ -23,12 +23,17 @@ class ThermalCamera(BaseCamera):
 
     @staticmethod
     def frames():
-        camera = cv2.VideoCapture(1, cv2.CAP_GSTREAMER)
+        camera = cv2.VideoCapture(ThermalCamera.video_source, cv2.CAP_GSTREAMER)
         if not camera.isOpened():
             raise RuntimeError('Could not start thermal camera.')
 
         while True:
             # read current frame
+            global stop_threads
+            if stop_threads:
+
+                break
+
             _, img = camera.read()
 
             # encode as a jpeg image and return it

@@ -23,6 +23,24 @@ from cameras.opencv_thermal_camera import ThermalCamera
 from cameras.opencv_visible_camera import VisibleCamera
 from controlers.swtich_controller import GPIO_switch
 
+from logging.config import dictConfig
+
+dictConfig({
+    'version': 1,
+    'formatters': {'default': {
+        'format': '[%(asctime)s] %(levelname)s in %(module)s: %(message)s',
+    }},
+    'handlers': {'wsgi': {
+        'class': 'logging.StreamHandler',
+        'stream': 'ext://flask.logging.wsgi_errors_stream',
+        'formatter': 'default'
+    }},
+    'root': {
+        'level': 'INFO',
+        'handlers': ['wsgi']
+    }
+})
+
 # initialize a flask object
 app = Flask(__name__, template_folder='templates', static_folder='static', static_url_path='/static')
 app.config['SECRET_KEY'] = 'Ranger'
@@ -43,12 +61,12 @@ def test_connect():
 
 @socketio.on('message')
 def handle_message(data):
-    print('received message: ' + data)
+    app.logger.debug(f'received message: {str(data)}')
 
 
 @socketio.on('cmd')
 def handle_message(data):
-
+    app.logger.debug(f'received cmd: {str(data)}')
     if data['cmd'] == 'thermal-on':
         switch = GPIO_switch()
         switch.thermal_camera_on()
@@ -61,13 +79,13 @@ def handle_message(data):
 
     elif data['cmd'] == 'ir-cut':
         focuser.set(Focuser.OPT_IRCUT, focuser.get(Focuser.OPT_IRCUT) ^ 0x0001)
-        print('IR: ' + str(focuser.get(Focuser.OPT_IRCUT)))
-    print(f'received cmd: {str(data)}')
+        app.logger.info('IR: ' + str(focuser.get(Focuser.OPT_IRCUT)))
+
 
 
 @socketio.on('motion')
 def handle_motion_event(json):
-    print('Received motion event: ' + str(json))
+    app.logger.debug('Received motion event: ' + str(json))
     value_x = int(2 * json['pan'])
     value_y = int(2 * json['tilt'])
     if value_x != 0:
@@ -75,13 +93,13 @@ def handle_motion_event(json):
     if value_y != 0:
         focuser.set(Focuser.OPT_MOTOR_Y, focuser.get(Focuser.OPT_MOTOR_Y) + value_y)
 
-    print('Pan: ' + str(focuser.get(Focuser.OPT_MOTOR_X)))
-    print('Tilt: ' + str(focuser.get(Focuser.OPT_MOTOR_Y)))
+    app.logger.info('Pan: ' + str(focuser.get(Focuser.OPT_MOTOR_X)))
+    app.logger.info('Tilt: ' + str(focuser.get(Focuser.OPT_MOTOR_Y)))
 
 
 @socketio.on('optic')
 def handle_optic_event(json):
-    print('Received optic event: ' + str(json))
+    app.logger.debug('Received optic event: ' + str(json))
     value_zoom = int(500 * json['zoom'])
     value_focus = int(500 * json['focus'])
 
@@ -90,8 +108,8 @@ def handle_optic_event(json):
     if value_focus != 0:
         focuser.set(Focuser.OPT_FOCUS, focuser.get(Focuser.OPT_FOCUS) + value_focus)
 
-    print('Zoom: ' + str(focuser.get(Focuser.OPT_ZOOM)))
-    print('Focus: ' + str(focuser.get(Focuser.OPT_FOCUS)))
+    app.logger.info('Zoom: ' + str(focuser.get(Focuser.OPT_ZOOM)))
+    app.logger.info('Focus: ' + str(focuser.get(Focuser.OPT_FOCUS)))
 
 
 @app.route("/")
@@ -111,6 +129,7 @@ def gen(camera):
 @app.route('/video_feed/visible/')
 def visible_video_feed():
     """Video streaming route. Put this in the src attribute of an img tag."""
+    app.logger.info('Visible video feed')
     return Response(gen(VisibleCamera()),
                     mimetype='multipart/x-mixed-replace; boundary=frame')
 
@@ -118,6 +137,7 @@ def visible_video_feed():
 @app.route('/video_feed/thermal/')
 def thermal_video_feed():
     """Video streaming route. Put this in the src attribute of an img tag."""
+    app.logger.info('Thermal video feed')
     return Response(gen(ThermalCamera()),
                     mimetype='multipart/x-mixed-replace; boundary=frame')
 
@@ -125,6 +145,7 @@ def thermal_video_feed():
 @app.route('/video_feed/fusion/')
 def fusion_video_feed():
     """Video streaming route. Put this in the src attribute of an img tag."""
+    app.logger.info('Fusion video feed')
     return Response(gen(FusionCamera()),
                     mimetype='multipart/x-mixed-replace; boundary=frame')
 
