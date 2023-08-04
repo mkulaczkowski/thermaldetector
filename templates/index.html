@@ -134,10 +134,16 @@
                     ;
                     if (myGamepad.buttons[6].pressed) {
                         console.log('Button 6 pressed');
+                        socket.emit('cmd', {
+                            'cmd': 'min-zoom'
+                        });
                     }
                     ;
                     if (myGamepad.buttons[7].pressed) {
                         console.log('Button 7 pressed');
+                        socket.emit('cmd', {
+                            'cmd': 'max-zoom'
+                        });
                     }
                     ;
                     if (myGamepad.buttons[8].pressed) {

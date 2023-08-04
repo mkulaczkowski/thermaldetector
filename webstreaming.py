@@ -73,7 +73,12 @@ def handle_message(data):
     elif data['cmd'] == 'thermal-off':
         switch = GPIO_switch()
         switch.thermal_camera_off()
-
+    elif data['cmd'] == 'max-zoom':
+        focuser.set(Focuser.OPT_ZOOM, 7700)
+        focuser.set(Focuser.OPT_FOCUS, 0)
+    elif data['cmd'] == 'min-zoom':
+        focuser.set(Focuser.OPT_ZOOM, 7000)
+        focuser.set(Focuser.OPT_FOCUS, 20000)
     elif data['cmd'] == 'ir-cut':
         focuser.set(Focuser.OPT_IRCUT, focuser.get(Focuser.OPT_IRCUT) ^ 0x0001)
         app.logger.info('IR: ' + str(focuser.get(Focuser.OPT_IRCUT)))
