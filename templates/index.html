@@ -16,6 +16,8 @@
             var canvas = $('#canvas')[0];
             var current_feed = 0;
             var is_thermal_on = false
+            var is_video = true
+
             var fusion_feed = '{{ url_for('fusion_video_feed', status="play") }}';
             var thermal_feed = '{{ url_for('thermal_video_feed', status="play") }}';
             var visible_feed = '{{ url_for('visible_video_feed', status="play") }}';
@@ -54,6 +56,9 @@
                 panMin = 0, panMax = 180,
                 tiltMin = 66, tiltMax = 120;
 
+
+
+
             connect();
 
             function connect() {
@@ -79,9 +84,13 @@
                     const myGamepad = navigator.getGamepads()[gamepadIndex];
                     if (myGamepad.buttons[0].pressed) {
                         console.log('Button 0 pressed');
-                        $("#primary_video").attr("src", fusion_feed_stop);
-                        setTimeout('', 200);
-                        $("#primary_video").attr("src", fusion_feed);
+                        if(is_video) {
+                            $("#primary_video").attr("src", fusion_feed_stop);
+                            is_video = false;
+                        } else {
+                            $("#primary_video").attr("src", fusion_feed);
+                            is_video = true;
+                        }
                     }
                     ;
                     if (myGamepad.buttons[1].pressed) {
@@ -201,43 +210,6 @@
                     $('#position').css('left', px).css('top', py + 6);
                     showUIOverlay();
                 }
-            }
-
-            function startStream() {
-                if (wsavc) {
-                    wsavc.playStream(cameraName);
-                }
-            }
-
-            function startStreamingControls() {
-                console.log('Connected');
-                connected = true;
-                controlling = true;
-                setTimeout(startStream, 100);
-            }
-
-            function stopStreamingControls() {
-                controlling = false;
-            }
-
-            function capitalize(s) {
-                if (typeof s !== 'string') return ''
-                if (s.length < 2) return s;
-                return s.charAt(0).toUpperCase() + s.slice(1)
-            }
-
-            function set_status(which, status) {
-                let v = capitalize(status).replace('None', '')
-                $('#' + which + '_status').css('background-color', v === '' ? 'transparent' : '#444').html(v);
-            }
-
-            function toggleControls() {
-                if (!controlling) {
-                    startStreamingControls();
-                } else {
-                    stopStreamingControls();
-                }
-                $('#toggle').css('background-image', 'url(static/' + (controlling ? 'unlock' : 'lock') + '.png)');
             }
 
             function forceReload() {
