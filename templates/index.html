@@ -80,18 +80,21 @@
                     if (myGamepad.buttons[0].pressed) {
                         console.log('Button 0 pressed');
                         $("#primary_video").attr("src", fusion_feed_stop);
+                        setTimeout('', 200);
                         $("#primary_video").attr("src", fusion_feed);
                     }
                     ;
                     if (myGamepad.buttons[1].pressed) {
                         console.log('Button 1 pressed');
                         $("#primary_video").attr("src", visible_feed_stop);
+                        setTimeout('', 200);
                         $("#primary_video").attr("src", visible_feed);
                     }
                     ;
                     if (myGamepad.buttons[2].pressed) {
                         console.log('Button 2 pressed');
                         $("#primary_video").attr("src", thermal_feed_stop);
+                        setTimeout('', 200);
                         $("#primary_video").attr("src", visible_feed);
                     }
                     ;
