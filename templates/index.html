@@ -68,7 +68,7 @@
                     tilt = data['start_tilt']
                     is_thermal_on = data['thermal_status']
                 });
-
+                socket.emit('get_gyro', {data: 'I\'m connected!'});
                 socket.on('gyro', function (data) {
                     console.log(data);
                     socket.emit('get_gyro', {data: 'I\'m connected!'});
