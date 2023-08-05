@@ -15,7 +15,7 @@ import time
 import cv2
 import logging
 
-from cameras.gyro import Gyro
+#from cameras.gyro import Gyro
 
 thread = None
 ping_thread = None
@@ -31,10 +31,10 @@ from controlers.swtich_controller import GPIO_switch
 
 from logging.config import dictConfig
 
-try:
-    gyro_ = Gyro()
-except Exception as e:
-    logging.critical(f'Failed to initialize gyro: {e}')
+# try:
+#     gyro_ = Gyro()
+# except Exception as e:
+#     logging.critical(f'Failed to initialize gyro: {e}')
 
 dictConfig({
     'version': 1,
@@ -80,15 +80,15 @@ def connect():
     #     thread.daemon = True
     #     thread.start()
 
-@socketio.on("get_gyro")
-def get_gyro(data):
-    app.logger.debug(f'received gyro: {str(data)}')
-    time.sleep(1)
-    emit("gyro",
-         {"accel": gyro_.read_accel(),
-          "gyro": gyro_.read_gyro(),
-          "heading": gyro_.get_heading()
-          })
+# @socketio.on("get_gyro")
+# def get_gyro(data):
+#     app.logger.debug(f'received gyro: {str(data)}')
+#     time.sleep(1)
+#     emit("gyro",
+#          {"accel": gyro_.read_accel(),
+#           "gyro": gyro_.read_gyro(),
+#           "heading": gyro_.get_heading()
+#           })
 
 @socketio.on('message')
 def handle_message(data):
