@@ -85,8 +85,8 @@ def get_gyro(data):
     app.logger.debug(f'received gyro: {str(data)}')
     time.sleep(1)
     emit("gyro",
-         {"accel": gyro_.read_accel().toFixed(2),
-          "gyro": gyro_.read_gyro().toFixed(2),
+         {"accel": gyro_.read_accel(),
+          "gyro": gyro_.read_gyro(),
           "heading": gyro_.get_heading().toFixed(2)
           })
 
