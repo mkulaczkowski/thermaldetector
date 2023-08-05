@@ -2,7 +2,7 @@ import time
 import board
 
 from adafruit_lsm6ds.lsm6ds3 import LSM6DS3 as LSM6DS
-from math import atan2, degrees
+from math import atan, atan2, degrees, pi, cos, sin
 from adafruit_lis3mdl import LIS3MDL
 import busio
 
@@ -24,7 +24,8 @@ mag = LIS3MDL(i2c)
 #
 #
 class Gyro:
-
+    offmag = (0, 0, 0)
+    offaccel = (0, 0, 0)
     def __init__(self):
         print('Gyro init')
         super(Gyro, self).__init__()
@@ -36,8 +37,27 @@ class Gyro:
         return angle
 
     def get_heading(self):
-        magnet_x, magnet_y, magnet_z = mag.magnetic
-        return self.vector_2_degrees(magnet_x, magnet_y)
+        Xm, Ym, Zm = mag.magnetic
+        Xm = Xm - Gyro.offmag[0]
+        Ym = Ym - Gyro.offmag[1]
+        Zm = Zm - Gyro.offmag[2]
+        ax, ay, az = accel_gyro.acceleration
+        ax = ax - Gyro.offaccel[0]
+        ay = ay - Gyro.offaccel[1]
+        az = az - Gyro.offaccel[2]
+
+        # tilt compensation equations
+        stableZ = az + (ax * 0.01)
+        phi = atan2(ay, stableZ)
+
+        Gz2 = ay * sin(phi) + az * cos(phi)
+        theta = atan(-ax / Gz2)
+
+        By2 = Zm * sin(phi) - Ym * cos(phi)
+        Bz2 = Ym * sin(phi) + Zm * cos(phi)
+        Bx3 = Xm * cos(theta) + Bz2 * sin(theta)
+
+        return "{:.0f}".format(self.vector_2_degrees(Bx3, By2))
 
     def read_gyro(self):
         gyro = accel_gyro.gyro
