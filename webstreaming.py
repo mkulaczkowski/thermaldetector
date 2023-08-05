@@ -65,7 +65,7 @@ except Exception as e:
 
 @socketio.on("connect")
 def connect():
-    print("Connected")
+    app.logger.debug("Client connected")
     emit("handshake", {"data": "Connected", "start_pan": focuser.get(Focuser.OPT_MOTOR_X),
                        "start_tilt": focuser.get(Focuser.OPT_MOTOR_Y)})
     # global run_threads
@@ -81,7 +81,8 @@ def connect():
     #     thread.start()
 
 @socketio.on("get_gyro")
-def get_gyro():
+def get_gyro(data):
+    app.logger.debug(f'received cmd: {str(data)}')
     emit("gyro",
          {"accel": gyro.read_accel(),
           "gyro": gyro.read_gyro(),
