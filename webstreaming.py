@@ -87,7 +87,7 @@ def get_gyro(data):
     emit("gyro",
          {"accel": gyro_.read_accel(),
           "gyro": gyro_.read_gyro(),
-          "heading": gyro_.get_heading().toFixed(2)
+          "heading": gyro_.get_heading()
           })
 
 @socketio.on('message')

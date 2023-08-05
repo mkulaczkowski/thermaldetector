@@ -70,7 +70,7 @@
                 });
                 socket.emit('get_gyro', {data: 'Get Gyro'});
                 socket.on('gyro', function (data) {
-                    $("#compass").text(data['heading']);
+                    $("#compass").text(data['heading'].toFixed(2));
                     socket.emit('get_gyro', {data: 'Get Gyro'});
                 });
 
