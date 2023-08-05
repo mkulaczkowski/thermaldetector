@@ -29,14 +29,14 @@ class Gyro:
         print('Gyro init')
         super(Gyro, self).__init__()
 
-    def vector_2_degrees(x, y):
+    def vector_2_degrees(self, x, y):
         angle = degrees(atan2(y, x))
         if angle < 0:
             angle += 360
         return angle
 
     def get_heading(self):
-        magnet_x, magnet_y, _ = mag.magnetic
+        magnet_x, magnet_y, magnet_z = mag.magnetic
         return self.vector_2_degrees(magnet_x, magnet_y)
 
     def read_gyro(self):
