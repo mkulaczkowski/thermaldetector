@@ -31,6 +31,11 @@ from controlers.swtich_controller import GPIO_switch
 
 from logging.config import dictConfig
 
+try:
+    gyro = Gyro()
+except Exception as e:
+    logging.critical(f'Failed to initialize gyro: {e}')
+
 dictConfig({
     'version': 1,
     'formatters': {'default': {
@@ -63,23 +68,30 @@ def connect():
     print("Connected")
     emit("handshake", {"data": "Connected", "start_pan": focuser.get(Focuser.OPT_MOTOR_X),
                        "start_tilt": focuser.get(Focuser.OPT_MOTOR_Y)})
-    global run_threads
-    global thread
-    global ping_thread
+    # global run_threads
+    # global thread
+    # global ping_thread
+    #
+    # run_threads = True
+    #
+    # if thread is None or not thread.is_alive():
+    #     # Set up the long running loop to listen for any changes from the Sonos
+    #     thread = threading.Thread(target=gyro)
+    #     thread.daemon = True
+    #     thread.start()
 
-    run_threads = True
-
-    if thread is None or not thread.is_alive():
-        # Set up the long running loop to listen for any changes from the Sonos
-        thread = threading.Thread(target=gyro)
-        thread.daemon = True
-        thread.start()
-
+@socketio.on("get_gyro")
+def get_gyro():
+    emit("gyro",
+         {"accel": gyro.read_accel(),
+          "gyro": gyro.read_gyro(),
+          "magnetic": gyro.read_mag()
+          })
 
 def gyro():
     # Using run_threads so we can terminate when we lose connection.
     global run_threads, thread
-    gyro = Gyro()
+
     while run_threads:
         emit("gyro",
              {"accel": gyro.read_accel(),
@@ -208,4 +220,4 @@ if __name__ == '__main__':
     print(f'Started on port {args["ip"]}:{args["port"]}')
     # app.run(host=args["ip"], port=args["port"], debug=True,
     #        threaded=True, use_reloader=False)
-    socketio.run(app, host=args["ip"], port=args["port"], debug=True, async_mode='threading')
+    socketio.run(app, host=args["ip"], port=args["port"], debug=True)

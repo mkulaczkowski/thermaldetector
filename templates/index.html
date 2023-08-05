@@ -71,6 +71,7 @@
 
                 socket.on('gyro', function (data) {
                     console.log(data);
+                    socket.emit('get_gyro', {data: 'I\'m connected!'});
                 });
 
             }
