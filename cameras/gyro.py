@@ -36,17 +36,17 @@ class Gyro:
         return angle
 
     def get_heading(self):
-        magnet_x, magnet_y, _ = Gyro.mag.magnetic
+        magnet_x, magnet_y, _ = mag.magnetic
         return self.vector_2_degrees(magnet_x, magnet_y)
 
     def read_gyro(self):
-        gyro = Gyro.accel_gyro.gyro
+        gyro = accel_gyro.gyro
         return gyro
 
     def read_accel(self):
-        acceleration = Gyro.accel_gyro.acceleration
+        acceleration = accel_gyro.acceleration
         return acceleration
 
     def read_mag(self):
-        magnetic = Gyro.mag.magnetic
+        magnetic = mag.magnetic
         return magnetic
