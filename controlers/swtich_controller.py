@@ -1,9 +1,7 @@
-import board
+import Jetson.GPIO as GPIO
 import time
 
-import busio
 
-spi = busio.SPI(board.SCK, MOSI=board.MOSI, MISO=board.MISO)
 
 class GPIO_switch():
     switch_camera = 23
