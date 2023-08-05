@@ -82,7 +82,8 @@ def connect():
 
 @socketio.on("get_gyro")
 def get_gyro(data):
-    app.logger.debug(f'received cmd: {str(data)}')
+    app.logger.debug(f'received gyro: {str(data)}')
+    time.sleep(1)
     emit("gyro",
          {"accel": gyro_.read_accel(),
           "gyro": gyro_.read_gyro(),
