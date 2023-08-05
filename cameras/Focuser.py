@@ -131,8 +131,8 @@ class Focuser:
         },
         OPT_MOTOR_Y: {
             "REG_ADDR": 0x06,
-            "MIN_VALUE": 66,
-            "MAX_VALUE": 120,
+            "MIN_VALUE": 70,
+            "MAX_VALUE": 110,
             "RESET_ADDR": None,
         },
         OPT_IRCUT: {
