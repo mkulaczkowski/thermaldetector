@@ -32,7 +32,7 @@ from controlers.swtich_controller import GPIO_switch
 from logging.config import dictConfig
 
 try:
-    gyro = Gyro()
+    gyro_ = Gyro()
 except Exception as e:
     logging.critical(f'Failed to initialize gyro: {e}')
 
@@ -84,9 +84,9 @@ def connect():
 def get_gyro(data):
     app.logger.debug(f'received cmd: {str(data)}')
     emit("gyro",
-         {"accel": gyro.read_accel(),
-          "gyro": gyro.read_gyro(),
-          "magnetic": gyro.read_mag()
+         {"accel": gyro_.read_accel(),
+          "gyro": gyro_.read_gyro(),
+          "magnetic": gyro_.read_mag()
           })
 
 def gyro():
