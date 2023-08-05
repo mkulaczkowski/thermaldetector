@@ -69,7 +69,7 @@ def connect():
 
     run_threads = True
 
-    if thread is None or not thread.isAlive():
+    if thread is None or not thread.is_alive():
         # Set up the long running loop to listen for any changes from the Sonos
         thread = threading.Thread(target=gyro)
         thread.daemon = True
@@ -208,4 +208,4 @@ if __name__ == '__main__':
     print(f'Started on port {args["ip"]}:{args["port"]}')
     # app.run(host=args["ip"], port=args["port"], debug=True,
     #        threaded=True, use_reloader=False)
-    socketio.run(app, host=args["ip"], port=args["port"], debug=True)
+    socketio.run(app, host=args["ip"], port=args["port"], debug=True, async_mode='threading')
