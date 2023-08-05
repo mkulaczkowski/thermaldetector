@@ -70,7 +70,7 @@
                 });
                 socket.emit('get_gyro', {data: 'Get Gyro'});
                 socket.on('gyro', function (data) {
-                    console.log(data);
+                    $("#compass").text(data['heading']);
                     socket.emit('get_gyro', {data: 'Get Gyro'});
                 });
 
@@ -87,7 +87,7 @@
                     const myGamepad = navigator.getGamepads()[gamepadIndex];
                     if (myGamepad.buttons[0].pressed) {
                         console.log('Button 0 pressed');
-                        if(is_video===true) {
+                        if (is_video === true) {
                             $("#primary_video").attr("src", fusion_feed_stop);
                             is_video = false;
 
@@ -100,7 +100,7 @@
                     ;
                     if (myGamepad.buttons[1].pressed) {
                         console.log('Button 1 pressed');
-                        if(is_video===true) {
+                        if (is_video === true) {
                             $("#primary_video").attr("src", visible_feed_stop);
                             is_video = false;
 
@@ -113,7 +113,7 @@
                     ;
                     if (myGamepad.buttons[2].pressed) {
                         console.log('Button 2 pressed');
-                        if(is_video===true) {
+                        if (is_video === true) {
                             $("#primary_video").attr("src", thermal_feed_stop);
                             is_video = false;
 
@@ -633,13 +633,51 @@
             transition: opacity 0.3s linear;
         }
 
+        /* Bottom left text */
+        .bottom-left {
+            position: absolute;
+            bottom: 8px;
+            left: 16px;
+        }
+
+        /* Top left text */
+        .top-left {
+            position: absolute;
+            top: 8px;
+            left: 16px;
+        }
+
+        /* Top right text */
+        .top-right {
+            position: absolute;
+            top: 8px;
+            right: 16px;
+        }
+
+        /* Bottom right text */
+        .bottom-right {
+            position: absolute;
+            bottom: 8px;
+            right: 16px;
+        }
+
+        /* Centered text */
+        .centered {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
     </style>
 
 </head>
 <body>
 <div id="container">
     <img id="primary_video" style="width: 100%" src="">
-
+    <div class="bottom-left">Bottom Left</div>
+    <div class="top-left" id="compass"></div>
+    <div class="top-right">Top Right</div>
+    <div class="bottom-right">Bottom Right</div>
     <div id="controls">
         <div class="overlay ui" id="motion_status">Enable Motion</div>
         <div class="overlay ui" id="reload"></div>
