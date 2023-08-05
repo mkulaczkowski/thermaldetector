@@ -14,7 +14,13 @@ import imutils
 import time
 import cv2
 import logging
-import RPi.GPIO as GPIO
+
+from cameras.gyro import Gyro
+
+thread = None
+ping_thread = None
+run_threads = True
+
 
 from cameras.Focuser import Focuser
 
@@ -53,10 +59,33 @@ except Exception as e:
 
 
 @socketio.on("connect")
-def test_connect():
+def connect():
     print("Connected")
     emit("handshake", {"data": "Connected", "start_pan": focuser.get(Focuser.OPT_MOTOR_X),
                        "start_tilt": focuser.get(Focuser.OPT_MOTOR_Y)})
+    global run_threads
+    global thread
+    global ping_thread
+
+    run_threads = True
+
+    if thread is None or not thread.isAlive():
+        # Set up the long running loop to listen for any changes from the Sonos
+        thread = threading.Thread(target=gyro)
+        thread.daemon = True
+        thread.start()
+
+
+def gyro():
+    # Using run_threads so we can terminate when we lose connection.
+    global run_threads, thread
+    gyro = Gyro()
+    while run_threads:
+        emit("gyro",
+             {"accel": gyro.read_accel(),
+              "gyro": gyro.read_gyro(),
+              "magnetic": gyro.read_mag()
+              })
 
 
 @socketio.on('message')

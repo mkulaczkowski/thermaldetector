@@ -7,7 +7,8 @@
     <title>Pan/Tilt Camera</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js" integrity="sha512-q/dWJ3kcmjBLU4Qc47E4A9kTB4m3wuTY7vkFJDTZKjTs8jhyGQnaUrxa0Ytd0ssMZhbNua9hE+E7Qv1j+DyZwA=="
             crossorigin="anonymous"></script>
-
+    <link href="//vjs.zencdn.net/8.3.0/video-js.min.css" rel="stylesheet">
+    <script src="//vjs.zencdn.net/8.3.0/video.min.js"></script>
     <script type="text/javascript" src="static/jquery-1.12.4.min.js"></script>
     <script type="text/javascript" src="static/jquery-ui.min.js"></script>
 
@@ -67,6 +68,11 @@
                     tilt = data['start_tilt']
                     is_thermal_on = data['thermal_status']
                 });
+
+                socket.on('gyro', function (data) {
+                    console.log(data);
+                });
+
             }
 
 
