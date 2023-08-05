@@ -87,7 +87,7 @@ def get_gyro(data):
     emit("gyro",
          {"accel": gyro_.read_accel(),
           "gyro": gyro_.read_gyro(),
-          "magnetic": gyro_.read_mag()
+          "heading": gyro_.get_heading()
           })
 
 def gyro():

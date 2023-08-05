@@ -2,9 +2,13 @@ import time
 import board
 
 from adafruit_lsm6ds.lsm6ds3 import LSM6DS3 as LSM6DS
-
+from math import atan2, degrees
 from adafruit_lis3mdl import LIS3MDL
 import busio
+
+i2c = busio.I2C(board.SCL_1, board.SDA_1)
+accel_gyro = LSM6DS(i2c)
+mag = LIS3MDL(i2c)
 
 
 # while True:
@@ -20,13 +24,20 @@ import busio
 #
 #
 class Gyro:
-    i2c = busio.I2C(board.SCL_1, board.SDA_1)
-    accel_gyro = LSM6DS(i2c)
-    mag = LIS3MDL(i2c)
 
     def __init__(self):
         print('Gyro init')
         super(Gyro, self).__init__()
+
+    def vector_2_degrees(x, y):
+        angle = degrees(atan2(y, x))
+        if angle < 0:
+            angle += 360
+        return angle
+
+    def get_heading(self):
+        magnet_x, magnet_y, _ = Gyro.mag.magnetic
+        return self.vector_2_degrees(magnet_x, magnet_y)
 
     def read_gyro(self):
         gyro = Gyro.accel_gyro.gyro
