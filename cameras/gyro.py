@@ -57,7 +57,7 @@ class Gyro:
         Bz2 = Ym * sin(phi) + Zm * cos(phi)
         Bx3 = Xm * cos(theta) + Bz2 * sin(theta)
 
-        return "{:.0f}".format(self.vector_2_degrees(Bx3, By2))
+        return self.vector_2_degrees(Bx3, By2)
 
     def read_gyro(self):
         gyro = accel_gyro.gyro

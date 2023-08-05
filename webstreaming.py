@@ -85,20 +85,10 @@ def get_gyro(data):
     app.logger.debug(f'received gyro: {str(data)}')
     time.sleep(1)
     emit("gyro",
-         {"accel": gyro_.read_accel(),
-          "gyro": gyro_.read_gyro(),
-          "heading": "{:.2f}".format(gyro_.get_heading())
+         {"accel": gyro_.read_accel().toFixed(2),
+          "gyro": gyro_.read_gyro().toFixed(2),
+          "heading": gyro_.get_heading().toFixed(2)
           })
-
-def gyro():
-    # Using run_threads so we can terminate when we lose connection.
-
-    emit("gyro",
-             {"accel": gyro_.read_accel(),
-              "gyro": gyro_.read_gyro(),
-              "magnetic": gyro_.read_mag()
-              })
-
 
 @socketio.on('message')
 def handle_message(data):
