@@ -91,10 +91,8 @@ def get_gyro(data):
 
 def gyro():
     # Using run_threads so we can terminate when we lose connection.
-    global run_threads, thread
 
-    while run_threads:
-        emit("gyro",
+    emit("gyro",
              {"accel": gyro.read_accel(),
               "gyro": gyro.read_gyro(),
               "magnetic": gyro.read_mag()
