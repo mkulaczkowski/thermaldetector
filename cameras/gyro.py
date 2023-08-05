@@ -24,7 +24,7 @@ class Gyro:
     accel_gyro = LSM6DS(i2c)
     mag = LIS3MDL(i2c)
 
-    def __init__(self, bus):
+    def __init__(self):
         pass
 
     def read_gyro(self):
