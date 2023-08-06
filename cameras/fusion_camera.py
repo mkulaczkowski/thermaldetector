@@ -1,19 +1,20 @@
 import logging
 import os
 import cv2
-from webstreaming import app
+
 
 from cameras.base_camera import BaseCamera
 from cameras.opencv_thermal_camera import thermal_gstreamer_pipeline
 from cameras.opencv_visible_camera import visible_gstreamer_pipeline
 
+logger = logging.getLogger('tester.sub')
 
 class FusionCamera(BaseCamera):
     video_source = visible_gstreamer_pipeline()
     video_source1 = thermal_gstreamer_pipeline()
 
     def __init__(self):
-        print('FusionCamera init')
+        logger.debug('FusionCamera init')
         super(FusionCamera, self).__init__()
 
     @staticmethod
@@ -43,8 +44,9 @@ class FusionCamera(BaseCamera):
                                                          cv2.CHAIN_APPROX_SIMPLE)
                 cv2.drawContours(outputFrame, contours2, -1, (0, 255, 0), 2, cv2.LINE_AA, offset=(0, 0))
             except Exception as e:
-                app.logger.info('Fusion video feed Error: ' + str(e))
+                logger.info('Fusion video feed Error: ' + str(e))
                 continue
 
             # encode as a jpeg image and return it
-            yield cv2.imencode('.jpg', outputFrame)[1].tobytes()
+            encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 80]
+            yield cv2.imencode('.jpg', outputFrame, encode_param)[1].tobytes()
