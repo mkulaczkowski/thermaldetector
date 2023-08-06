@@ -2,8 +2,7 @@ try:
     import Jetson.GPIO as GPIO
 except ImportError as e:
     print(e)
-    print("Failed to import Jetson.GPIO library, using dummy GPIO")
-    from Mock.GPIO import GPIO
+    print("Failed to import Jetson.GPIO library")
 
 import time
 
