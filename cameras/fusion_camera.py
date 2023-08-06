@@ -29,14 +29,13 @@ class FusionCamera(BaseCamera):
                 visible_camera = cv2.VideoCapture(FusionCamera.video_source, cv2.CAP_GSTREAMER)
                 thermal_camera = cv2.VideoCapture(FusionCamera.video_source1, cv2.CAP_GSTREAMER)
 
-                if not visible_camera.isOpened():
-                    raise RuntimeError('Could not start visible camera.')
-
-                if not thermal_camera.isOpened():
-                    raise RuntimeError('Could not start thermal camera.')
+                assert visible_camera.isOpened()
+                assert thermal_camera.isOpened()
+            
                 return visible_camera, thermal_camera
             except Exception as e:
                 if i < tries - 1:  # i is zero indexed
+                    logger.warning('Fusion video feed Error: ' + str(e))
                     cv2.destroyAllWindows()
                     continue
                 else:
