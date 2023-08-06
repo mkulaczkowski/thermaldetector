@@ -1,6 +1,11 @@
-import Jetson.GPIO as GPIO
-import time
+try:
+    import Jetson.GPIO as GPIO
+except ImportError as e:
+    print(e)
+    print("Failed to import Jetson.GPIO library, using dummy GPIO")
+    from Mock.GPIO import GPIO
 
+import time
 
 
 class GPIO_switch():
