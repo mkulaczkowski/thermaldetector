@@ -15,7 +15,7 @@ def visible_gstreamer_pipeline(
             "width=(int)%d, height=(int)%d, "
             "format=(string)NV12, framerate=(fraction)%d/1 ! "
             "nvvidconv flip-method=%d ! "
-            "omxh264enc ! qtmux ! appsink drop=1"
+            "nvv4l2h264enc bitrate=8000000 ! h264parse ! qtmux ! appsink drop=1"
             % (
                 capture_width,
                 capture_height,
