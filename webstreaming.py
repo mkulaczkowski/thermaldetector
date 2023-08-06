@@ -210,4 +210,4 @@ if __name__ == '__main__':
     print(f'Started on port {args["ip"]}:{args["port"]}')
     # app.run(host=args["ip"], port=args["port"], debug=True,
     #        threaded=True, use_reloader=False)
-    socketio.run(app, host=args["ip"], port=args["port"], debug=True)
+    socketio.run(app, host=args["ip"], port=args["port"], debug=False)
