@@ -33,7 +33,7 @@ class FusionCamera(BaseCamera):
                 assert thermal_camera.isOpened()
             
                 return visible_camera, thermal_camera
-            except Exception as e:
+            except AssertionError as e:
                 if i < tries - 1:  # i is zero indexed
                     logger.warning('Fusion video feed Error: ' + str(e))
                     cv2.destroyAllWindows()
