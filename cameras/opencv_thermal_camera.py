@@ -10,7 +10,7 @@ def thermal_gstreamer_pipeline(
         framerate=25,
         flip_method=0,
 ):
-    pipeline = f"v4l2src device=/dev/video1 ! video/x-raw, format=YUY2, width={capture_width}, height={capture_height}, pixel-aspect-ratio=1/1, framerate={framerate}/1 ! videoconvert ! appsink drop=1 wait-on-eos=false max-buffers=1"
+    pipeline = f"v4l2src device=/dev/video1 ! video/x-raw, format=YUY2, width={capture_width}, height={capture_height}, pixel-aspect-ratio=1/1, framerate={framerate}/1 ! videoconvert ! appsink drop=1 max-buffers=1"
     print(pipeline)
     return (pipeline)
 

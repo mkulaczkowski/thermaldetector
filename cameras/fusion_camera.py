@@ -23,8 +23,13 @@ class FusionCamera(BaseCamera):
 
     @staticmethod
     def frames():
-        visible_camera = cv2.VideoCapture(FusionCamera.video_source, cv2.CAP_GSTREAMER)
-        thermal_camera = cv2.VideoCapture(FusionCamera.video_source1, cv2.CAP_GSTREAMER)
+        try:
+            visible_camera = cv2.VideoCapture(FusionCamera.video_source, cv2.CAP_GSTREAMER)
+            thermal_camera = cv2.VideoCapture(FusionCamera.video_source1, cv2.CAP_GSTREAMER)
+        except Exception as e:
+            cv2.destroyAllWindows()
+
+
         if not visible_camera.isOpened():
             raise RuntimeError('Could not start visible camera.')
 
