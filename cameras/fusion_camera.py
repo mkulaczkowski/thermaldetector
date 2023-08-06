@@ -1,5 +1,7 @@
+import logging
 import os
 import cv2
+from webstreaming import app
 
 from cameras.base_camera import BaseCamera
 from cameras.opencv_thermal_camera import thermal_gstreamer_pipeline
@@ -41,6 +43,7 @@ class FusionCamera(BaseCamera):
                                                          cv2.CHAIN_APPROX_SIMPLE)
                 cv2.drawContours(outputFrame, contours2, -1, (0, 255, 0), 2, cv2.LINE_AA, offset=(0, 0))
             except Exception as e:
+                app.logger.info('Fusion video feed Error: ' + str(e))
                 continue
 
             # encode as a jpeg image and return it
