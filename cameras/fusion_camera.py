@@ -63,5 +63,5 @@ class FusionCamera(BaseCamera):
                 continue
 
             # encode as a jpeg image and return it
-            encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 80]
+            encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 60]
             yield cv2.imencode('.jpg', outputFrame, encode_param)[1].tobytes()
