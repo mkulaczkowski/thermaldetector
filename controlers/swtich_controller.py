@@ -15,7 +15,8 @@ class GPIO_switch():
         GPIO.setmode(GPIO.BOARD)
         GPIO.setup(self.switch_camera, GPIO.OUT)
         GPIO.setup(self.switch_laser, GPIO.OUT)
-
+        GPIO.output(self.switch_camera, GPIO.LOW)
+        GPIO.output(self.switch_laser, GPIO.LOW)
     # BCM pin-numbering scheme from Raspberry Pi
     # set pin as an output pin with optional initial state of HIGH
 
