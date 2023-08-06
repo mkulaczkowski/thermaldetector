@@ -31,6 +31,7 @@ from controlers.swtich_controller import GPIO_switch
 
 from logging.config import dictConfig
 
+lock = threading.Lock()
 # try:
 #     gyro_ = Gyro()
 # except Exception as e:
@@ -157,12 +158,11 @@ def index():
 def gen(camera, status):
     """Video streaming generator function."""
     yield b'--frame\r\n'
+    global lock
     while True:
-        if status == 'stop':
-            camera.stop()
-            break
-        frame = camera.get_frame()
-        yield b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n--frame\r\n'
+        with lock:
+            frame = camera.get_frame()
+            yield b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n--frame\r\n'
 
 
 @app.route('/video_feed/visible/<status>')
@@ -203,7 +203,9 @@ if __name__ == '__main__':
                     help="# of frames used to construct the background model")
     args = vars(ap.parse_args())
     # start a thread that will perform motion detection
-
+    # t = threading.Thread(target=detect_motion)
+    # t.daemon = True
+    # t.start()
     # start the flask app
     print(f'Started on port {args["ip"]}:{args["port"]}')
     # app.run(host=args["ip"], port=args["port"], debug=True,
