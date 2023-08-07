@@ -1,7 +1,7 @@
 import logging
 import os
 import cv2
-
+from vidgear.gears import VideoGear
 
 from cameras.base_camera import BaseCamera
 from cameras.opencv_thermal_camera import thermal_gstreamer_pipeline
@@ -27,11 +27,13 @@ class FusionCamera(BaseCamera):
         tries = 3
         for i in range(tries):
             try:
-                visible_camera = cv2.VideoCapture(FusionCamera.video_source, cv2.CAP_GSTREAMER)
-                thermal_camera = cv2.VideoCapture(FusionCamera.video_source1, cv2.CAP_GSTREAMER)
+                visible_camera = VideoGear(source=FusionCamera.video_source, stabilize=True).start()
+                thermal_camera = VideoGear(source=FusionCamera.video_source1, stabilize=True).start()
+                #visible_camera = cv2.VideoCapture(FusionCamera.video_source, cv2.CAP_GSTREAMER)
+                #thermal_camera = cv2.VideoCapture(FusionCamera.video_source1, cv2.CAP_GSTREAMER)
 
-                assert visible_camera.isOpened()
-                assert thermal_camera.isOpened()
+                # assert visible_camera.isOpened()
+                # assert thermal_camera.isOpened()
             
                 return visible_camera, thermal_camera
             except AssertionError as e:
@@ -49,10 +51,13 @@ class FusionCamera(BaseCamera):
 
         while True:
             # read current frame
-            ret, outputFrame = visible_camera.read()
+            outputFrame = visible_camera.read()
 
+            # check for stabilized frame if Nonetype
+            if outputFrame is None:
+                break
             try:
-                ret2, thermalFrame = thermal_camera.read()
+                thermalFrame = thermal_camera.read()
                 resized = cv2.resize(thermalFrame, (1920, 1080), interpolation=cv2.INTER_AREA)
                 img_gray1 = cv2.cvtColor(resized, cv2.COLOR_BGR2GRAY)
                 ret, thresh1 = cv2.threshold(img_gray1, 150, 255, cv2.THRESH_BINARY)
