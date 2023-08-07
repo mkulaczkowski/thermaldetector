@@ -188,6 +188,9 @@
                     ;
                     if (myGamepad.buttons[11].pressed) {
                         console.log('Button 11 pressed');
+                        socket.emit('cmd', {
+                                'cmd': 'laser-on'
+                            });
                     }
                     ;
                     if (myGamepad.axes[0].toFixed(2) != 0.00 || myGamepad.axes[1].toFixed(2) != 0.00) {
