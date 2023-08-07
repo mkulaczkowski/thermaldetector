@@ -15,23 +15,22 @@ import time
 import cv2
 import logging
 
-#from cameras.gyro import Gyro
+# from cameras.gyro import Gyro
 
 thread = None
 ping_thread = None
 run_threads = True
-
 
 from cameras.Focuser import Focuser
 
 from cameras.fusion_camera import FusionCamera
 from cameras.opencv_thermal_camera import ThermalCamera
 from cameras.opencv_visible_camera import VisibleCamera
-#from controlers.swtich_controller import GPIO_switch
+# from controlers.swtich_controller import GPIO_switch
 
 from logging.config import dictConfig
 
-lock = threading.Lock()
+# lock = threading.Lock()
 # try:
 #     gyro_ = Gyro()
 # except Exception as e:
@@ -63,7 +62,6 @@ except Exception as e:
     logging.critical(f'Failed to initialize focuser: {e}')
 
 
-
 @socketio.on("connect")
 def connect():
     app.logger.debug("Client connected")
@@ -80,6 +78,7 @@ def connect():
     #     thread = threading.Thread(target=gyro)
     #     thread.daemon = True
     #     thread.start()
+
 
 # @socketio.on("get_gyro")
 # def get_gyro(data):
@@ -117,7 +116,6 @@ def handle_message(data):
     elif data['cmd'] == 'ir-cut':
         focuser.set(Focuser.OPT_IRCUT, focuser.get(Focuser.OPT_IRCUT) ^ 0x0001)
         app.logger.info('IR: ' + str(focuser.get(Focuser.OPT_IRCUT)))
-
 
 
 @socketio.on('motion')
@@ -158,11 +156,9 @@ def index():
 def gen(camera, status):
     """Video streaming generator function."""
     yield b'--frame\r\n'
-    global lock
     while True:
-        with lock:
-            frame = camera.get_frame()
-            yield b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n--frame\r\n'
+        frame = camera.get_frame()
+        yield b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n--frame\r\n'
 
 
 @app.route('/video_feed/visible/<status>')
@@ -191,8 +187,6 @@ def fusion_video_feed(status):
 
 # check to see if this is the main thread of execution
 if __name__ == '__main__':
-
-
     # construct the argument parser and parse command line arguments
     ap = argparse.ArgumentParser()
     ap.add_argument("-i", "--ip", type=str, required=True, default="0.0.0.0",

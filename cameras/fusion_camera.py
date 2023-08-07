@@ -23,6 +23,7 @@ class FusionCamera(BaseCamera):
 
     @staticmethod
     def get_video_sources():
+        logger.debug('get_video_sources')
         tries = 3
         for i in range(tries):
             try:
