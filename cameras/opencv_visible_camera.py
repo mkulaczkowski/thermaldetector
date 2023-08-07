@@ -1,5 +1,6 @@
 import os
 import cv2
+from vidgear.gears import VideoGear
 from cameras.base_camera import BaseCamera
 def visible_gstreamer_pipeline(
         capture_width=3840,
@@ -38,14 +39,17 @@ class VisibleCamera(BaseCamera):
 
     @staticmethod
     def frames():
-
-        camera = cv2.VideoCapture(VisibleCamera.video_source, cv2.CAP_GSTREAMER)
-        if not camera.isOpened():
-            raise RuntimeError('Could not start visible camera.')
+        camera = VideoGear(source=VisibleCamera.video_source, stabilize=True).start()
+        #camera = cv2.VideoCapture(VisibleCamera.video_source, cv2.CAP_GSTREAMER)
+        # if not camera.isOpened():
+        #     raise RuntimeError('Could not start visible camera.')
 
         while True:
             # read current frame
-            _, img = camera.read()
+            frame_stab = camera.read()
 
+            # check for stabilized frame if Nonetype
+            if frame_stab is None:
+                break
             # encode as a jpeg image and return it
-            yield cv2.imencode('.jpg', img)[1].tobytes()
+            yield cv2.imencode('.jpg', frame_stab)[1].tobytes()

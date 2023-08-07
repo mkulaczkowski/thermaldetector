@@ -217,3 +217,4 @@ if __name__ == '__main__':
     # app.run(host=args["ip"], port=args["port"], debug=True,
     #        threaded=True, use_reloader=False)
     socketio.run(app, host=args["ip"], port=args["port"], debug=False)
+
