@@ -38,4 +38,4 @@ class GPIO_switch():
         GPIO.output(switch_camera, GPIO.LOW)
 
     def laser_off(self):
-        GPIO.output(self.switch_laser, GPIO.LOW)
+        GPIO.output(switch_laser, GPIO.LOW)
