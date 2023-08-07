@@ -6,16 +6,20 @@ except ImportError as e:
 
 import time
 
+switch_camera = 23
+switch_laser = 21
+
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(switch_camera, GPIO.OUT)
+GPIO.setup(switch_laser, GPIO.OUT)
+GPIO.output(switch_camera, GPIO.LOW)
+GPIO.output(switch_laser, GPIO.LOW)
 
 class GPIO_switch():
-    switch_camera = 23
-    switch_laser = 21
+
     def __init__(self):
-        GPIO.setmode(GPIO.BOARD)
-        GPIO.setup(self.switch_camera, GPIO.OUT)
-        GPIO.setup(self.switch_laser, GPIO.OUT)
-        GPIO.output(self.switch_camera, GPIO.LOW)
-        GPIO.output(self.switch_laser, GPIO.LOW)
+        print('GPIO init')
+        super(GPIO_switch, self).__init__()
     # BCM pin-numbering scheme from Raspberry Pi
     # set pin as an output pin with optional initial state of HIGH
 

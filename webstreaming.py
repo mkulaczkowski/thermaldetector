@@ -103,15 +103,19 @@ def handle_message(data):
     if data['cmd'] == 'thermal-on':
         switch = GPIO_switch()
         switch.thermal_camera_on()
+        app.logger.info('Thermal On')
     elif data['cmd'] == 'thermal-off':
         switch = GPIO_switch()
         switch.thermal_camera_off()
+        app.logger.info('Thermal Off')
     elif data['cmd'] == 'laser-on':
         switch = GPIO_switch()
         switch.laser_on()
+        app.logger.info('Laser On')
     elif data['cmd'] == 'laser-off':
         switch = GPIO_switch()
         switch.laser_off()
+        app.logger.info('Laser Off')
     elif data['cmd'] == 'max-zoom':
         focuser.set(Focuser.OPT_ZOOM, 7700)
         focuser.set(Focuser.OPT_FOCUS, 190)
