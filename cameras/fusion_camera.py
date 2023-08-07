@@ -28,7 +28,7 @@ class FusionCamera(BaseCamera):
         for i in range(tries):
             try:
                 visible_camera = VideoGear(source=FusionCamera.video_source, stabilize=True).start()
-                thermal_camera = VideoGear(source=FusionCamera.video_source1, stabilize=True).start()
+                thermal_camera = VideoGear(source=FusionCamera.video_source1, stabilize=False).start()
                 #visible_camera = cv2.VideoCapture(FusionCamera.video_source, cv2.CAP_GSTREAMER)
                 #thermal_camera = cv2.VideoCapture(FusionCamera.video_source1, cv2.CAP_GSTREAMER)
 
