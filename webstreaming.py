@@ -15,6 +15,8 @@ import time
 import cv2
 import logging
 
+from controlers.swtich_controller import GPIO_switch
+
 # from cameras.gyro import Gyro
 
 thread = None
@@ -104,6 +106,12 @@ def handle_message(data):
     elif data['cmd'] == 'thermal-off':
         switch = GPIO_switch()
         switch.thermal_camera_off()
+    elif data['cmd'] == 'laser-on':
+        switch = GPIO_switch()
+        switch.laser_on()
+    elif data['cmd'] == 'laser-off':
+        switch = GPIO_switch()
+        switch.laser_off()
     elif data['cmd'] == 'max-zoom':
         focuser.set(Focuser.OPT_ZOOM, 7700)
         focuser.set(Focuser.OPT_FOCUS, 190)
