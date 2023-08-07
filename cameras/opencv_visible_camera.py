@@ -39,7 +39,7 @@ class VisibleCamera(BaseCamera):
 
     @staticmethod
     def frames():
-        camera = VideoGear(source=VisibleCamera.video_source, stabilize=True).start()
+        camera = VideoGear(source=VisibleCamera.video_source, stabilize=False).start()
         #camera = cv2.VideoCapture(VisibleCamera.video_source, cv2.CAP_GSTREAMER)
         # if not camera.isOpened():
         #     raise RuntimeError('Could not start visible camera.')

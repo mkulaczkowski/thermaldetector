@@ -9,21 +9,22 @@ from cameras.opencv_visible_camera import visible_gstreamer_pipeline
 
 logger = logging.getLogger('tester.sub')
 
-class FusionCamera(BaseCamera):
+class FusionCamera():
     video_source = visible_gstreamer_pipeline()
     video_source1 = thermal_gstreamer_pipeline()
-    visible_camera = VideoGear(source=video_source, stabilize=False, logging=True).start()
-    thermal_camera = VideoGear(source=video_source1, stabilize=False, logging=True).start()
+    visible_camera = VideoGear(source=video_source, stabilize=False)
+    thermal_camera = VideoGear(source=video_source1, stabilize=False)
 
     def __init__(self):
         logger.debug('FusionCamera init')
-
+        self.visible_camera.start()
+        self.thermal_camera.start()
         super(FusionCamera, self).__init__()
 
     def __del__(self):
         logger.debug('FusionCamera Stop')
-        FusionCamera.visible_camera.stop()
-        FusionCamera.thermal_camera.stop()
+        self.visible_camera.stop()
+        self.thermal_camera.stop()
     @staticmethod
     def set_video_source(source):
         FusionCamera.video_source = source
@@ -50,9 +51,7 @@ class FusionCamera(BaseCamera):
     #             else:
     #                 raise
     #         break
-
-    @staticmethod
-    def frames():
+    def get_frame(self):
 
         while True:
             # read current frame
