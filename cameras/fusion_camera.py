@@ -54,13 +54,13 @@ class FusionCamera():
     def get_frame(self):
         while True:
             # read current frame
-            outputFrame = FusionCamera.visible_camera.read()
+            outputFrame = self.visible_camera.read()
 
             # check for stabilized frame if Nonetype
             if outputFrame is None:
                 break
             try:
-                thermalFrame = FusionCamera.thermal_camera.read()
+                thermalFrame = self.thermal_camera.read()
                 resized = cv2.resize(thermalFrame, (1920, 1080), interpolation=cv2.INTER_AREA)
                 img_gray1 = cv2.cvtColor(resized, cv2.COLOR_BGR2GRAY)
                 ret, thresh1 = cv2.threshold(img_gray1, 150, 255, cv2.THRESH_BINARY)

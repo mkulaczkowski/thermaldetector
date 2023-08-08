@@ -29,7 +29,7 @@ class VisibleCamera():
     def get_frame(self):
         while True:
             # read current frame
-            outputFrame = VisibleCamera.visible_camera.read()
+            outputFrame = self.visible_camera.read()
 
             # check for stabilized frame if Nonetype
             if outputFrame is None:
