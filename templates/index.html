@@ -18,6 +18,7 @@
             var current_feed = 0;
             var is_thermal_on = false
             var is_video = true
+            var is_laser_on = false
 
             var fusion_feed = '{{ url_for('fusion_video_feed') }}';
             var thermal_feed = '{{ url_for('thermal_video_feed') }}';
@@ -163,9 +164,15 @@
                     ;
                     if (myGamepad.buttons[11].pressed) {
                         console.log('Button 11 pressed');
-                        socket.emit('cmd', {
+                        if(is_laser_on === false) {
+                            socket.emit('cmd', {
+                                'cmd': 'laser-off'
+                            });
+                        } else {
+                            socket.emit('cmd', {
                                 'cmd': 'laser-on'
                             });
+                        }
                     }
                     ;
                     if (myGamepad.axes[0].toFixed(2) != 0.00 || myGamepad.axes[1].toFixed(2) != 0.00) {
