@@ -132,7 +132,7 @@
                         console.log('Button 8 pressed');
                         current_feed = (current_feed + 1) % 3;
                         console.log(current_feed)
-                        if (current_feed == 0) {
+                        if (current_feed === 0) {
                             $("#primary_video").attr("src", visible_feed);
                         } else if (current_feed == 1) {
                             $("#primary_video").attr("src", thermal_feed);
@@ -145,7 +145,7 @@
                         console.log('Button 9 pressed');
 
                         console.log(is_thermal_on)
-                        if (is_thermal_on == false) {
+                        if (is_thermal_on === false) {
                             socket.emit('cmd', {
                                 'cmd': 'thermal-off'
                             });
