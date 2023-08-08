@@ -3,8 +3,8 @@ import os
 import time
 
 import cv2
-from vidgear.gears import VideoGear
-
+from vidgear.gears import CamGear, VideoGear
+import subprocess
 from cameras.base_camera import BaseCamera
 from cameras.opencv_thermal_camera import thermal_gstreamer_pipeline
 from cameras.opencv_visible_camera import visible_gstreamer_pipeline
@@ -22,8 +22,8 @@ class FusionCamera():
     new_frame_time = 0
     def __init__(self):
         logger.debug('FusionCamera init')
-        self.visible_camera = VideoGear(source=self.video_source, stabilize=True, framerate=25, logging=True, backend=cv2.CAP_GSTREAMER).start()
-        self.thermal_camera = VideoGear(source=self.video_source1, stabilize=False, framerate=25, logging=True, backend=cv2.CAP_GSTREAMER).start()
+        self.visible_camera = VideoGear(source=self.video_source, time_delay=5, logging=True, backend=cv2.CAP_GSTREAMER).start()
+        self.thermal_camera = VideoGear(source=self.video_source1, time_delay=5, logging=True, backend=cv2.CAP_GSTREAMER).start()
         super(FusionCamera, self).__init__()
 
     def __del__(self):
@@ -32,6 +32,11 @@ class FusionCamera():
             self.visible_camera.stop()
         if self.thermal_camera:
             self.thermal_camera.stop()
+
+    @staticmethod
+    def reset_video_source():
+        restart_service = subprocess.run(["sudo systemctl restart nvargus-daemon.service"])
+        logger.debug("The exit code was: %d" % restart_service.returncode)
 
     def get_frame(self):
         while True:
