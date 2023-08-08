@@ -24,7 +24,7 @@ class FusionCamera():
     new_frame_time = 0
     def __init__(self):
         logger.debug('FusionCamera init')
-        FusionCamera.reset_video_source()
+
         try:
             self.visible_camera = nanocamera.Camera(flip=2, device_id=0, width=1920, height=1080, fps=25, enforce_fps=True)
             self.thermal_camera = nanocamera.Camera(camera_type=1, device_id=1, width=480, height=320, fps=25, enforce_fps=True)
@@ -80,3 +80,6 @@ class FusionCamera():
             # encode as a jpeg image and return it
             encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 80]
             yield cv2.imencode('.jpg', outputFrame, encode_param)[1].tobytes()
+
+        self.visible_camera.release()
+        self.thermal_camera.release()
