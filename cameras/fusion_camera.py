@@ -52,7 +52,6 @@ class FusionCamera():
     #                 raise
     #         break
     def get_frame(self):
-
         while True:
             # read current frame
             outputFrame = FusionCamera.visible_camera.read()

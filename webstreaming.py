@@ -168,8 +168,7 @@ def index():
 def gen(camera, status):
     """Video streaming generator function."""
     yield b'--frame\r\n'
-    while True:
-        frame = camera.get_frame()
+    for frame in camera.get_frame():
         yield b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n--frame\r\n'
 
 
