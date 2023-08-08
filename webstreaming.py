@@ -120,10 +120,7 @@ def handle_message(data):
         focuser.set(Focuser.OPT_ZOOM, 7700)
         focuser.set(Focuser.OPT_FOCUS, 190)
     elif data['cmd'] == 'min-zoom':
-        focuser.set(Focuser.OPT_ZOOM, 7000)
-        focuser.set(Focuser.OPT_FOCUS, 20000)
-    elif data['cmd'] == 'min-zoom':
-        focuser.set(Focuser.OPT_ZOOM, 7000)
+        focuser.set(Focuser.OPT_ZOOM, 7400)
         focuser.set(Focuser.OPT_FOCUS, 20000)
     elif data['cmd'] == 'ir-cut':
         focuser.set(Focuser.OPT_IRCUT, focuser.get(Focuser.OPT_IRCUT) ^ 0x0001)
