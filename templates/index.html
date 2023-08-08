@@ -166,14 +166,14 @@
                         console.log('Button 11 pressed');
                         if(is_laser_on === false) {
                             socket.emit('cmd', {
-                                'cmd': 'laser-off'
-                            });
-                            is_laser_on = false;
-                        } else {
-                            socket.emit('cmd', {
                                 'cmd': 'laser-on'
                             });
                             is_laser_on = true;
+                        } else {
+                            socket.emit('cmd', {
+                                'cmd': 'laser-off'
+                            });
+                            is_laser_on = false;
                         }
                     }
                     ;
