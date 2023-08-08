@@ -22,7 +22,7 @@ class FusionCamera():
     new_frame_time = 0
     def __init__(self):
         logger.debug('FusionCamera init')
-        self.visible_camera = VideoGear(source=self.video_source, stabilize=False, framerate=25, logging=True, backend=cv2.CAP_GSTREAMER).start()
+        self.visible_camera = VideoGear(source=self.video_source, stabilize=True, framerate=25, logging=True, backend=cv2.CAP_GSTREAMER).start()
         self.thermal_camera = VideoGear(source=self.video_source1, stabilize=False, framerate=25, logging=True, backend=cv2.CAP_GSTREAMER).start()
         super(FusionCamera, self).__init__()
 
