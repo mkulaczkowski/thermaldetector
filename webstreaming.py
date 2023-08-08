@@ -212,6 +212,7 @@ if __name__ == '__main__':
     # t.daemon = True
     # t.start()
     # start the flask app
+    print(cv2.getBuildInformation())
     print(f'Started on port {args["ip"]}:{args["port"]}')
     # app.run(host=args["ip"], port=args["port"], debug=True,
     #        threaded=True, use_reloader=False)
