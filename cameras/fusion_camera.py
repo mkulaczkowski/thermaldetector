@@ -1,5 +1,7 @@
 import logging
 import os
+import time
+
 import cv2
 from vidgear.gears import VideoGear
 
@@ -14,7 +16,10 @@ class FusionCamera():
     video_source1 = thermal_gstreamer_pipeline()
     visible_camera = None
     thermal_camera = None
-
+    # used to record the time when we processed last frame
+    prev_frame_time = 0
+    # used to record the time at which we processed current frame
+    new_frame_time = 0
     def __init__(self):
         logger.debug('FusionCamera init')
         self.visible_camera = VideoGear(source=self.video_source, stabilize=False, framerate=25, logging=True, backend=cv2.CAP_GSTREAMER).start()
@@ -45,6 +50,25 @@ class FusionCamera():
             except Exception as e:
                 logger.info('Fusion video feed Error: ' + str(e))
                 continue
+
+            new_frame_time = time.time()
+
+            # Calculating the fps
+            # fps will be number of frame processed in given time frame
+            # since their will be most of time error of 0.001 second
+            # we will be subtracting it to get more accurate result
+            fps = 1 / (new_frame_time - self.prev_frame_time)
+            self.prev_frame_time = new_frame_time
+
+            # converting the fps into integer
+            fps = int(fps)
+
+            # converting the fps to string so that we can display it on frame
+            # by using putText function
+            fps = str(fps)
+
+            # putting the FPS count on the frame
+            cv2.putText(outputFrame, fps, (7, 70), cv2.FONT_HERSHEY_SIMPLEX, 3, (100, 255, 0), 3, cv2.LINE_AA)
 
             # encode as a jpeg image and return it
             encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 80]
