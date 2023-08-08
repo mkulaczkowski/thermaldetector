@@ -203,7 +203,7 @@
                     ;
                     if (myGamepad.axes[2].toFixed(2) != 0.00 || myGamepad.axes[5].toFixed(2) != 0.00) {
                         socket.emit('optic', {
-                            zoom: parseFloat(myGamepad.axes[5].toFixed(2) * -1),
+                            zoom: parseFloat(myGamepad.axes[5].toFixed(2) * 1),
                             focus: parseFloat(myGamepad.axes[2].toFixed(2) * -1),
                             relative: true
                         });

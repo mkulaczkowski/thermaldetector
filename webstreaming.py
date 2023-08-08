@@ -169,7 +169,7 @@ def gen(camera, status):
         yield b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n--frame\r\n'
 
 
-@app.route('/video_feed/visible/<status>')
+@app.route('/video_feed/visible/')
 def visible_video_feed(status):
     """Video streaming route. Put this in the src attribute of an img tag."""
     app.logger.info('Visible video feed')
@@ -177,7 +177,7 @@ def visible_video_feed(status):
                     mimetype='multipart/x-mixed-replace; boundary=frame')
 
 
-@app.route('/video_feed/thermal/<status>')
+@app.route('/video_feed/thermal/')
 def thermal_video_feed(status):
     """Video streaming route. Put this in the src attribute of an img tag."""
     app.logger.info('Thermal video feed')
@@ -185,7 +185,7 @@ def thermal_video_feed(status):
                     mimetype='multipart/x-mixed-replace; boundary=frame')
 
 
-@app.route('/video_feed/fusion/<status>')
+@app.route('/video_feed/fusion/')
 def fusion_video_feed(status):
     """Video streaming route. Put this in the src attribute of an img tag."""
     app.logger.info('Fusion video feed')

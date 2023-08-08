@@ -24,7 +24,6 @@ class FusionCamera():
     new_frame_time = 0
     def __init__(self):
         logger.debug('FusionCamera init')
-
         try:
             self.visible_camera = nanocamera.Camera(flip=2, device_id=0, width=1920, height=1080, fps=25, enforce_fps=True)
             self.thermal_camera = nanocamera.Camera(camera_type=1, device_id=1, width=480, height=320, fps=25, enforce_fps=True)
@@ -32,11 +31,6 @@ class FusionCamera():
             logger.critical('Fusion video feed Error: ' + str(e))
             raise
         super(FusionCamera, self).__init__()
-
-    @staticmethod
-    def reset_video_source():
-        restart_service = subprocess.run(["sudo", "systemctl", "restart", "nvargus-daemon.service"])
-        logger.debug("The exit code was: %d" % restart_service.returncode)
 
     def get_frame(self):
         while True:
