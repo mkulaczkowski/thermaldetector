@@ -35,7 +35,7 @@ class FusionCamera():
 
     @staticmethod
     def reset_video_source():
-        restart_service = subprocess.run(["sudo systemctl restart nvargus-daemon.service"])
+        restart_service = subprocess.run(["sudo", "systemctl", "restart", "nvargus-daemon.service"])
         logger.debug("The exit code was: %d" % restart_service.returncode)
 
     def get_frame(self):
