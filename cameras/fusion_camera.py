@@ -3,9 +3,11 @@ import os
 import time
 
 import cv2
-from vidgear.gears import CamGear, VideoGear
+
 import subprocess
-from cameras.base_camera import BaseCamera
+
+import nanocamera
+
 from cameras.opencv_thermal_camera import thermal_gstreamer_pipeline
 from cameras.opencv_visible_camera import visible_gstreamer_pipeline
 
@@ -22,16 +24,9 @@ class FusionCamera():
     new_frame_time = 0
     def __init__(self):
         logger.debug('FusionCamera init')
-        self.visible_camera = VideoGear(source=self.video_source, time_delay=5, logging=True, backend=cv2.CAP_GSTREAMER).start()
-        self.thermal_camera = VideoGear(source=self.video_source1, time_delay=5, logging=True, backend=cv2.CAP_GSTREAMER).start()
+        self.visible_camera = nanocamera.Camera(flip=0, device_id=0, width=1920, height=1080, fps=25)
+        self.thermal_camera = nanocamera.Camera(camera_type=1, device_id=1, width=480, height=320, fps=25)
         super(FusionCamera, self).__init__()
-
-    def __del__(self):
-        logger.debug('FusionCamera Stop')
-        if self.visible_camera:
-            self.visible_camera.stop()
-        if self.thermal_camera:
-            self.thermal_camera.stop()
 
     @staticmethod
     def reset_video_source():
