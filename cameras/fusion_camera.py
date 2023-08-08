@@ -12,13 +12,11 @@ logger = logging.getLogger('tester.sub')
 class FusionCamera():
     video_source = visible_gstreamer_pipeline()
     video_source1 = thermal_gstreamer_pipeline()
-    visible_camera = VideoGear(source=video_source, stabilize=False)
-    thermal_camera = VideoGear(source=video_source1, stabilize=False)
 
     def __init__(self):
         logger.debug('FusionCamera init')
-        self.visible_camera.start()
-        self.thermal_camera.start()
+        self.visible_camera = VideoGear(source=self.video_source, stabilize=False).start()
+        self.thermal_camera = VideoGear(source=self.video_source1, stabilize=False).start()
         super(FusionCamera, self).__init__()
 
     def __del__(self):

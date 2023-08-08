@@ -11,12 +11,10 @@ logger = logging.getLogger('tester.sub')
 
 class VisibleCamera():
     video_source = visible_gstreamer_pipeline()
-    visible_camera = VideoGear(source=video_source, stabilize=False)
-
 
     def __init__(self):
         logger.debug('VisibleCamera init')
-        self.visible_camera.start()
+        self.visible_camera = VideoGear(source=self.video_source, stabilize=False)
         super(VisibleCamera, self).__init__()
 
     def __del__(self):
