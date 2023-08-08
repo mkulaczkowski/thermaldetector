@@ -213,6 +213,10 @@ if __name__ == '__main__':
     ap.add_argument("-f", "--frame-count", type=int, default=25,
                     help="# of frames used to construct the background model")
     args = vars(ap.parse_args())
+
+    app.logger.info('Restarting video sources')
+    restart_service = subprocess.run(["sudo", "systemctl", "restart", "nvargus-daemon.service"])
+
     # start a thread that will perform motion detection
     # t = threading.Thread(target=detect_motion)
     # t.daemon = True
@@ -222,5 +226,8 @@ if __name__ == '__main__':
     print(f'Started on port {args["ip"]}:{args["port"]}')
     # app.run(host=args["ip"], port=args["port"], debug=True,
     #        threaded=True, use_reloader=False)
+
+
+
     socketio.run(app, host=args["ip"], port=args["port"], debug=False)
 
