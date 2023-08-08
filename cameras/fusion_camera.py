@@ -28,8 +28,10 @@ class FusionCamera():
 
     def __del__(self):
         logger.debug('FusionCamera Stop')
-        self.visible_camera.stop()
-        self.thermal_camera.stop()
+        if self.visible_camera:
+            self.visible_camera.stop()
+        if self.thermal_camera:
+            self.thermal_camera.stop()
 
     def get_frame(self):
         while True:
