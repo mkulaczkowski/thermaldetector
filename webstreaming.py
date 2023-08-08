@@ -26,7 +26,7 @@ run_threads = True
 from cameras.Focuser import Focuser
 
 from cameras.fusion_camera import FusionCamera
-from cameras.opencv_thermal_camera import ThermalCamera
+from cameras.thermal_camera import ThermalCamera
 from cameras.visible_camera import VisibleCamera
 # from controlers.swtich_controller import GPIO_switch
 
