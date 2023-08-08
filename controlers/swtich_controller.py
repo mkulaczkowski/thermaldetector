@@ -12,8 +12,6 @@ switch_laser = 21
 GPIO.setmode(GPIO.BOARD)
 GPIO.setup(switch_camera, GPIO.OUT)
 GPIO.setup(switch_laser, GPIO.OUT)
-GPIO.output(switch_camera, GPIO.LOW)
-GPIO.output(switch_laser, GPIO.LOW)
 
 class GPIO_switch():
 
