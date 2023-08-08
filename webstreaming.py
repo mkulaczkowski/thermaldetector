@@ -1,5 +1,6 @@
 # import the necessary packages
 import logging
+import subprocess
 
 from flask_socketio import SocketIO, emit
 
@@ -166,6 +167,8 @@ def index():
 def restart_video_sources():
     # return the rendered template
     app.logger.info('Restarting video sources')
+    restart_service = subprocess.run(["sudo systemctl restart nvargus-daemon.service"])
+    app.logger.debug("The exit code was: %d" % restart_service.returncode)
     return jsonify(status='OK')
 
 def gen(camera):
