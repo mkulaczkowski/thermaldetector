@@ -13,7 +13,7 @@ class ThermalCamera():
 
     def __init__(self):
         logger.debug('Thermal init')
-        self.thermal_camera = VideoGear(source=self.video_source, stabilize=False)
+        self.thermal_camera = VideoGear(source=self.video_source, stabilize=False, logging=True, backend=cv2.CAP_GSTREAMER)
         super(ThermalCamera, self).__init__()
 
     def __del__(self):

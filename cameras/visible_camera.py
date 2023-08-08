@@ -14,7 +14,7 @@ class VisibleCamera():
 
     def __init__(self):
         logger.debug('VisibleCamera init')
-        self.visible_camera = VideoGear(source=self.video_source, stabilize=False)
+        self.visible_camera = VideoGear(source=self.video_source, stabilize=False, logging=True, backend=cv2.CAP_GSTREAMER)
         super(VisibleCamera, self).__init__()
 
     def __del__(self):
