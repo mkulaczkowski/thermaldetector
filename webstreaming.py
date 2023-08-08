@@ -162,7 +162,7 @@ def index():
     return render_template("index.html")
 
 
-def gen(camera, status):
+def gen(camera):
     """Video streaming generator function."""
     yield b'--frame\r\n'
     for frame in camera.get_frame():
