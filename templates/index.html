@@ -82,6 +82,7 @@
                 if (gamepadIndex !== undefined) {
                     // a gamepad is connected and has an inde
                     const myGamepad = navigator.getGamepads()[gamepadIndex];
+                    console.log(myGamepad)
                     if (myGamepad.buttons[0].pressed) {
                         console.log('Button 0 pressed');
                         $("#primary_video").attr("src", fusion_feed);
@@ -160,21 +161,18 @@
                     ;
                     if (myGamepad.buttons[10].pressed) {
                         console.log('Button 10 pressed');
+                        socket.emit('cmd', {
+                            'cmd': 'laser-off'
+                        });
+                        is_laser_on = false;
                     }
                     ;
                     if (myGamepad.buttons[11].pressed) {
                         console.log('Button 11 pressed');
-                        if(is_laser_on === false) {
                             socket.emit('cmd', {
                                 'cmd': 'laser-on'
                             });
                             is_laser_on = true;
-                        } else {
-                            socket.emit('cmd', {
-                                'cmd': 'laser-off'
-                            });
-                            is_laser_on = false;
-                        }
                     }
                     ;
                     if (myGamepad.axes[0].toFixed(2) != 0.00 || myGamepad.axes[1].toFixed(2) != 0.00) {
