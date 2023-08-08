@@ -1,7 +1,7 @@
 import logging
 import os
 import cv2
-from vidgear.gears import VideoGear
+import nanocamera
 
 from cameras.opencv_thermal_camera import thermal_gstreamer_pipeline
 
@@ -13,13 +13,8 @@ class ThermalCamera():
 
     def __init__(self):
         logger.debug('Thermal init')
-        self.thermal_camera = VideoGear(source=self.video_source, stabilize=False, logging=True, backend=cv2.CAP_GSTREAMER)
+        self.thermal_camera = nanocamera.Camera(camera_type=1, device_id=1, width=480, height=320, fps=25, enforce_fps=True)
         super(ThermalCamera, self).__init__()
-
-    def __del__(self):
-        logger.debug('VisibleCamera Stop')
-        if self.thermal_camera:
-            self.thermal_camera.stop()
 
     def get_frame(self):
         while True:

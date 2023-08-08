@@ -1,10 +1,8 @@
 import logging
 import os
 import cv2
-from vidgear.gears import VideoGear
+import nanocamera
 
-from cameras.base_camera import BaseCamera
-from cameras.opencv_thermal_camera import thermal_gstreamer_pipeline
 from cameras.opencv_visible_camera import visible_gstreamer_pipeline
 
 logger = logging.getLogger('tester.sub')
@@ -14,13 +12,9 @@ class VisibleCamera():
 
     def __init__(self):
         logger.debug('VisibleCamera init')
-        self.visible_camera = VideoGear(source=self.video_source, stabilize=False, logging=True, backend=cv2.CAP_GSTREAMER)
+        self.visible_camera = nanocamera.Camera(flip=2, device_id=0, width=1920, height=1080, fps=25, enforce_fps=True)
         super(VisibleCamera, self).__init__()
 
-    def __del__(self):
-        logger.debug('VisibleCamera Stop')
-        if self.visible_camera:
-            self.visible_camera.stop()
     @staticmethod
     def set_video_source(source):
         VisibleCamera.video_source = source
