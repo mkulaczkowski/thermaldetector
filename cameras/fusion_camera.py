@@ -25,32 +25,7 @@ class FusionCamera():
         logger.debug('FusionCamera Stop')
         self.visible_camera.stop()
         self.thermal_camera.stop()
-    @staticmethod
-    def set_video_source(source):
-        FusionCamera.video_source = source
 
-    # @staticmethod
-    # def get_video_sources():
-    #     logger.debug('get_video_sources')
-    #     tries = 3
-    #     for i in range(tries):
-    #         try:
-    #
-    #             #visible_camera = cv2.VideoCapture(FusionCamera.video_source, cv2.CAP_GSTREAMER)
-    #             #thermal_camera = cv2.VideoCapture(FusionCamera.video_source1, cv2.CAP_GSTREAMER)
-    #
-    #             # assert visible_camera.isOpened()
-    #             # assert thermal_camera.isOpened()
-    #
-    #             return visible_camera, thermal_camera
-    #         except AssertionError as e:
-    #             if i < tries - 1:  # i is zero indexed
-    #                 logger.warning('Fusion video feed Error: ' + str(e))
-    #                 cv2.destroyAllWindows()
-    #                 continue
-    #             else:
-    #                 raise
-    #         break
     def get_frame(self):
         while True:
             # read current frame
