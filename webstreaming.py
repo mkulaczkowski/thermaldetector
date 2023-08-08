@@ -4,7 +4,7 @@ import logging
 from flask_socketio import SocketIO, emit
 
 from imutils.video import VideoStream
-from flask import Response
+from flask import Response, jsonify
 from flask import Flask
 from flask import render_template
 import threading
@@ -161,6 +161,12 @@ def index():
     # return the rendered template
     return render_template("index.html")
 
+
+@app.route("/restart/")
+def restart_video_sources():
+    # return the rendered template
+    app.logger.info('Restarting video sources')
+    return jsonify(status='OK')
 
 def gen(camera):
     """Video streaming generator function."""
