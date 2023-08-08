@@ -9,7 +9,7 @@ import time
 switch_camera = 23
 switch_laser = 21
 
-GPIO.setmode(GPIO.BCM)
+GPIO.setmode(GPIO.BOARD)
 GPIO.setup(switch_camera, GPIO.OUT)
 GPIO.setup(switch_laser, GPIO.OUT)
 GPIO.output(switch_camera, GPIO.LOW)
