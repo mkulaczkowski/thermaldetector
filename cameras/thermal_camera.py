@@ -18,7 +18,8 @@ class ThermalCamera():
 
     def __del__(self):
         logger.debug('VisibleCamera Stop')
-        self.thermal_camera.stop()
+        if self.thermal_camera:
+            self.thermal_camera.stop()
 
     def get_frame(self):
         while True:

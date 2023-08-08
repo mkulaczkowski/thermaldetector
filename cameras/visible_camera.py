@@ -19,7 +19,8 @@ class VisibleCamera():
 
     def __del__(self):
         logger.debug('VisibleCamera Stop')
-        self.visible_camera.stop()
+        if self.visible_camera:
+            self.visible_camera.stop()
     @staticmethod
     def set_video_source(source):
         VisibleCamera.video_source = source
