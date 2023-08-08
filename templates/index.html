@@ -168,10 +168,12 @@
                             socket.emit('cmd', {
                                 'cmd': 'laser-off'
                             });
+                            is_laser_on = false;
                         } else {
                             socket.emit('cmd', {
                                 'cmd': 'laser-on'
                             });
+                            is_laser_on = true;
                         }
                     }
                     ;
