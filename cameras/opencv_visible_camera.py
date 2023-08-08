@@ -30,7 +30,7 @@ def visible_gstreamer_pipeline(
     )
     return pipeline
 
-class VisibleCamera(BaseCamera):
+class VisibleCamera():
     video_source = visible_gstreamer_pipeline()
 
     def __init__(self):
