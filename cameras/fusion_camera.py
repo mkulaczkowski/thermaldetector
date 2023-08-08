@@ -12,6 +12,8 @@ logger = logging.getLogger('tester.sub')
 class FusionCamera():
     video_source = visible_gstreamer_pipeline()
     video_source1 = thermal_gstreamer_pipeline()
+    visible_camera = None
+    thermal_camera = None
 
     def __init__(self):
         logger.debug('FusionCamera init')
