@@ -51,14 +51,14 @@ class FusionCamera():
                 logger.info('Fusion video feed Error: ' + str(e))
                 continue
 
-            new_frame_time = time.time()
+            self.new_frame_time = time.time()
 
             # Calculating the fps
             # fps will be number of frame processed in given time frame
             # since their will be most of time error of 0.001 second
             # we will be subtracting it to get more accurate result
-            fps = 1 / (new_frame_time - self.prev_frame_time)
-            self.prev_frame_time = new_frame_time
+            fps = 1 / (self.new_frame_time - self.prev_frame_time)
+            self.prev_frame_time = self.new_frame_time
 
             # converting the fps into integer
             fps = int(fps)
