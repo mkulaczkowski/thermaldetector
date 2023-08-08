@@ -24,8 +24,12 @@ class FusionCamera():
     new_frame_time = 0
     def __init__(self):
         logger.debug('FusionCamera init')
-        self.visible_camera = nanocamera.Camera(flip=2, device_id=0, width=1920, height=1080, fps=25, enforce_fps=True)
-        self.thermal_camera = nanocamera.Camera(camera_type=1, device_id=1, width=480, height=320, fps=25, enforce_fps=True)
+        try:
+            self.visible_camera = nanocamera.Camera(flip=2, device_id=0, width=1920, height=1080, fps=25, enforce_fps=True)
+            self.thermal_camera = nanocamera.Camera(camera_type=1, device_id=1, width=480, height=320, fps=25, enforce_fps=True)
+        except Exception as e:
+            logger.critical('Fusion video feed Error: ' + str(e))
+            FusionCamera.reset_video_source()
         super(FusionCamera, self).__init__()
 
     @staticmethod
