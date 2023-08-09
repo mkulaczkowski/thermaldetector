@@ -82,7 +82,30 @@
                 if (gamepadIndex !== undefined) {
                     // a gamepad is connected and has an inde
                     const myGamepad = navigator.getGamepads()[gamepadIndex];
-                    console.log(myGamepad)
+                    if (myGamepad.axes[0].toFixed(2) != 0.00 || myGamepad.axes[1].toFixed(2) != 0.00) {
+                        socket.emit('motion', {
+                            pan: parseFloat(myGamepad.axes[0].toFixed(2) * -1),
+                            tilt: parseFloat(myGamepad.axes[1].toFixed(2) * 1),
+                            relative: true
+                        });
+                    }
+                    ;
+                    if (myGamepad.axes[2].toFixed(2) != 0.00 || myGamepad.axes[5].toFixed(2) != 0.00) {
+                        socket.emit('optic', {
+                            zoom: parseFloat(myGamepad.axes[5].toFixed(2) * 1),
+                            focus: parseFloat(myGamepad.axes[2].toFixed(2) * -1),
+                            relative: true
+                        });
+                    }
+
+                }
+            }, 50)
+
+            setInterval(() => {
+                if (gamepadIndex !== undefined) {
+                    // a gamepad is connected and has an inde
+                    const myGamepad = navigator.getGamepads()[gamepadIndex];
+
                     if (myGamepad.buttons[0].pressed) {
                         console.log('Button 0 pressed');
                         $("#primary_video").attr("src", fusion_feed);
@@ -177,24 +200,9 @@
                             is_laser_on = true;
                     }
                     ;
-                    if (myGamepad.axes[0].toFixed(2) != 0.00 || myGamepad.axes[1].toFixed(2) != 0.00) {
-                        socket.emit('motion', {
-                            pan: parseFloat(myGamepad.axes[0].toFixed(2) * -1),
-                            tilt: parseFloat(myGamepad.axes[1].toFixed(2) * 1),
-                            relative: true
-                        });
-                    }
-                    ;
-                    if (myGamepad.axes[2].toFixed(2) != 0.00 || myGamepad.axes[5].toFixed(2) != 0.00) {
-                        socket.emit('optic', {
-                            zoom: parseFloat(myGamepad.axes[5].toFixed(2) * 1),
-                            focus: parseFloat(myGamepad.axes[2].toFixed(2) * -1),
-                            relative: true
-                        });
-                    }
-
                 }
-            }, 50)
+            }, 1000)
+
 
             function showUIOverlay() {
                 $('.ui').css('opacity', 0.5);
