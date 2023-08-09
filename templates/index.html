@@ -147,15 +147,17 @@
                         console.log('Button 9 pressed');
 
                         console.log(is_thermal_on)
-                        if (is_thermal_on === false) {
+                        if (is_thermal_on === true) {
                             socket.emit('cmd', {
                                 'cmd': 'thermal-off'
                             });
+                            is_thermal_on = false;
                         } else {
                             console.log(`Setting thermal camera on...`);
                             socket.emit('cmd', {
-                                'cmd': 'thermal-off'
+                                'cmd': 'thermal-on'
                             });
+                            is_thermal_on = true;
                         }
                     }
                     ;
