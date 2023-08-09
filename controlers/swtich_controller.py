@@ -1,17 +1,19 @@
-try:
-    import Jetson.GPIO as GPIO
-except ImportError as e:
-    print(e)
-    print("Failed to import Jetson.GPIO library")
-
 import time
 
 switch_camera = 23
 switch_laser = 21
+try:
+    import Jetson.GPIO as GPIO
 
-GPIO.setmode(GPIO.BOARD)
-GPIO.setup(switch_camera, GPIO.OUT)
-GPIO.setup(switch_laser, GPIO.OUT)
+    GPIO.setmode(GPIO.BOARD)
+    GPIO.setup(switch_camera, GPIO.OUT)
+    GPIO.setup(switch_laser, GPIO.OUT)
+
+except ImportError as e:
+    print(e)
+    print("Failed to import Jetson.GPIO library")
+
+
 
 class GPIO_switch():
 
