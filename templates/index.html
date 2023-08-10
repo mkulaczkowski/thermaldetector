@@ -102,18 +102,19 @@
 
             function change_channel(channel) {
                 $("#primary_video").attr("src", '');
-
-                if(channel==='Fusion'){
+                setTimeout(() => {
+                    if(channel === 'Fusion')
+                {
                     $("#primary_video").attr("src", fusion_feed);
                 }
-                else if(channel==='Thermal'){
+            else
+                if (channel === 'Thermal') {
                     $("#primary_video").attr("src", thermal_feed);
-                }
-                 else if(channel==='Optical'){
+                } else if (channel === 'Optical') {
                     $("#primary_video").attr("src", visible_feed);
                 }
                 $("#channel").text(channel);
-
+            }, 1000);
             }
 
             setInterval(() => {
@@ -175,8 +176,7 @@
                         } else if (current_feed == 2) {
                             change_channel('Fusion')
                         }
-                    }
-                    ;
+                    };
                     if (myGamepad.buttons[9].pressed) {
                         console.log('Button 9 pressed');
                         console.log(is_thermal_on)
