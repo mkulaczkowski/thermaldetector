@@ -100,28 +100,39 @@
                 }
             }, 50)
 
+            function change_channel(channel) {
+                $("#primary_video").attr("src", '');
+
+                if(channel==='Fusion'){
+                    $("#primary_video").attr("src", fusion_feed);
+                }
+                else if(channel==='Thermal'){
+                    $("#primary_video").attr("src", thermal_feed);
+                }
+                 else if(channel==='Optical'){
+                    $("#primary_video").attr("src", visible_feed);
+                }
+                $("#channel").text(channel);
+
+            }
+
             setInterval(() => {
                 if (gamepadIndex !== undefined) {
                     // a gamepad is connected and has an inde
                     const myGamepad = navigator.getGamepads()[gamepadIndex];
-
-
                     if (myGamepad.buttons[0].pressed) {
                         console.log('Button 0 pressed');
-                        $("#primary_video").attr("src", fusion_feed);
-
+                        change_channel('Fusion')
                     }
                     ;
                     if (myGamepad.buttons[1].pressed) {
                         console.log('Button 1 pressed');
-                        $("#primary_video").attr("src", visible_feed);
+                        change_channel('Optical')
                     }
                     ;
                     if (myGamepad.buttons[2].pressed) {
                         console.log('Button 2 pressed');
-
-                        $("#primary_video").attr("src", thermal_feed);
-                        console.log(is_video);
+                        change_channel('Thermal')
                     }
                     ;
                     if (myGamepad.buttons[3].pressed) {
@@ -158,29 +169,30 @@
                         current_feed = (current_feed + 1) % 3;
                         console.log(current_feed)
                         if (current_feed === 0) {
-                            $("#primary_video").attr("src", visible_feed);
+                            change_channel('Optical')
                         } else if (current_feed == 1) {
-                            $("#primary_video").attr("src", thermal_feed);
+                            change_channel('Thermal')
                         } else if (current_feed == 2) {
-                            $("#primary_video").attr("src", fusion_feed);
+                            change_channel('Fusion')
                         }
                     }
                     ;
                     if (myGamepad.buttons[9].pressed) {
                         console.log('Button 9 pressed');
-
                         console.log(is_thermal_on)
                         if (is_thermal_on === true) {
                             socket.emit('cmd', {
                                 'cmd': 'thermal-off'
                             });
                             is_thermal_on = false;
+                            $("#thermal").text('Thermal OFF');
                         } else {
                             console.log(`Setting thermal camera on...`);
                             socket.emit('cmd', {
                                 'cmd': 'thermal-on'
                             });
                             is_thermal_on = true;
+                            $("#thermal").text('Thermal ON');
                         }
                     }
                     ;
@@ -203,24 +215,9 @@
                 }
             }, 500)
 
-
             function showUIOverlay() {
                 $('.ui').css('opacity', 0.5);
 
-            }
-
-            function onstatus(d) {
-                if (d.data && !d.data.err) {
-                    if (d.data.name === 'Pan') {
-                        pan = d.data.pos;
-                    } else if (d.data.name === 'Tilt') {
-                        tilt = d.data.pos;
-                    }
-                    px = map(pan, panMin, panMax, 0, 305);
-                    py = map(-tilt, tiltMin, tiltMax, 0, 75);
-                    $('#position').css('left', px).css('top', py + 6);
-                    showUIOverlay();
-                }
             }
 
             function forceReload() {
@@ -651,20 +648,11 @@
     <img id="primary_video" style="width: 100%" src="">
     <div class="bottom-left">Bottom Left</div>
     <div class="top-left" id="compass"></div>
-    <div class="top-right">Top Right</div>
-    <div class="bottom-right">Bottom Right</div>
+    <div class="top-right" id="thermal">Thermal Off</div>
+    <div class="bottom-right" id="channel"></div>
     <div id="controls">
-        <div class="overlay ui" id="motion_status">Enable Motion</div>
         <div class="overlay ui" id="reload"></div>
         <div class="overlay ui" id="toggle"></div>
-
-        <div class="overlay ui menu" id="view"></div>
-        <div class="overlay choices" id="views">
-            <div class="view item" id="home">Home</div>
-            <div class="view item" id="F">Forward</div>
-            <div class="view item" id="L">Left</div>
-            <div class="view item" id="R">Right</div>
-        </div>
     </div>
 
     <div class="ui" id="positioncontainer">
