@@ -226,7 +226,7 @@ if __name__ == '__main__':
     print(f'Started on port {args["ip"]}:{args["port"]}')
     # app.run(host=args["ip"], port=args["port"], debug=True,
     #        threaded=True, use_reloader=False)
-    context = ssl.create_default_context()
-    context.load_cert_chain(certfile='/Users/mkulaczkowski/Aiprojects/thermaldetector/localhost.crt', keyfile='/Users/mkulaczkowski/Aiprojects/thermaldetector/localhost.key')
-    socketio.run(app, host=args["ip"], port=args["port"], debug=False, ssl_context=context)
+    #context = ssl.create_default_context()
+    #context.load_cert_chain(certfile='/Users/mkulaczkowski/Aiprojects/thermaldetector/localhost.crt', keyfile='/Users/mkulaczkowski/Aiprojects/thermaldetector/localhost.key')
+    socketio.run(app, host=args["ip"], port=args["port"], debug=False)
 
