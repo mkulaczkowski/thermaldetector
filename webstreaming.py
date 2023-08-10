@@ -17,8 +17,6 @@ import time
 import cv2
 import logging
 
-from controlers.swtich_controller import GPIO_switch
-
 # from cameras.gyro import Gyro
 
 thread = None
@@ -38,6 +36,12 @@ from logging.config import dictConfig
 #     gyro_ = Gyro()
 # except Exception as e:
 #     logging.critical(f'Failed to initialize gyro: {e}')
+
+try:
+    time.sleep(5)
+    from controlers.swtich_controller import GPIO_switch
+except ImportError as e:
+    print('GPIO error')
 
 dictConfig({
     'version': 1,
