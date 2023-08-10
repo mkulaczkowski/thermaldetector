@@ -37,17 +37,14 @@ class VisibleCamera():
         print('VisibleCamera init')
         super(VisibleCamera, self).__init__()
 
-    @staticmethod
-    def frames():
-        camera = VideoGear(source=VisibleCamera.video_source, stabilize=False).start()
-        #camera = cv2.VideoCapture(VisibleCamera.video_source, cv2.CAP_GSTREAMER)
-        # if not camera.isOpened():
-        #     raise RuntimeError('Could not start visible camera.')
+    def get_frame(self):
+        camera = cv2.VideoCapture(VisibleCamera.video_source, cv2.CAP_GSTREAMER)
+        if not camera.isOpened():
+            raise RuntimeError('Could not start visible camera.')
 
         while True:
             # read current frame
             frame_stab = camera.read()
-
             # check for stabilized frame if Nonetype
             if frame_stab is None:
                 break

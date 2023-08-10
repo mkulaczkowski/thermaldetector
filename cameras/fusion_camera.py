@@ -24,13 +24,6 @@ class FusionCamera():
     new_frame_time = 0
     def __init__(self):
         logger.debug('FusionCamera init')
-        try:
-            self.visible_camera = nanocamera.Camera(flip=2, device_id=0, width=1280, height=720, fps=25, enforce_fps=True)
-            self.thermal_camera = nanocamera.Camera(camera_type=1, device_id=1, width=480, height=320, fps=25, enforce_fps=True)
-            self.isrunning = False
-        except Exception as e:
-            logger.critical('Fusion video feed Error: ' + str(e))
-            raise
         super(FusionCamera, self).__init__()
 
     def __del__(self):
@@ -38,19 +31,22 @@ class FusionCamera():
             self.visible_camera.release()
             self.thermal_camera.release()
         except:
-            print('probably there\'s no cap yet :(')
+            print('probably theres no cap yet :(')
         cv2.destroyAllWindows()
 
     def get_frame(self):
+        self.visible_camera = cv2.VideoCapture(self.video_source1, cv2.CAP_GSTREAMER)
+        self.thermal_camera = cv2.VideoCapture(self.video_source2, cv2.CAP_GSTREAMER)
+        if not self.visible_camera.isOpened():
+            raise RuntimeError('Could not start visible camera.')
         while True:
             # read current frame
-            outputFrame = self.visible_camera.read()
-
+            _, outputFrame = self.visible_camera.read()
             # check for stabilized frame if Nonetype
             if outputFrame is None:
                 break
             try:
-                thermalFrame = self.thermal_camera.read()
+                _, thermalFrame = self.thermal_camera.read()
                 resized = cv2.resize(thermalFrame, (1280, 720), interpolation=cv2.INTER_AREA)
                 img_gray1 = cv2.cvtColor(resized, cv2.COLOR_BGR2GRAY)
                 ret, thresh1 = cv2.threshold(img_gray1, 150, 255, cv2.THRESH_BINARY)
