@@ -14,7 +14,7 @@ def thermal_gstreamer_pipeline(
     print(pipeline)
     return (pipeline)
 
-class ThermalCamera(BaseCamera):
+class ThermalCamera():
     video_source = thermal_gstreamer_pipeline()
 
     def __init__(self):
