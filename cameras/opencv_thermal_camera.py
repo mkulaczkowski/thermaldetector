@@ -21,8 +21,7 @@ class ThermalCamera(BaseCamera):
         print('Thermal init')
         super(ThermalCamera, self).__init__()
 
-    @staticmethod
-    def frames():
+    def get_frame(self):
         camera = cv2.VideoCapture(ThermalCamera.video_source, cv2.CAP_GSTREAMER)
         if not camera.isOpened():
             raise RuntimeError('Could not start thermal camera.')
