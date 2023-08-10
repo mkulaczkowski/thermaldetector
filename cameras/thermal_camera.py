@@ -16,6 +16,13 @@ class ThermalCamera():
         self.thermal_camera = nanocamera.Camera(camera_type=1, device_id=1, width=480, height=320, fps=25, enforce_fps=True)
         super(ThermalCamera, self).__init__()
 
+    def __del__(self):
+        try:
+            self.thermal_camera.release()
+        except:
+            print('probably there\'s no cap yet :(')
+        cv2.destroyAllWindows()
+
     def get_frame(self):
         while True:
             # read current frame

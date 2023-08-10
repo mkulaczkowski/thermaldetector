@@ -2,6 +2,8 @@ import cv2
 import threading
 
 
+
+
 class CSI_Camera:
 
     def __init__(self):

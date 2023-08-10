@@ -33,6 +33,14 @@ class FusionCamera():
             raise
         super(FusionCamera, self).__init__()
 
+    def __del__(self):
+        try:
+            self.visible_camera.release()
+            self.thermal_camera.release()
+        except:
+            print('probably there\'s no cap yet :(')
+        cv2.destroyAllWindows()
+
     def get_frame(self):
         while True:
             # read current frame

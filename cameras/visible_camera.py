@@ -19,6 +19,12 @@ class VisibleCamera():
     def set_video_source(source):
         VisibleCamera.video_source = source
 
+    def __del__(self):
+        try:
+            self.visible_camera.release()
+        except:
+            print('probably there\'s no cap yet :(')
+        cv2.destroyAllWindows()
     def get_frame(self):
         while True:
             # read current frame
