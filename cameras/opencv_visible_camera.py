@@ -32,19 +32,24 @@ def visible_gstreamer_pipeline(
 
 class VisibleCamera():
     video_source = visible_gstreamer_pipeline()
-
+    visible_camera = None
     def __init__(self):
         print('VisibleCamera init')
         super(VisibleCamera, self).__init__()
-
+    def __del__(self):
+        try:
+            self.visible_camera.release()
+        except:
+            print('probably theres no cap yet :(')
+        cv2.destroyAllWindows()
     def get_frame(self):
-        camera = cv2.VideoCapture(VisibleCamera.video_source, cv2.CAP_GSTREAMER)
-        if not camera.isOpened():
+        self.visible_camera = cv2.VideoCapture(VisibleCamera.video_source, cv2.CAP_GSTREAMER)
+        if not self.visible_camera.isOpened():
             raise RuntimeError('Could not start visible camera.')
 
         while True:
             # read current frame
-            frame_stab = camera.read()
+            frame_stab = self.visible_camera.read()
             # check for stabilized frame if Nonetype
             if frame_stab is None:
                 break

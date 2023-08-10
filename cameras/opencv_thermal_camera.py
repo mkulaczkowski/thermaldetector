@@ -16,19 +16,24 @@ def thermal_gstreamer_pipeline(
 
 class ThermalCamera():
     video_source = thermal_gstreamer_pipeline()
-
+    thermal_camera = None
     def __init__(self):
         print('Thermal init')
         super(ThermalCamera, self).__init__()
-
+    def __del__(self):
+        try:
+            self.thermal_camera.release()
+        except:
+            print('probably theres no cap yet :(')
+        cv2.destroyAllWindows()
     def get_frame(self):
-        camera = cv2.VideoCapture(ThermalCamera.video_source, cv2.CAP_GSTREAMER)
-        if not camera.isOpened():
+        self.thermal_camera = cv2.VideoCapture(ThermalCamera.video_source, cv2.CAP_GSTREAMER)
+        if not self.thermal_camera.isOpened():
             raise RuntimeError('Could not start thermal camera.')
 
         while True:
             # read current frame
-            _, img = camera.read()
+            _, img = self.thermal_camera.read()
 
             # encode as a jpeg image and return it
             yield cv2.imencode('.jpg', img)[1].tobytes()
