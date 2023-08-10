@@ -35,8 +35,8 @@ class FusionCamera():
         cv2.destroyAllWindows()
 
     def get_frame(self):
-        self.visible_camera = cv2.VideoCapture(self.video_source1, cv2.CAP_GSTREAMER)
-        self.thermal_camera = cv2.VideoCapture(self.video_source2, cv2.CAP_GSTREAMER)
+        self.visible_camera = cv2.VideoCapture(self.video_source, cv2.CAP_GSTREAMER)
+        self.thermal_camera = cv2.VideoCapture(self.video_source1, cv2.CAP_GSTREAMER)
         if not self.visible_camera.isOpened():
             raise RuntimeError('Could not start visible camera.')
         while True:
