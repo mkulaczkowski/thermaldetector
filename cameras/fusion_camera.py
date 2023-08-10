@@ -25,7 +25,7 @@ class FusionCamera():
     def __init__(self):
         logger.debug('FusionCamera init')
         try:
-            self.visible_camera = nanocamera.Camera(flip=2, device_id=0, width=1920, height=1080, fps=25, enforce_fps=True)
+            self.visible_camera = nanocamera.Camera(flip=2, device_id=0, width=1280, height=720, fps=25, enforce_fps=True)
             self.thermal_camera = nanocamera.Camera(camera_type=1, device_id=1, width=480, height=320, fps=25, enforce_fps=True)
             self.isrunning = False
         except Exception as e:
@@ -51,7 +51,7 @@ class FusionCamera():
                 break
             try:
                 thermalFrame = self.thermal_camera.read()
-                resized = cv2.resize(thermalFrame, (1920, 1080), interpolation=cv2.INTER_AREA)
+                resized = cv2.resize(thermalFrame, (1280, 720), interpolation=cv2.INTER_AREA)
                 img_gray1 = cv2.cvtColor(resized, cv2.COLOR_BGR2GRAY)
                 ret, thresh1 = cv2.threshold(img_gray1, 150, 255, cv2.THRESH_BINARY)
                 contours2, hierarchy2 = cv2.findContours(thresh1, cv2.RETR_TREE,
