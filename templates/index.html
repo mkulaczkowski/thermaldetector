@@ -109,6 +109,10 @@
                     // a gamepad is connected and has an inde
                     const myGamepad = navigator.getGamepads()[gamepadIndex];
                     $("#compass").text('Connected ' + myGamepad.axes.length);
+                    $("#compass").text(myGamepad.axes[0].toFixed(2));
+                    $("#compass").text(myGamepad.axes[1].toFixed(2));
+                    $("#compass").text(myGamepad.axes[2].toFixed(2));
+                    $("#compass").text(myGamepad.axes[3].toFixed(2));
 
                     if (myGamepad.axes[0].toFixed(2) != 0.00 || myGamepad.axes[1].toFixed(2) != 0.00) {
                         socket.emit('motion', {
