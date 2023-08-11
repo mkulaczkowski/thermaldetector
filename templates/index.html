@@ -108,7 +108,7 @@
                 if (gamepadIndex !== undefined) {
                     // a gamepad is connected and has an inde
                     const myGamepad = navigator.getGamepads()[gamepadIndex];
-                    $("#compass").text('Connected');
+                    $("#compass").text('Connected ' + myGamepad.axes.length);
 
                     if (myGamepad.axes[0].toFixed(2) != 0.00 || myGamepad.axes[1].toFixed(2) != 0.00) {
                         socket.emit('motion', {
