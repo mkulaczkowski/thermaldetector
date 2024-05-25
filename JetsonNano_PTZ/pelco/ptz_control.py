@@ -145,13 +145,13 @@ if __name__ == "__main__":
     # # Stop movement
     # response, _ = controller.pantilt_stop()
     # print(f"Stop movement response: {response}")
-    while True:
-        time.sleep(1)
-        # Query horizontal angle
-        controller.query_horizontal_angle()
-
-        # Query vertical angle
-        controller.query_vertical_angle()
+    # while True:
+    #     time.sleep(1)
+    #     # Query horizontal angle
+    #     controller.query_horizontal_angle()
+    #
+    #     # Query vertical angle
+    #     controller.query_vertical_angle()
 
     # # Horizontal 90° positioning
     # response, _ = controller.horizontal_positioning('HORIZONTAL_45')

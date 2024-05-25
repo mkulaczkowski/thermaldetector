@@ -4,9 +4,6 @@ import time
 
 import cv2
 
-import subprocess
-
-import nanocamera
 
 from cameras.opencv_thermal_camera import thermal_gstreamer_pipeline
 from cameras.opencv_visible_camera import visible_gstreamer_pipeline
@@ -15,7 +12,7 @@ logger = logging.getLogger('tester.sub')
 
 class FusionCamera():
     video_source = visible_gstreamer_pipeline()
-    video_source1 = thermal_gstreamer_pipeline()
+    thermal_source = thermal_gstreamer_pipeline()
     visible_camera = None
     thermal_camera = None
     # used to record the time when we processed last frame
@@ -35,8 +32,8 @@ class FusionCamera():
         cv2.destroyAllWindows()
 
     def get_frame(self):
-        self.visible_camera = cv2.VideoCapture(self.video_source, cv2.CAP_GSTREAMER)
-        self.thermal_camera = cv2.VideoCapture(self.video_source1, cv2.CAP_GSTREAMER)
+        self.visible_camera = cv2.VideoCapture(self.video_source)
+        self.thermal_camera = cv2.VideoCapture(self.thermal_source)
         if not self.visible_camera.isOpened():
             raise RuntimeError('Could not start visible camera.')
         while True:

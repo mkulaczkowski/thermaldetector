@@ -1,57 +1,48 @@
 import os
 import cv2
-from vidgear.gears import VideoGear
-from cameras.base_camera import BaseCamera
+
 def visible_gstreamer_pipeline(
-        capture_width=1280,
-        capture_height=720,
-        display_width=1280,
-        display_height=720,
+        capture_width=1920,
+        capture_height=1080,
+        display_width=1920,
+        display_height=1080,
         framerate=25,
-        flip_method=2,
 ):
+    video_source = "rtsp://192.168.20.94:554/user=admin_password=oTyLhoPM_channel=1_stream=0&onvif=0.sdp?real_stream"
     pipeline = (
-            "nvarguscamerasrc ! "
-            "video/x-raw(memory:NVMM), "
-            "width=(int)%d, height=(int)%d, "
-            "format=(string)NV12, framerate=(fraction)%d/1 ! "
-            "nvvidconv flip-method=%d ! "
-            "video/x-raw, width=(int)%d, height=(int)%d, format=(string)BGRx ! "
-            "videoconvert ! "
-            "video/x-raw, format=(string)BGR ! appsink drop=1 max-buffers=1"
-            % (
-                capture_width,
-                capture_height,
-                framerate,
-                flip_method,
-                display_width,
-                display_height,
-            )
+            f"rtspsrc location={video_source} ! rtph264depay ! avdec_h264 ! videoconvert ! appsink name=sink"
+            # % (
+            #     capture_width,
+            #     capture_height,
+            #     framerate,
+            # )
     )
     return pipeline
 
-class VisibleCamera():
+class VisibleCamera:
     video_source = visible_gstreamer_pipeline()
-    visible_camera = None
+
     def __init__(self):
-        print('VisibleCamera init')
-        super(VisibleCamera, self).__init__()
-    def __del__(self):
-        try:
-            self.visible_camera.release()
-        except:
-            print('probably theres no cap yet :(')
-        cv2.destroyAllWindows()
-    def get_frame(self):
+        # Initialize video capture only once in the constructor
         self.visible_camera = cv2.VideoCapture(VisibleCamera.video_source, cv2.CAP_GSTREAMER)
         if not self.visible_camera.isOpened():
             raise RuntimeError('Could not start visible camera.')
 
+    def __del__(self):
+        # Release the video capture object when the instance is destroyed
+        if self.visible_camera.isOpened():
+            self.visible_camera.release()
+
+    def get_frame(self):
         while True:
-            # read current frame
-            frame_stab = self.visible_camera.read()
-            # check for stabilized frame if Nonetype
-            if frame_stab is None:
+            # Read current frame
+            ret, frame_stab = self.visible_camera.read()
+            if not ret:
+                # Break the loop if the frame could not be read
                 break
-            # encode as a jpeg image and return it
-            yield cv2.imencode('.jpg', frame_stab)[1].tobytes()
+            # Encode as a jpeg image and yield the byte array
+            ret, jpeg = cv2.imencode('.jpg', frame_stab)
+            if not ret:
+                # Break the loop if the frame could not be encoded
+                break
+            yield jpeg.tobytes()

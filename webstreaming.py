@@ -17,31 +17,18 @@ import time
 import cv2
 import logging
 
-# from cameras.gyro import Gyro
-
 thread = None
 ping_thread = None
 run_threads = True
 
-from cameras.Focuser import Focuser
-
+# from cameras.Focuser import Focuser
+#
 from cameras.fusion_camera import FusionCamera
 from cameras.opencv_thermal_camera import ThermalCamera
-from cameras.visible_camera import VisibleCamera
+from cameras.opencv_visible_camera import VisibleCamera
 
 from logging.config import dictConfig
 
-# lock = threading.Lock()
-# try:
-#     gyro_ = Gyro()
-# except Exception as e:
-#     logging.critical(f'Failed to initialize gyro: {e}')
-
-try:
-    time.sleep(5)
-    from controlers.swtich_controller import GPIO_switch
-except ImportError as e:
-    print('GPIO error')
 
 dictConfig({
     'version': 1,
@@ -63,10 +50,7 @@ dictConfig({
 app = Flask(__name__, template_folder='templates', static_folder='static', static_url_path='/static')
 app.config['SECRET_KEY'] = 'Ranger'
 socketio = SocketIO(app, logger=True, engineio_logger=True)
-try:
-    focuser = Focuser(1)
-except Exception as e:
-    logging.critical(f'Failed to initialize focuser: {e}')
+
 
 
 @socketio.on("connect")
@@ -218,8 +202,8 @@ if __name__ == '__main__':
                     help="# of frames used to construct the background model")
     args = vars(ap.parse_args())
 
-    app.logger.info('Restarting video sources')
-    restart_service = subprocess.run(["sudo", "systemctl", "restart", "nvargus-daemon.service"])
+    # app.logger.info('Restarting video sources')
+    # restart_service = subprocess.run(["sudo", "systemctl", "restart", "nvargus-daemon.service"])
 
     # start a thread that will perform motion detection
     # t = threading.Thread(target=detect_motion)
@@ -232,5 +216,5 @@ if __name__ == '__main__':
     #        threaded=True, use_reloader=False)
     #context = ssl.create_default_context()
     #context.load_cert_chain(certfile='/Users/mkulaczkowski/Aiprojects/thermaldetector/localhost.crt', keyfile='/Users/mkulaczkowski/Aiprojects/thermaldetector/localhost.key')
-    socketio.run(app, host=args["ip"], port=args["port"], debug=False)
+    socketio.run(app, host=args["ip"], port=args["port"], debug=True, allow_unsafe_werkzeug=True)
 

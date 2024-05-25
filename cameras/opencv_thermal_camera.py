@@ -3,14 +3,14 @@ import cv2
 from cameras.base_camera import BaseCamera
 
 def thermal_gstreamer_pipeline(
-        capture_width=480,
-        capture_height=320,
+        capture_width=640,
+        capture_height=480,
         display_width=720,
         display_height=480,
         framerate=25,
         flip_method=0,
 ):
-    pipeline = f"v4l2src device=/dev/video1 ! video/x-raw, format=YUY2, width={capture_width}, height={capture_height}, pixel-aspect-ratio=1/1, framerate={framerate}/1 ! videoconvert ! appsink drop=1 max-buffers=1"
+    pipeline = f"rtsp://192.168.20.249:554/ONVIFMedia"
     print(pipeline)
     return (pipeline)
 
@@ -27,7 +27,7 @@ class ThermalCamera():
             print('probably theres no cap yet :(')
         cv2.destroyAllWindows()
     def get_frame(self):
-        self.thermal_camera = cv2.VideoCapture(ThermalCamera.video_source, cv2.CAP_GSTREAMER)
+        self.thermal_camera = cv2.VideoCapture(ThermalCamera.video_source)
         if not self.thermal_camera.isOpened():
             raise RuntimeError('Could not start thermal camera.')
 
