@@ -17,14 +17,15 @@ def visible_gstreamer_pipeline(
             #     framerate,
             # )
     )
-    return pipeline
+    return video_source
 
 class VisibleCamera:
     video_source = visible_gstreamer_pipeline()
 
     def __init__(self):
         # Initialize video capture only once in the constructor
-        self.visible_camera = cv2.VideoCapture(VisibleCamera.video_source, cv2.CAP_GSTREAMER)
+        #self.visible_camera = cv2.VideoCapture(VisibleCamera.video_source, cv2.CAP_GSTREAMER)
+        self.visible_camera = cv2.VideoCapture("rtsp://192.168.20.94:554/user=admin_password=oTyLhoPM_channel=1_stream=0&onvif=0.sdp?real_stream")
         if not self.visible_camera.isOpened():
             raise RuntimeError('Could not start visible camera.')
 

@@ -23,7 +23,7 @@ run_threads = True
 
 # from cameras.Focuser import Focuser
 #
-from cameras.fusion_camera import FusionCamera
+from cameras.fusion_camera import FusionCamera, VisibleThermalCamera
 from cameras.opencv_thermal_camera import ThermalCamera
 from cameras.opencv_visible_camera import VisibleCamera
 
@@ -186,7 +186,7 @@ def thermal_video_feed():
 def fusion_video_feed():
     """Video streaming route. Put this in the src attribute of an img tag."""
     app.logger.info('Fusion video feed')
-    return Response(gen(FusionCamera()),
+    return Response(gen(VisibleThermalCamera()),
                     mimetype='multipart/x-mixed-replace; boundary=frame')
 
 
