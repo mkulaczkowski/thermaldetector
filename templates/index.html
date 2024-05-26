@@ -1,502 +1,12 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <link rel="apple-touch-icon" href="static/app.png">
-    <meta name="viewport" content="width=1280, initial-scale=0.66, maximum-scale=1, user-scalable=no"/>
-
+    <meta name="viewport" content="width=1280, initial-scale=0.66, maximum-scale=1, user-scalable=no">
     <title>Pan/Tilt Camera</title>
-    <script type="text/javascript" src="static/socket.io.js"></script>
-    <script type="text/javascript" src="static/jquery-1.12.4.min.js"></script>
-    <script type="text/javascript" src="static/jquery-ui.min.js"></script>
-
-    <script type="text/javascript" charset="utf-8">
-        $(document).ready(function () {
-
-            var current_feed = 0;
-            var is_thermal_on = false
-            var is_video = true
-            var is_laser_on = false
-
-            var fusion_feed = '{{ url_for('fusion_video_feed') }}';
-            var thermal_feed = '{{ url_for('thermal_video_feed') }}';
-            var visible_feed = '{{ url_for('visible_video_feed') }}';
-
-            var cameraName = 'Camera',
-                positionTimer = null,
-                connected = false,
-                motionGranted = false,
-                controlling = false,
-                zerosSent = false;
-
-            $("#primary_video").attr("src", fusion_feed);
-
-            //Gamepad
-            let gamepadIndex;
-            window.addEventListener('gamepadconnected', (event) => {
-                gamepadIndex = event.gamepad.index;
-            });
-            //Port
-            let port = location.port ? parseInt(location.port) : (location.protocol === 'https:' ? 443 : 80);
-            let protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
-            var uri = protocol + '//' + location.hostname + ':' + port + location.pathname;
-            var params = new URLSearchParams(location.search);
-            console.log(`Connecting on ${uri}`);
-            cameraName = params.get('id');
-            console.log(`Connecting to ${cameraName}`);
-            document.title = cameraName + ' - Pan/Tilt Camera';
-            var socket = io.connect(uri);
-
-            var pan = 0, tilt = 0,
-                panMin = 0, panMax = 180,
-                tiltMin = 68, tiltMax = 110;
-
-            connect();
-
-            function connect() {
-                socket.on('connect', function () {
-                    socket.emit('handshake', {data: 'I\'m connected!'});
-                });
-                socket.on('handshake', function (data) {
-                    console.log(data);
-                    pan = data['start_pan']
-                    tilt = data['start_tilt']
-                    is_thermal_on = data['thermal_status']
-                });
-                {#socket.emit('get_gyro', {data: 'Get Gyro'});#}
-                {#socket.on('gyro', function (data) {#}
-                {#    $("#compass").text(data['heading'].toFixed(2));#}
-                {#    socket.emit('get_gyro', {data: 'Get Gyro'});#}
-
-
-            }
-            function switch_channels(){
-                current_feed = (current_feed + 1) % 3;
-                        console.log(current_feed)
-                        if (current_feed === 0) {
-                            change_channel('Optical')
-                        } else if (current_feed == 1) {
-                            change_channel('Thermal')
-                        } else if (current_feed == 2) {
-                            change_channel('Fusion')
-                        }
-            }
-
-
-            function thermocontrol() {
-                console.log(is_thermal_on)
-                        if (is_thermal_on === true) {
-                            socket.emit('cmd', {
-                                'cmd': 'thermal-off'
-                            });
-                            is_thermal_on = false;
-                            $("#thermal").text('Thermal OFF');
-                        } else {
-                            console.log(`Setting thermal camera on...`);
-                            socket.emit('cmd', {
-                                'cmd': 'thermal-on'
-                            });
-                            is_thermal_on = true;
-                            $("#thermal").text('Thermal ON');
-                        }
-            }
-
-            function map(x, in_min, in_max, out_min, out_max) {
-                return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
-            }
-
-            setInterval(() => {
-                if (gamepadIndex !== undefined) {
-                    // a gamepad is connected and has an inde
-                    const myGamepad = navigator.getGamepads()[gamepadIndex];
-                    $("#compass").text('Connected ' + myGamepad.axes.length);
-                    $("#compass").text(myGamepad.axes[0].toFixed(2));
-                    $("#compass").text(myGamepad.axes[1].toFixed(2));
-                    $("#compass").text(myGamepad.axes[2].toFixed(2));
-                    $("#compass").text(myGamepad.axes[3].toFixed(2));
-
-                    if (myGamepad.axes[0].toFixed(2) != 0.00 || myGamepad.axes[1].toFixed(2) != 0.00) {
-                        socket.emit('motion', {
-                            pan: parseFloat(myGamepad.axes[0].toFixed(2) * -1),
-                            tilt: parseFloat(myGamepad.axes[1].toFixed(2) * 1),
-                            relative: true
-                        });
-                    }
-                    else if (myGamepad.axes[2].toFixed(2) != 0.00 || myGamepad.axes[3].toFixed(2) != 0.00) {
-                        socket.emit('optic', {
-                            zoom: parseFloat(myGamepad.axes[2].toFixed(2) * 1),
-                            focus: parseFloat(myGamepad.axes[3].toFixed(2) * -1),
-                            relative: true
-                        });
-                    } else if (myGamepad.axes[4].toFixed(2) != 0.00 || myGamepad.axes[5].toFixed(2) != 0.00) {
-                        socket.emit('optic', {
-                            zoom: parseFloat(myGamepad.axes[4].toFixed(2) * 1),
-                            focus: parseFloat(myGamepad.axes[5].toFixed(2) * -1),
-                            relative: true
-                        });
-                    }
-                }
-            }, 100)
-
-            function change_channel(channel) {
-                $("#primary_video").attr("src", '');
-                setTimeout(() => {
-                    if(channel === 'Fusion')
-                {
-                    $("#primary_video").attr("src", fusion_feed);
-                }
-            else
-                if (channel === 'Thermal') {
-                    $("#primary_video").attr("src", thermal_feed);
-                } else if (channel === 'Optical') {
-                    $("#primary_video").attr("src", visible_feed);
-                }
-                $("#channel").text(channel);
-            }, 1000);
-            }
-
-            setInterval(() => {
-                if (gamepadIndex !== undefined) {
-                    // a gamepad is connected and has an inde
-                    const myGamepad = navigator.getGamepads()[gamepadIndex];
-                    if (myGamepad.buttons[0].pressed) {
-                        console.log('Button 0 pressed');
-                        change_channel('Fusion')
-                    }
-                    else if (myGamepad.buttons[1].pressed) {
-                        console.log('Button 1 pressed');
-                        change_channel('Optical')
-                    }
-                    else if (myGamepad.buttons[2].pressed) {
-                        console.log('Button 2 pressed');
-                        change_channel('Thermal')
-                    }
-                    else if (myGamepad.buttons[3].pressed) {
-                        console.log('Button 3 pressed');
-                        socket.emit('cmd', {
-                            'cmd': 'ir-cut'
-                        });
-                    }
-                    else if (myGamepad.buttons[4].pressed) {
-                        console.log('Button 4 pressed');
-                    }
-                    else if (myGamepad.buttons[5].pressed) {
-                        console.log('Button 5 pressed');
-                    }
-                    else if (myGamepad.buttons[6].pressed) {
-                        console.log('Button 6 pressed');
-                        socket.emit('cmd', {
-                            'cmd': 'min-zoom'
-                        });
-                    }
-                    else if (myGamepad.buttons[7].pressed) {
-                        console.log('Button 7 pressed');
-                        socket.emit('cmd', {
-                            'cmd': 'max-zoom'
-                        });
-                    }
-                    else if (myGamepad.buttons[8].pressed) {
-                        console.log('Button 8 pressed');
-                        current_feed = (current_feed + 1) % 3;
-                        console.log(current_feed)
-                        if (current_feed === 0) {
-                            change_channel('Optical')
-                        } else if (current_feed == 1) {
-                            change_channel('Thermal')
-                        } else if (current_feed == 2) {
-                            change_channel('Fusion')
-                        }
-                    }
-                    else if (myGamepad.buttons[9].pressed) {
-                        console.log('Button 9 pressed');
-                        thermocontrol()
-                    }
-                    else if (myGamepad.buttons[10].pressed) {
-                        console.log('Button 10 pressed');
-                        socket.emit('cmd', {
-                            'cmd': 'laser-off'
-                        });
-                        is_laser_on = false;
-                    }
-                    else if (myGamepad.buttons[11].pressed) {
-                        console.log('Button 11 pressed');
-                            socket.emit('cmd', {
-                                'cmd': 'laser-on'
-                            });
-                            is_laser_on = true;
-                    }
-                    else if (myGamepad.buttons[12].pressed) {
-                        console.log('Button 12 pressed');
-                        thermocontrol();
-                    }
-                    else if (myGamepad.buttons[13].pressed) {
-                        console.log('Button 13 pressed');
-                        switch_channels()
-                    }
-                    else if (myGamepad.buttons[14].pressed) {
-                        console.log('Button 14 pressed');
-                        socket.emit('cmd', {
-                            'cmd': 'ir-cut'
-                        });
-                    }
-                    else if (myGamepad.buttons[15].pressed) {
-                        console.log('Button 15 pressed');
-                    };
-                }
-            }, 500)
-
-            function showUIOverlay() {
-                $('.ui').css('opacity', 0.5);
-
-            }
-
-            function forceReload() {
-                window.location = window.location;
-            }
-
-            function deviceMotion(e) {
-                let orient = window.orientation;
-                if (orient) {
-                    let tilt = e.rotationRate.beta * (orient < 0 ? +1 : -1),
-                        pan = e.rotationRate.alpha * (orient < 0 ? -1 : +1),
-                        tv = Math.abs(tilt) > 0.25 ? tilt.toFixed(2) / 64 : 0.0,
-                        pv = Math.abs(pan) > 0.25 ? pan.toFixed(2) / 64 : 0.0
-
-                    if (connected && controlling) {
-
-                        if (tv && pv || !zerosSent) {
-                            socket.emit('motion', {
-                                pan: pv,
-                                tilt: tv,
-                                relative: true
-                            });
-                            zerosSent = !tv && !pv;
-                        }
-                    }
-                }
-            }
-
-            function deviceOrientation() {
-                set_status('motion', window.orientation === 0 ? 'Not in landscape orientation' :
-                    motionGranted ? 'None' : 'Enable Motion');
-            }
-
-            function requestDeviceMotionPermissions() {
-                window.addEventListener('orientationchange', deviceOrientation);
-                window.DeviceMotionEvent.requestPermission()
-                    .then(response => {
-                        if (response === 'granted') {
-                            window.addEventListener('devicemotion', deviceMotion, (e) => {
-                                throw e
-                            });
-                            $('#toggle').css('display', 'block').css('background-image', 'url(static/unlock.png)');
-                            motionGranted = true;
-                            set_status('motion', 'None');
-                            controlling = true;
-                        } else {
-                            setStatus('DeviceMotion permissions NOT granted.', true);
-                        }
-                    })
-                    .catch(e => {
-                        console.error(e)
-                    })
-            }
-
-            function keyHandler(e) {
-                console.log('KeyCode: ' + e.keyCode);
-                console.log('Key: ' + e.key);
-                let amount = e.shiftKey ? 5 : 1,
-                    motion = '"duration": 1000';
-                if (e.ctrlKey) {
-                    console.log(e);
-                    if (e.shiftKey && e.key === 'R') {
-                        console.log(`Requesting restart...`);
-                        socket.emit('cmd', {
-                            'cmd': 'restart'
-                        });
-                    } else if (e.key === 't') {
-                        console.log(`Setting thermal camera on...`);
-                        socket.emit('cmd', {
-                            'cmd': 'thermal-on'
-                        });
-                    } else if (e.key === 'a' || e.key === 'b' || e.key === 'c' || e.key === 'd') {
-                        console.log(`Setting ${e.key} position...`);
-                        socket.emit('cmd', {
-                            'cmd': 'setPos',
-                            'pos': e.key
-                        });
-                    }
-
-                } else if (e.keyCode === 37) {
-                    console.log('Left');
-                    socket.emit('motion', {
-                        pan: amount,
-                        tilt: 0,
-                        relative: true
-                    });
-                } else if (e.keyCode === 39) {
-                    socket.emit('motion', {
-                        pan: -amount,
-                        tilt: 0,
-                        relative: true
-                    });
-                } else if (e.keyCode === 38) {
-                    socket.emit('motion', {
-                        pan: 0,
-                        tilt: amount,
-                        relative: true
-                    });
-                } else if (e.keyCode === 40) {
-                    socket.emit('motion', {
-                        pan: 0,
-                        tilt: -amount,
-                        relative: true
-                    });
-                } else if (e.key === 't') {
-                    console.log(`Setting thermal camera off...`);
-                    socket.emit('cmd', {
-                        'cmd': 'thermal-off'
-                    });
-                } else if (e.key === 'Home' || e.key === '0') {
-
-                } else if (e.key === '0') {
-                    current_feed = 0;
-                    $("#primary_video").attr("src", '');
-                    //setTimeout($("#primary_video").attr("src", visible_feed), 10000);
-
-                } else if (e.key === '1') {
-                    current_feed = 0;
-                    $("#primary_video").attr("src", visible_feed);
-                }
-                else if (e.key === '2') {
-                    current_feed = 1;
-                    $("#primary_video").attr("src", thermal_feed);
-                } else if (e.key === '3') {
-                    current_feed = 2;
-                    $("#primary_video").attr("src", fusion_feed);
-
-                } else if (e.key && (e.key === 'a' || e.key === 'b' || e.key === 'c' || e.key === 'd')) {
-                    console.log(`Moving to ${e.key} position...`);
-
-
-                } else if (e.key === 'h') {
-                    $('#help').css('opacity', $('#help').css('opacity') === '0' ? 1 : 0);
-                }
-            }
-
-            $('#reload').click(forceReload);
-            $('#toggle').click(switch_channels)
-            // Touch and mouse events
-            let tracking = false;
-            let lp = 0, lt = 0;
-
-            // Mouse event handlers
-            function mStart(e) {
-                $('#container').css('cursor', 'grab');
-                cStart(e.pageX, e.pageY);
-            }
-
-            function mMove(e) {
-                cMove(e.pageX, e.pageY);
-            }
-
-            function mEnd(e) {
-                tracking = false;
-                $('#container').css('cursor', 'default');
-            }
-
-            // Touch event handlers
-            function tStart(e) {
-                cStart(e.originalEvent.pageX, e.originalEvent.pageY);
-            }
-
-            function atStart(e) {
-                e.preventDefault();
-                cStart(e.originalEvent.touches[0].pageX, e.originalEvent.touches[0].pageY);
-            }
-
-            function tEnd(e) {
-                tracking = false;
-            }
-
-            function tMove(e) {
-                e.preventDefault();
-                cMove(e.originalEvent.pageX, e.originalEvent.pageY);
-            }
-
-            function atMove(e) {
-                e.preventDefault();
-                cMove(e.originalEvent.touches[0].pageX, e.originalEvent.touches[0].pageY);
-            }
-
-            // Common event processors
-            function cStart(p, t) {
-                tracking = true;
-                lp = p;
-                lt = t;
-                showUIOverlay();
-            }
-
-            function cMove(p, t) {
-                if (tracking) {
-                    let pv = (p - lp) / 4;
-                    let tv = (t - lt) / 4;
-                    if (pv || tv) {
-                        console.log(`pv=${pv}; tv=${tv}`);
-                        socket.emit('motion', {
-                            pan: pv,
-                            tilt: tv,
-                            relative: true
-                        });
-                        lp = p;
-                        lt = t;
-                    }
-                }
-            }
-
-            function hideHelp() {
-                $('#help').css('opacity', 0);
-            }
-
-            if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Tesla/i.test(navigator.userAgent)) {
-                $('#motion_status').click(requestDeviceMotionPermissions);
-                setTimeout(deviceOrientation, 100);
-                setTimeout(requestDeviceMotionPermissions, 500);
-
-                if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
-                    if (location.protocol !== 'https:') {
-                        $('#motion_status').css('display', 'none');
-                    }
-
-                    // Register touch events for others....
-                    $('#container').on('touchstart', tStart).on('touchmove', tMove).on('touchend', tEnd);
-                } else {
-                    $('#motion_status').css('display', 'none');
-                    // Register touch events for Android....
-                    $('#container').on('touchstart', atStart).on('touchmove', atMove).on('touchend', tEnd);
-                }
-
-            } else {
-                {#$('#motion_status').css('display', 'none');#}
-                {#$('#reload').css('display', 'none');#}
-                {#$('.menu').css('display', 'none');#}
-                $('#positioncontainer').css('top', 600);
-
-                // Unless embedded, center the view-port on the page.
-                if (window.location.hash === '#embed') {
-                    // Running embedded w/o any decorations...
-                } else {
-                    $('#container').css('position', 'flex').css('margin', '50px auto').css('border', 'solid 4px #777');
-                }
-
-                // Register mouse events
-                $('#container').on('mousedown', mStart).on('mousemove', mMove).on('mouseup', mEnd);
-            }
-            $(document).keydown(keyHandler);
-            showUIOverlay();
-        })
-        ;
-    </script>
-
+    <link rel="apple-touch-icon" href="static/app.png">
+    <link rel="stylesheet" href="static/jquery-ui.min.css">
     <style>
         body {
             margin: 0;
@@ -513,19 +23,9 @@
             position: relative;
         }
 
-        #canvas {
-            width: 100%;
-            height: 100%;
-            position: absolute;
-            top: 0;
-            left: 0;
-            background: #333;
-            z-index: -1;
-        }
-
         #controls {
             width: 100%;
-            padding: 5px 10px 5px 10px;
+            padding: 5px 10px;
         }
 
         .overlay {
@@ -545,62 +45,24 @@
             transition: opacity 1s linear;
         }
 
-        .menu {
-            margin: 0px;
-            padding: 0px;
+        #reload, #toggle {
+            margin: 0;
+            padding: 0;
             width: 64px;
             height: 64px;
             background-repeat: no-repeat;
             background-position-y: 4px;
-        }
-
-        .choices {
-            margin-top: 0px;
-            left: 80px;
-        }
-
-
-        .item {
-            padding: 8px 24px;
-            cursor: pointer;
         }
 
         #reload {
-            margin: 0px;
-            padding: 0px;
-            width: 64px;
-            height: 64px;
             top: 80px;
             background-image: url('static/reload.png');
-            background-repeat: no-repeat;
-            background-position-y: 4px;
         }
 
         #toggle {
             display: none;
-            margin: 0px;
-            padding: 0px;
-            width: 64px;
-            height: 64px;
             top: 200px;
             background-image: url('static/lock.png');
-            background-repeat: no-repeat;
-            background-position-y: 4px;
-        }
-
-        #motion_status {
-            top: 10px;
-            left: 0px;
-        }
-
-        #view {
-            top: 320px;
-            background-image: url('static/camera.png');
-        }
-
-        #views {
-            display: none;
-            top: 250px;
         }
 
         #positioncontainer {
@@ -624,45 +86,15 @@
             background-color: #ccc;
         }
 
-        #help {
-            position: relative;
-            width: 1280px;
-            margin: auto;
-            font-size: 18px;
-            color: #999;
-            opacity: 1;
-            transition: opacity 0.3s linear;
-        }
-
-        /* Bottom left text */
-        .bottom-left {
+        .bottom-left, .top-left, .top-right, .bottom-right {
             position: absolute;
-            bottom: 8px;
-            left: 16px;
         }
 
-        /* Top left text */
-        .top-left {
-            position: absolute;
-            top: 8px;
-            left: 16px;
-        }
+        .bottom-left { bottom: 8px; left: 16px; }
+        .top-left { top: 8px; left: 16px; }
+        .top-right { top: 8px; right: 16px; }
+        .bottom-right { bottom: 8px; right: 16px; }
 
-        /* Top right text */
-        .top-right {
-            position: absolute;
-            top: 8px;
-            right: 16px;
-        }
-
-        /* Bottom right text */
-        .bottom-right {
-            position: absolute;
-            bottom: 8px;
-            right: 16px;
-        }
-
-        /* Centered text */
         .centered {
             position: absolute;
             top: 50%;
@@ -670,12 +102,140 @@
             transform: translate(-50%, -50%);
         }
     </style>
+    <script src="static/jquery-1.12.4.min.js"></script>
+    <script src="static/jquery-ui.min.js"></script>
+    <script src="static/socket.io.js"></script>
+    <script>
+        $(document).ready(function () {
+            const fusionFeed = '{{ url_for('fusion_video_feed') }}';
+            const thermalFeed = '{{ url_for('thermal_video_feed') }}';
+            const visibleFeed = '{{ url_for('visible_video_feed') }}';
+            const socket = io.connect(`${location.protocol === 'https:' ? 'wss:' : 'ws:'}//${location.hostname}:${location.port || (location.protocol === 'https:' ? 443 : 80)}${location.pathname}`);
 
+            let currentFeed = 0;
+            let isThermalOn = false;
+            let isLaserOn = false;
+            let gamepadIndex;
+
+            function changeChannel(channel) {
+                $("#primary_video").attr("src", '');
+                setTimeout(() => {
+                    $("#primary_video").attr("src", {
+                        'Fusion': fusionFeed,
+                        'Thermal': thermalFeed,
+                        'Optical': visibleFeed
+                    }[channel]);
+                    $("#channel").text(channel);
+                }, 1000);
+            }
+
+            function switchChannels() {
+                currentFeed = (currentFeed + 1) % 3;
+                changeChannel(['Optical', 'Thermal', 'Fusion'][currentFeed]);
+            }
+
+            function toggleThermal() {
+                socket.emit('cmd', { 'cmd': isThermalOn ? 'thermal-off' : 'thermal-on' });
+                isThermalOn = !isThermalOn;
+                $("#thermal").text(isThermalOn ? 'Thermal ON' : 'Thermal OFF');
+            }
+
+            function handleGamepadInput() {
+                const myGamepad = navigator.getGamepads()[gamepadIndex];
+                if (!myGamepad) return;
+
+                if (myGamepad.axes.some(axis => axis.toFixed(2) != 0.00)) {
+                    const [pan, tilt, zoom, focus] = myGamepad.axes.map(axis => parseFloat(axis.toFixed(2)));
+                    socket.emit('motion', { pan: -pan, tilt: tilt, relative: true });
+                    socket.emit('optic', { zoom: zoom, focus: -focus, relative: true });
+                }
+
+                myGamepad.buttons.forEach((button, index) => {
+                    if (button.pressed) {
+                        const actions = [
+                            () => changeChannel('Fusion'), () => changeChannel('Optical'), () => changeChannel('Thermal'),
+                            () => socket.emit('cmd', { 'cmd': 'ir-cut' }), null, null,
+                            () => socket.emit('cmd', { 'cmd': 'min-zoom' }), () => socket.emit('cmd', { 'cmd': 'max-zoom' }),
+                            switchChannels, toggleThermal,
+                            () => { socket.emit('cmd', { 'cmd': 'laser-off' }); isLaserOn = false; },
+                            () => { socket.emit('cmd', { 'cmd': 'laser-on' }); isLaserOn = true; },
+                            toggleThermal, switchChannels, () => socket.emit('cmd', { 'cmd': 'ir-cut' }), null
+                        ];
+                        actions[index]?.();
+                    }
+                });
+            }
+
+            window.addEventListener('gamepadconnected', event => {
+                gamepadIndex = event.gamepad.index;
+                setInterval(handleGamepadInput, 100);
+            });
+
+            socket.on('connect', () => socket.emit('handshake', { data: 'I\'m connected!' }));
+            socket.on('handshake', data => {
+                $("#pantilt").text(`Pan: ${data.start_horizontal} Tilt: ${data.start_vertical}`);
+                isThermalOn = data.thermal_status;
+                $("#primary_video").attr("src", fusionFeed);
+            });
+
+            $("#reload").click(() => location.reload());
+            $("#toggle").click(switchChannels);
+            $(document).keydown(event => {
+                const amount = event.shiftKey ? 5 : 1;
+                if (event.ctrlKey) {
+                    if (event.shiftKey && event.key === 'R') socket.emit('cmd', { 'cmd': 'restart' });
+                    else if (event.key === 't') socket.emit('cmd', { 'cmd': 'thermal-on' });
+                    else if (['a', 'b', 'c', 'd'].includes(event.key)) socket.emit('cmd', { 'cmd': 'setPos', 'pos': event.key });
+                } else {
+                    const keys = {
+                        37: () => socket.emit('motion', { pan: amount, tilt: 0, relative: true }),
+                        38: () => socket.emit('motion', { pan: 0, tilt: amount, relative: true }),
+                        39: () => socket.emit('motion', { pan: -amount, tilt: 0, relative: true }),
+                        40: () => socket.emit('motion', { pan: 0, tilt: -amount, relative: true }),
+                        '0': () => { currentFeed = 0; changeChannel('Optical'); },
+                        '1': () => { currentFeed = 0; changeChannel('Optical'); },
+                        '2': () => { currentFeed = 1; changeChannel('Thermal'); },
+                        '3': () => { currentFeed = 2; changeChannel('Fusion'); },
+                        't': toggleThermal,
+                        'h': () => $('#help').css('opacity', $('#help').css('opacity') === '0' ? 1 : 0)
+                    };
+                    if (keys[event.keyCode]) keys[event.keyCode]();
+                    else if (keys[event.key]) keys[event.key]();
+                }
+            });
+
+            $('#container').on('mousedown', e => {
+                $('#container').css('cursor', 'grab');
+                lp = e.pageX;
+                lt = e.pageY;
+                tracking = true;
+            }).on('mousemove', e => {
+                if (tracking) {
+                    const pv = (e.pageX - lp) / 4;
+                    const tv = (e.pageY - lt) / 4;
+                    if (pv || tv) {
+                        socket.emit('motion', { pan: pv, tilt: tv, relative: true });
+                        lp = e.pageX;
+                        lt = e.pageY;
+                    }
+                }
+            }).on('mouseup', () => {
+                tracking = false;
+                $('#container').css('cursor', 'default');
+            });
+
+            showUIOverlay();
+        });
+
+        function showUIOverlay() {
+            $('.ui').css('opacity', 0.5);
+        }
+    </script>
 </head>
 <body>
 <div id="container">
     <img id="primary_video" style="width: 100%" src="">
-    <div class="bottom-left">Bottom Left</div>
+    <div class="bottom-left" id="pantilt">Pan: "No Data" Tilt: "No Data"</div>
     <div class="top-left" id="compass"></div>
     <div class="top-right" id="thermal">Thermal Off</div>
     <div class="bottom-right" id="channel"></div>
@@ -683,11 +243,9 @@
         <div class="overlay ui" id="reload"></div>
         <div class="overlay ui" id="toggle"></div>
     </div>
-
     <div class="ui" id="positioncontainer">
         <div id="position"></div>
     </div>
 </div>
-
 </body>
 </html>

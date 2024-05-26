@@ -90,15 +90,15 @@ class PELCO_Functions:
         response, _ = self.construct_cmd('HORIZONTAL_QUERY')
         if response:
             angle = self.parse_angle(response[4], response[5])
-            print(f"Horizontal angle: {angle}°")
-        return response
+            return angle
+        return 'No Data'
 
     def query_vertical_angle(self):
         response, _ = self.construct_cmd('VERTICAL_QUERY')
         if response:
             angle = self.parse_angle(response[4], response[5])
-            print(f"Vertical angle: {angle}°")
-        return response
+            return angle
+        return 'No Data'
 
     def parse_angle(self, dataH, dataL):
         angle = ((dataH << 8) + dataL) / 100.0
