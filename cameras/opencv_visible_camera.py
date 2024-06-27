@@ -28,7 +28,7 @@ class VisibleCamera:
         self.visible_camera = cv2.VideoCapture("rtsp://192.168.20.94:554/user=admin_password=oTyLhoPM_channel=1_stream=0&onvif=0.sdp?real_stream")
         if not self.visible_camera.isOpened():
             raise RuntimeError('Could not start visible camera.')
-
+        super(VisibleCamera, self).__init__()
     def __del__(self):
         # Release the video capture object when the instance is destroyed
         if self.visible_camera.isOpened():

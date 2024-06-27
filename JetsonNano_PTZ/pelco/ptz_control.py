@@ -41,10 +41,12 @@ POSITIONS = {
 
 
 class PELCO_Functions:
-    def __init__(self, ip_address, port=4196, timeout=0.5):
+    def __init__(self, ip_address, port=4196, timeout=0.1):
         self.ip_address = ip_address
         self.port = port
         self.timeout = timeout
+        self.horizontal_angle = 0
+        self.vertical_angle = 0
 
     def calculate_checksum(self, command):
         return sum(command) % 256
@@ -80,6 +82,12 @@ class PELCO_Functions:
     def pantilt_move(self, direction, pan_speed=0x3F, tilt_speed=0x3F):
         return self.construct_cmd(direction, pan_speed, tilt_speed)
 
+    def pantilt_rotate_left(self, pan_speed=0x3F, tilt_speed=0x3F):
+        return self.construct_cmd('LEFT', pan_speed, tilt_speed)
+
+    def pantilt_rotate_right(self, pan_speed=0x3F, tilt_speed=0x3F):
+        return self.construct_cmd('RIGHT', pan_speed, tilt_speed)
+
     def turn_on_light(self):
         return self.construct_cmd('LIGHT_ON', 0x00, 0x02)
 
@@ -89,16 +97,14 @@ class PELCO_Functions:
     def query_horizontal_angle(self):
         response, _ = self.construct_cmd('HORIZONTAL_QUERY')
         if response:
-            angle = self.parse_angle(response[4], response[5])
-            return angle
-        return 'No Data'
+            self.horizontal_angle = self.parse_angle(response[4], response[5])
+        return self.horizontal_angle
 
     def query_vertical_angle(self):
         response, _ = self.construct_cmd('VERTICAL_QUERY')
         if response:
-            angle = self.parse_angle(response[4], response[5])
-            return angle
-        return 'No Data'
+            self.vertical_angle = self.parse_angle(response[4], response[5])
+        return self.vertical_angle
 
     def parse_angle(self, dataH, dataL):
         angle = ((dataH << 8) + dataL) / 100.0

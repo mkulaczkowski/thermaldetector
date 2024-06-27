@@ -44,9 +44,8 @@ def connect():
                        "start_vertical": ptz_controller.query_vertical_angle()})
 
 @socketio.on("get_ptz_angles")
-def get_ptz_angles(data):
-    app.logger.debug(f'Received PTZ: {data}')
-    time.sleep(1)
+def get_ptz_angles():
+    app.logger.debug(f'Received GET PTZ ANGLE')
     emit("ptz", {"horizontal": ptz_controller.query_horizontal_angle(),
                  "vertical": ptz_controller.query_vertical_angle()})
 
@@ -75,11 +74,18 @@ def handle_motion_event(json):
     app.logger.debug('Received motion event: ' + str(json))
     value_x = int(2 * json['pan'])
     value_y = int(2 * json['tilt'])
-    if value_x > 0:
-        ptz_controller.rotate_right_5_degrees()
-    elif value_x < 0:
-        ptz_controller.rotate_left_5_degrees()
-
+    if value_x < 0:
+        ptz_controller.pantilt_move('RIGHT')
+    elif value_x > 0:
+        ptz_controller.pantilt_move('LEFT')
+    elif value_y > 0:
+        ptz_controller.pantilt_move('UP')
+    elif value_y < 0:
+        ptz_controller.pantilt_move('DOWN')
+@socketio.on('stop')
+def handle_stop_event():
+    app.logger.debug('Received stop event')
+    ptz_controller.pantilt_stop()
 
 @socketio.on('optic')
 def handle_optic_event(json):
