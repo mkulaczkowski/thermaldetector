@@ -79,14 +79,8 @@ class PELCO_Functions:
     def pantilt_stop(self):
         return self.construct_cmd('STOP')
 
-    def pantilt_move(self, direction, pan_speed=0x3F, tilt_speed=0x3F):
+    def pantilt_move(self, direction, pan_speed=0xAF, tilt_speed=0xE9):
         return self.construct_cmd(direction, pan_speed, tilt_speed)
-
-    def pantilt_rotate_left(self, pan_speed=0x3F, tilt_speed=0x3F):
-        return self.construct_cmd('LEFT', pan_speed, tilt_speed)
-
-    def pantilt_rotate_right(self, pan_speed=0x3F, tilt_speed=0x3F):
-        return self.construct_cmd('RIGHT', pan_speed, tilt_speed)
 
     def turn_on_light(self):
         return self.construct_cmd('LIGHT_ON', 0x00, 0x02)
@@ -151,7 +145,7 @@ if __name__ == "__main__":
     # print(f"Move right response: {response}")
     #
     # # Move up
-    # response, _ = controller.pantilt_move('UP', tilt_speed=0x3F)
+    #response, _ = controller.pantilt_move('UP', tilt_speed=0x40)
     # print(f"Move up response: {response}")
     #
     # # Stop movement
@@ -165,16 +159,19 @@ if __name__ == "__main__":
     #     # Query vertical angle
     #     controller.query_vertical_angle()
 
-    # Horizontal 90° positioning
-    response, _ = controller.horizontal_positioning('HORIZONTAL_45')
-    print(f"Horizontal 90° positioning response: {response}")
-
-    # Vertical 45° positioning
-    response, _ = controller.vertical_positioning('VERTICAL_45')
-    print(f"Vertical 45° positioning response: {response}")
+    # # Horizontal 90° positioning
+    # response, _ = controller.horizontal_positioning('HORIZONTAL_45')
+    # print(f"Horizontal 90° positioning response: {response}")
+    #
+    # # Vertical 45° positioning
+    # response, _ = controller.vertical_positioning('VERTICAL_45')
+    # print(f"Vertical 45° positioning response: {response}")
 
     # # Query horizontal angle
     # controller.query_horizontal_angle()
     #
     # # Query vertical angle
     # controller.query_vertical_angle()
+
+    command = [0xFF, 0x00, 0x00, 0x10, 0x3F, 0xAF]
+    controller.send_command(command)
