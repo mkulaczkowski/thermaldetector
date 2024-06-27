@@ -41,7 +41,7 @@ POSITIONS = {
 
 
 class PELCO_Functions:
-    def __init__(self, ip_address, port=4196, timeout=5):
+    def __init__(self, ip_address, port=4196, timeout=0.5):
         self.ip_address = ip_address
         self.port = port
         self.timeout = timeout
@@ -111,6 +111,12 @@ class PELCO_Functions:
         data1, data2 = POSITIONS[position]
         return self.construct_cmd('HORIZONTAL_POSITION')
 
+    def rotate_left_5_degrees(self):
+        return self.construct_cmd('HORIZONTAL_POSITION', pan_speed=0xFF, tilt_speed=0xDC)
+
+    def rotate_right_5_degrees(self):
+        return self.construct_cmd('HORIZONTAL_POSITION', pan_speed=0x01, tilt_speed=0xF4)
+
     def vertical_positioning(self, position):
         if position not in POSITIONS:
             print(f"{position} not in POSITIONS")
@@ -153,13 +159,13 @@ if __name__ == "__main__":
     #     # Query vertical angle
     #     controller.query_vertical_angle()
 
-    # # Horizontal 90° positioning
-    # response, _ = controller.horizontal_positioning('HORIZONTAL_45')
-    # print(f"Horizontal 90° positioning response: {response}")
-    #
-    # # Vertical 45° positioning
-    # response, _ = controller.vertical_positioning('VERTICAL_45')
-    # print(f"Vertical 45° positioning response: {response}")
+    # Horizontal 90° positioning
+    response, _ = controller.horizontal_positioning('HORIZONTAL_45')
+    print(f"Horizontal 90° positioning response: {response}")
+
+    # Vertical 45° positioning
+    response, _ = controller.vertical_positioning('VERTICAL_45')
+    print(f"Vertical 45° positioning response: {response}")
 
     # # Query horizontal angle
     # controller.query_horizontal_angle()
