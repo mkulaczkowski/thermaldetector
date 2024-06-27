@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="viewport" content="width=1280, initial-scale=0.66, maximum-scale=1, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
     <title>Pan/Tilt Camera</title>
     <link rel="apple-touch-icon" href="static/app.png">
     <link rel="stylesheet" href="static/jquery-ui.min.css">
@@ -14,107 +14,76 @@
             background: #222;
             color: #ddd;
             font-family: Arial, Helvetica, sans-serif;
-            font-size: 24px;
+            font-size: 16px;
         }
 
         #container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
             width: 100%;
-            height: 1080px;
+            height: 100vh;
+        }
+
+        #video-container {
             position: relative;
+            width: 80%;
+            max-width: 1280px;
+            aspect-ratio: 16 / 9;
+            background: #000;
+            border: 2px solid #444;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        #primary_video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        #info-panel {
+            display: flex;
+            justify-content: space-between;
+            width: 80%;
+            max-width: 1280px;
+            padding: 10px;
+            background: #333;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        #info-panel div {
+            flex: 1;
+            text-align: center;
+            margin: 0 10px;
         }
 
         #controls {
-            width: 100%;
-            padding: 5px 10px;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
         }
 
-        .overlay {
+        .control-button {
+            width: 50px;
+            height: 50px;
+            background: #444;
+            border: 2px solid #888;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ddd;
+            font-size: 24px;
             cursor: pointer;
-            border-radius: 8px;
-            margin: 10px;
-            padding: 8px;
-            font-weight: bold;
-            position: absolute;
-            left: 20px;
-            background-color: #444;
-            opacity: 0.5;
+            transition: background 0.3s;
         }
 
-        .ui {
-            opacity: 0.5;
-            transition: opacity 1s linear;
-        }
-
-        #reload, #toggle {
-            margin: 0;
-            padding: 0;
-            width: 64px;
-            height: 64px;
-            background-repeat: no-repeat;
-            background-position-y: 4px;
-        }
-
-        #reload {
-            top: 80px;
-            background-image: url('static/reload.png');
-        }
-
-        #toggle {
-            display: none;
-            top: 200px;
-            background-image: url('static/lock.png');
-        }
-
-        #positioncontainer {
-            opacity: 0;
-            transition: opacity 1s linear;
-            border: solid #ccc 2px;
-            width: 320px;
-            height: 90px;
-            margin: auto;
-            top: 540px;
-            position: relative;
-        }
-
-        #position {
-            position: relative;
-            top: 37px;
-            left: 152px;
-            width: 16px;
-            height: 16px;
-            border-radius: 8px;
-            background-color: #ccc;
-        }
-
-        .bottom-left, .top-left, .top-right, .bottom-right {
-            position: absolute;
-        }
-
-        .bottom-left {
-            bottom: 8px;
-            left: 16px;
-        }
-
-        .top-left {
-            top: 8px;
-            left: 16px;
-        }
-
-        .top-right {
-            top: 8px;
-            right: 16px;
-        }
-
-        .bottom-right {
-            bottom: 8px;
-            right: 16px;
-        }
-
-        .centered {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
+        .control-button:hover {
+            background: #666;
         }
     </style>
     <script src="static/jquery-1.12.4.min.js"></script>
@@ -123,19 +92,24 @@
 </head>
 <body>
 <div id="container">
-    <img id="primary_video" style="width: 100%" src="">
-    <div class="bottom-left" id="pantilt">Pan: "No Data" Tilt: "No Data"</div>
-    <div class="top-left" id="compass"></div>
-    <div class="top-right" id="thermal">Thermal Off</div>
-    <div class="bottom-right" id="channel"></div>
-    <div id="controls">
-        <div class="overlay ui" id="reload"></div>
-        <div class="overlay ui" id="toggle"></div>
+    <div id="video-container">
+        <img id="primary_video" src="">
     </div>
-    <div class="ui" id="positioncontainer">
-        <div id="position"></div>
+    <div id="info-panel">
+        <div id="pantilt">Pan: No Data | Tilt: No Data</div>
+        <div id="channel">Channel: No Data</div>
+        <div id="zoom-level">Zoom: No Data</div>
+    </div>
+    <div id="controls">
+        <div class="control-button" id="up">&#9650;</div>
+        <div class="control-button" id="left">&#9664;</div>
+        <div class="control-button" id="right">&#9654;</div>
+        <div class="control-button" id="down">&#9660;</div>
+        <div class="control-button" id="zoom-in">+</div>
+        <div class="control-button" id="zoom-out">-</div>
     </div>
 </div>
+
 <script>
     const fusionFeed = '{{ url_for('fusion_video_feed') }}';
     const thermalFeed = '{{ url_for('thermal_video_feed') }}';

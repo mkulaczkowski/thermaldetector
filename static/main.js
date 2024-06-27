@@ -1,5 +1,4 @@
 $(document).ready(function () {
-
     const socket = io.connect(`${location.protocol === 'https:' ? 'wss:' : 'ws:'}//${location.hostname}:${location.port || (location.protocol === 'https:' ? 443 : 80)}${location.pathname}`);
 
     let currentFeed = 0;
@@ -7,6 +6,7 @@ $(document).ready(function () {
     let isLaserOn = false;
     let gamepadIndex;
     let tracking;
+    let zoomLevel = 1;
 
     function changeChannel(channel) {
         $("#primary_video").attr("src", '');
@@ -16,7 +16,7 @@ $(document).ready(function () {
                 'Thermal': thermalFeed,
                 'Optical': visibleFeed
             }[channel]);
-            $("#channel").text(channel);
+            $("#channel").text(`Channel: ${channel}`);
         }, 1000);
     }
 
@@ -32,7 +32,7 @@ $(document).ready(function () {
     function toggleThermal() {
         socket.emit('cmd', {'cmd': isThermalOn ? 'thermal-off' : 'thermal-on'});
         isThermalOn = !isThermalOn;
-        $("#thermal").text(isThermalOn ? 'Thermal ON' : 'Thermal OFF');
+        $("#thermal").text(`Thermal: ${isThermalOn ? 'ON' : 'OFF'}`);
     }
 
     function handleGamepadInput() {
@@ -74,13 +74,13 @@ $(document).ready(function () {
 
     socket.on('connect', () => socket.emit('handshake', {data: 'I\'m connected!'}));
     socket.on('handshake', data => {
-        $("#pantilt").text(`Pan: ${data.start_horizontal} Tilt: ${data.start_vertical}`);
+        $("#pantilt").text(`Pan: ${data.start_horizontal} | Tilt: ${data.start_vertical}`);
         isThermalOn = data.thermal_status;
         $("#primary_video").attr("src", fusionFeed);
     });
 
     socket.on('ptz', data => {
-        $("#pantilt").text(`Pan: ${data.horizontal} Tilt: ${data.vertical}`);
+        $("#pantilt").text(`Pan: ${data.horizontal} | Tilt: ${data.vertical}`);
     });
 
     $("#reload").click(() => location.reload());
@@ -109,8 +109,8 @@ $(document).ready(function () {
         } else {
             const keyActions = {
                 'ArrowLeft': () => handleMotion(amount(event), 0),
-                'ArrowRight': () => handleMotion(-amount(event), 0),
                 'ArrowUp': () => handleMotion(0, amount(event)),
+                'ArrowRight': () => handleMotion(-amount(event), 0),
                 'ArrowDown': () => handleMotion(0, -amount(event)),
                 '0': () => changeChannel('Optical'),
                 '1': () => changeChannel('Optical'),
@@ -153,6 +153,17 @@ $(document).ready(function () {
     }).on('mouseup', () => {
         tracking = false;
         $('#container').css('cursor', 'default');
+    });
+
+    $(".control-button").on("mousedown", function () {
+        const action = $(this).attr("id");
+        if (action === "up") handleMotion(0, amount(event));
+        else if (action === "down") handleMotion(0, -amount(event));
+        else if (action === "left") handleMotion(amount(event), 0);
+        else if (action === "right") handleMotion(-amount(event), 0);
+        else if (action === "zoom-in") socket.emit('optic', { zoom: zoomLevel += 0.1, relative: false });
+        else if (action === "zoom-out") socket.emit('optic', { zoom: zoomLevel -= 0.1, relative: false });
+        $("#zoom-level").text(`Zoom: ${zoomLevel.toFixed(1)}`);
     });
 
     showUIOverlay();
