@@ -79,7 +79,7 @@ class PELCO_Functions:
     def pantilt_stop(self):
         return self.construct_cmd('STOP')
 
-    def pantilt_move(self, direction, pan_speed=0xAF, tilt_speed=0xE9):
+    def pantilt_move(self, direction, pan_speed=0x3F, tilt_speed=0xE9):
         return self.construct_cmd(direction, pan_speed, tilt_speed)
 
     def turn_on_light(self):

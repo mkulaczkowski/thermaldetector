@@ -58,8 +58,8 @@ def handle_cmd(data):
     app.logger.debug(f'Received cmd: {data}')
     cmd = data['cmd']
     commands = {
-        'thermal-on': 'Thermal On',
-        'thermal-off': 'Thermal Off',
+        'camera-on': 'Camera On',
+        'camera-off': 'Camera Off',
         'laser-on': 'Laser On',
         'laser-off': 'Laser Off',
         'max-zoom': 'Max Zoom',
@@ -68,6 +68,11 @@ def handle_cmd(data):
     }
     if cmd in commands:
         app.logger.info(commands[cmd])
+
+    if cmd == 'camera-on':
+        ptz_controller.turn_on_light()
+    elif cmd == 'camera-off':
+        ptz_controller.turn_off_light()
 
 @socketio.on('motion')
 def handle_motion_event(json):
@@ -114,17 +119,27 @@ def gen(camera):
 @app.route('/video_feed/visible/')
 def visible_video_feed():
     app.logger.info('Visible video feed')
-    return Response(gen(VisibleCamera()), mimetype='multipart/x-mixed-replace; boundary=frame')
+
+    camera = VisibleCamera()
+    camera.start()
+
+    return Response(gen(camera), mimetype='multipart/x-mixed-replace; boundary=frame')
 
 @app.route('/video_feed/thermal/')
 def thermal_video_feed():
     app.logger.info('Thermal video feed')
-    return Response(gen(ThermalCamera()), mimetype='multipart/x-mixed-replace; boundary=frame')
+    camera = ThermalCamera()
+    camera.start()
+
+    return Response(gen(camera), mimetype='multipart/x-mixed-replace; boundary=frame')
 
 @app.route('/video_feed/fusion/')
 def fusion_video_feed():
     app.logger.info('Fusion video feed')
-    return Response(gen(VisibleThermalCamera()), mimetype='multipart/x-mixed-replace; boundary=frame')
+
+    camera = VisibleThermalCamera()
+
+    return Response(gen(camera), mimetype='multipart/x-mixed-replace; boundary=frame')
 
 if __name__ == '__main__':
     import argparse

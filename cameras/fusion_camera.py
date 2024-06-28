@@ -14,8 +14,8 @@ logger = logging.getLogger('tester.sub')
 
 class FusionCamera:
     def __init__(self, visible_camera_source=visible_gstreamer_pipeline(), thermal_camera_source=thermal_gstreamer_pipeline()):
-        self.visible_camera = cv2.VideoCapture(visible_camera_source)
-        self.thermal_camera = cv2.VideoCapture(thermal_camera_source)
+        self.visible_camera = cv2.VideoCapture(visible_camera_source, cv2.CAP_GSTREAMER)
+        self.thermal_camera = cv2.VideoCapture(thermal_camera_source, cv2.CAP_GSTREAMER)
         if not self.visible_camera.isOpened():
             raise RuntimeError('Could not start visible camera.')
         if not self.thermal_camera.isOpened():
@@ -81,13 +81,8 @@ class VisibleThermalCamera:
         self.visible_camera_source = visible_camera_source
         self.thermal_camera_source = thermal_camera_source
 
-        self.visible_camera = cv2.VideoCapture(self.visible_camera_source)
-        self.thermal_camera = cv2.VideoCapture(self.thermal_camera_source)
-
-        if not self.visible_camera.isOpened():
-            raise RuntimeError('Could not start visible camera.')
-        if not self.thermal_camera.isOpened():
-            raise RuntimeError('Could not start thermal camera.')
+        self.visible_camera = self.init_camera(self.visible_camera_source, 'visible')
+        self.thermal_camera = self.init_camera(self.thermal_camera_source, 'thermal')
 
         self.visible_frame = None
         self.thermal_frame = None
@@ -101,27 +96,45 @@ class VisibleThermalCamera:
         self.visible_thread.start()
         self.thermal_thread.start()
 
+    def init_camera(self, source, camera_type):
+        camera = cv2.VideoCapture(source)
+        if not camera.isOpened():
+            raise RuntimeError(f'Could not start {camera_type} camera.')
+        return camera
+
     def __del__(self):
         self.stop_thread = True
         self.visible_thread.join()
         self.thermal_thread.join()
 
-        if self.visible_camera.isOpened():
-            self.visible_camera.release()
-        if self.thermal_camera.isOpened():
-            self.thermal_camera.release()
+        self.release_camera(self.visible_camera)
+        self.release_camera(self.thermal_camera)
+
+    def release_camera(self, camera):
+        if camera.isOpened():
+            camera.release()
+
+    def restart_camera(self, source, camera_type):
+        logger.info(f'Restarting {camera_type} camera.')
+        return self.init_camera(source, camera_type)
 
     def update_visible_frame(self):
         while not self.stop_thread:
             ret, frame = self.visible_camera.read()
             if ret:
                 self.visible_frame = frame
+            else:
+                logger.info('No frame received from visible camera. Restarting...')
+                self.visible_camera = self.restart_camera(self.visible_camera_source, 'visible')
 
     def update_thermal_frame(self):
         while not self.stop_thread:
             ret, frame = self.thermal_camera.read()
             if ret:
                 self.thermal_frame = frame
+            else:
+                logger.info('No frame received from thermal camera. Restarting...')
+                self.thermal_camera = self.restart_camera(self.thermal_camera_source, 'thermal')
 
     def get_frame(self):
         while True:
@@ -130,8 +143,7 @@ class VisibleThermalCamera:
 
             try:
                 # Resize thermal frame to match the size of the visible frame
-                thermal_frame_resized = cv2.resize(self.thermal_frame,
-                                                   (self.visible_frame.shape[1], self.visible_frame.shape[0]))
+                thermal_frame_resized = cv2.resize(self.thermal_frame, (self.visible_frame.shape[1], self.visible_frame.shape[0]))
 
                 # Blend the frames with 50% transparency
                 blended_frame = cv2.addWeighted(self.visible_frame, 0.3, thermal_frame_resized, 0.7, 0)
@@ -142,12 +154,8 @@ class VisibleThermalCamera:
                 self.prev_frame_time = new_frame_time
 
                 # Convert FPS to string and put on frame
-
-
-
                 fps_text = f"FPS: {int(fps)}"
-                cv2.putText(blended_frame, fps_text, (7, 70), cv2.FONT_HERSHEY_SIMPLEX, 3, (100, 255, 0), 3,
-                            cv2.LINE_AA)
+                cv2.putText(blended_frame, fps_text, (7, 70), cv2.FONT_HERSHEY_SIMPLEX, 3, (100, 255, 0), 3, cv2.LINE_AA)
 
                 # Encode as a JPEG image and return it
                 encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 80]

@@ -63,6 +63,7 @@
 
         #controls {
             display: flex;
+            flex-wrap: wrap;
             justify-content: center;
             gap: 20px;
         }
@@ -84,6 +85,12 @@
 
         .control-button:hover {
             background: #666;
+        }
+
+        .control-button.wide {
+            width: auto;
+            padding: 0 20px;
+            border-radius: 25px;
         }
     </style>
     <script src="static/jquery-1.12.4.min.js"></script>
@@ -107,6 +114,8 @@
         <div class="control-button" id="down">&#9660;</div>
         <div class="control-button" id="zoom-in">+</div>
         <div class="control-button" id="zoom-out">-</div>
+        <div class="control-button wide" id="toggle-camera">Toggle Camera</div>
+        <div class="control-button wide" id="toggle-lights">Toggle Lights</div>
     </div>
 </div>
 

@@ -1,9 +1,11 @@
 $(document).ready(function () {
     const socket = io.connect(`${location.protocol === 'https:' ? 'wss:' : 'ws:'}//${location.hostname}:${location.port || (location.protocol === 'https:' ? 443 : 80)}${location.pathname}`);
 
-    let currentFeed = 0;
+    let currentFeed = 1;
     let isThermalOn = false;
     let isLaserOn = false;
+    let isCameraOn = true;
+    let areLightsOn = false;
     let gamepadIndex;
     let tracking;
     let zoomLevel = 1;
@@ -29,10 +31,16 @@ $(document).ready(function () {
         changeChannel(['Optical', 'Thermal', 'Fusion'][currentFeed]);
     }
 
-    function toggleThermal() {
-        socket.emit('cmd', {'cmd': isThermalOn ? 'thermal-off' : 'thermal-on'});
-        isThermalOn = !isThermalOn;
-        $("#thermal").text(`Thermal: ${isThermalOn ? 'ON' : 'OFF'}`);
+    function toggleCamera() {
+        socket.emit('cmd', {'cmd': isCameraOn ? 'camera-off' : 'camera-on'});
+        isCameraOn = !isCameraOn;
+        $("#toggle-camera").text(isCameraOn ? 'Turn Camera Off' : 'Turn Camera On');
+    }
+
+    function toggleLights() {
+        socket.emit('cmd', {'cmd': areLightsOn ? 'lights-off' : 'lights-on'});
+        areLightsOn = !areLightsOn;
+        $("#toggle-lights").text(areLightsOn ? 'Turn Lights Off' : 'Turn Lights On');
     }
 
     function handleGamepadInput() {
@@ -85,6 +93,8 @@ $(document).ready(function () {
 
     $("#reload").click(() => location.reload());
     $("#toggle").click(switchChannels);
+    $("#toggle-camera").click(toggleCamera);
+    $("#toggle-lights").click(toggleLights);
 
     const amount = event => event.shiftKey ? 5 : 1;
     const activeKeys = {};
@@ -112,11 +122,10 @@ $(document).ready(function () {
                 'ArrowUp': () => handleMotion(0, amount(event)),
                 'ArrowRight': () => handleMotion(-amount(event), 0),
                 'ArrowDown': () => handleMotion(0, -amount(event)),
-                '0': () => changeChannel('Optical'),
                 '1': () => changeChannel('Optical'),
                 '2': () => changeChannel('Thermal'),
                 '3': () => changeChannel('Fusion'),
-                't': toggleThermal,
+                't': () => toggleCamera(),
                 'h': () => $('#help').css('opacity', $('#help').css('opacity') === '0' ? 1 : 0)
             };
 
