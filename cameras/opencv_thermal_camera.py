@@ -1,9 +1,6 @@
-import os
 import threading
 import time
-
 import cv2
-from cameras.base_camera import BaseCamera
 
 def thermal_gstreamer_pipeline(
         capture_width=720,
@@ -14,18 +11,17 @@ def thermal_gstreamer_pipeline(
     rtsp_url = f"rtsp://192.168.20.249:554/ONVIFMedia"
     gst_pipeline = (
         f"rtspsrc location={rtsp_url} latency=0 ! "
-        f"rtph264depay ! h264parse ! avdec_h264 ! videoconvert ! "
-        f"videoscale ! video/x-raw, width={capture_width}, height={capture_height}, framerate={framerate}/1 ! appsink"
+        f"rtph264depay ! h264parse ! nvv4l2decoder ! "
+        f"video/x-raw, width={capture_width}, height={capture_height}, format=BGRx ! videoconvert ! "
+        f"appsink"
     )
     print(gst_pipeline)
-    return (gst_pipeline)
+    return gst_pipeline
 
-class ThermalCamera():
+class ThermalCamera:
     video_source = thermal_gstreamer_pipeline()
 
     def __init__(self):
-        # Initialize video capture only once in the constructor
-        #self.visible_camera = cv2.VideoCapture(VisibleCamera.video_source, cv2.CAP_GSTREAMER)
         self.capture = cv2.VideoCapture(self.video_source, cv2.CAP_GSTREAMER)
         self.is_running = False
         self.read_lock = threading.Lock()
@@ -34,7 +30,7 @@ class ThermalCamera():
     def start(self):
         if not self.is_running:
             self.is_running = True
-            self.thread = threading.Thread(target=self.update, args=())
+            self.thread = threading.Thread(target=self.update, daemon=True)
             self.thread.start()
 
     def read(self):
@@ -44,7 +40,8 @@ class ThermalCamera():
 
     def stop(self):
         self.is_running = False
-        self.thread.join()
+        if self.thread.is_alive():
+            self.thread.join()
 
     def release(self):
         self.capture.release()
@@ -52,14 +49,13 @@ class ThermalCamera():
     def update(self):
         while self.is_running:
             ret, frame = self.capture.read()
+            if not ret:
+                self.is_running = False
+                break
             with self.read_lock:
-                if ret:
-                    self.frame = frame
-                else:
-                    self.is_running = False
+                self.frame = frame
 
     def __del__(self):
-        # Release the video capture object when the instance is destroyed
         self.stop()
         self.release()
 
@@ -71,3 +67,10 @@ class ThermalCamera():
                 if ret:
                     yield jpeg.tobytes()
             time.sleep(0.03)
+
+# Example usage:
+# camera = ThermalCamera()
+# camera.start()
+# for frame in camera.get_frame():
+#     # process frame
+# camera.stop()
