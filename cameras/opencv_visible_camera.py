@@ -13,8 +13,8 @@ def visible_gstreamer_pipeline(
     # Define the GStreamer pipeline
     gst_pipeline = (
         f"rtspsrc location={rtsp_url} ! "
-        f"rtph264depay ! h264parse ! avdec_h264 ! videoconvert ! "
-        f"videoscale ! video/x-raw, width={capture_width}, height={capture_height}, framerate={framerate}/1 ! appsink"
+        f"rtph264depay ! h264parse ! avdec_h264 ! videoconvert ! appsink"
+        #f"videoscale ! video/x-raw, width={capture_width}, height={capture_height}, framerate={framerate}/1 ! appsink"
     )
     print(gst_pipeline)
     return gst_pipeline
