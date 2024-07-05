@@ -16,15 +16,15 @@ class PTZCamera:
         self.password = password
         self.camera = ONVIFCamera(self.ip, self.port, self.user, self.password)
         self.media_service = self.camera.create_media_service()
-        self.ptz_service = self.camera.create_ptz_service()
+        #self.ptz_service = self.camera.create_ptz_service()
         self.profile = self.media_service.GetProfiles()[0]
         self.token = self.profile.token
-        self.requestc = self.ptz_service.create_type('ContinuousMove')
-        self.requestc.ProfileToken = self.token
-        self.stop_request = self.ptz_service.create_type('Stop')
-        self.stop_request.ProfileToken = self.token
+        #self.requestc = self.ptz_service.create_type('ContinuousMove')
+        #self.requestc.ProfileToken = self.token
+        #self.stop_request = self.ptz_service.create_type('Stop')
+        #self.stop_request.ProfileToken = self.token
 
-        self._initialize_zoom()
+        #self._initialize_zoom()
 
     def _initialize_zoom(self):
         config_options = self._get_ptz_configuration_options()
@@ -49,15 +49,10 @@ class PTZCamera:
 
 
 if __name__ == "__main__":
-    camera_ip = '192.168.20.94'
-    camera_port = 8899
+    camera_ip = '192.168.20.249'
+    camera_port = 8000
     camera_user = 'admin'
     camera_password = 'admin'
 
     camera = PTZCamera(ip=camera_ip, port=camera_port, user=camera_user, password=camera_password)
-    camera.zoom(0.5)  # Example zoom in
-    sleep(2)
-    camera.stop()
-    camera.zoom(-0.5)  # Example zoom out
-    sleep(2)
-    camera.stop()
+    print(camera)

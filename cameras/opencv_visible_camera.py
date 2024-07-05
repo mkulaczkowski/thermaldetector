@@ -12,7 +12,7 @@ def visible_gstreamer_pipeline(
     rtsp_url = "rtsp://192.168.20.94:554/user=admin_password=oTyLhoPM_channel=1_stream=0&onvif=0.sdp?real_stream"
     # Define the GStreamer pipeline
     gst_pipeline = (
-        f"rtspsrc location={rtsp_url} ! "
+        f"rtspsrc location={rtsp_url} latency=0 ! "
         f"rtph264depay ! h264parse ! avdec_h264 ! videoconvert ! appsink"
         #f"videoscale ! video/x-raw, width={capture_width}, height={capture_height}, framerate={framerate}/1 ! appsink"
     )
