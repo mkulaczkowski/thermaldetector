@@ -7,7 +7,7 @@ import threading
 def visible_gstreamer_pipeline(
         capture_width=1920,
         capture_height=1080,
-        framerate=25,
+        framerate=30,
 ):
     rtsp_url = "rtsp://192.168.20.94:554/user=admin_password=oTyLhoPM_channel=1_stream=0&onvif=0.sdp?real_stream"
     # Define the GStreamer pipeline
