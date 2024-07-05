@@ -11,7 +11,7 @@ def thermal_gstreamer_pipeline(
         framerate=25,
         flip_method=0,
 ):
-    rtsp_url = f"rtsp://192.168.20.249:554'"
+    rtsp_url = f"rtsp://192.168.20.249:554"
     gst_pipeline = (
         f"rtspsrc location={rtsp_url} latency=0 ! "
         f"rtph264depay ! h264parse ! avdec_h264 ! videoconvert ! "
