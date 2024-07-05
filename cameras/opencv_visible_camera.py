@@ -20,7 +20,7 @@ def visible_gstreamer_pipeline(
             #     framerate,
             # )
     )
-    return video_source
+    return pipeline
 
 class VisibleCamera:
     video_source = visible_gstreamer_pipeline()
