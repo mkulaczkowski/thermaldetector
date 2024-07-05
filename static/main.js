@@ -84,7 +84,7 @@ $(document).ready(function () {
     socket.on('handshake', data => {
         $("#pantilt").text(`Pan: ${data.start_horizontal} | Tilt: ${data.start_vertical}`);
         isThermalOn = data.thermal_status;
-        $("#primary_video").attr("src", visibleFeed);
+        $("#primary_video").attr("src", thermalFeed);
     });
 
     socket.on('ptz', data => {
