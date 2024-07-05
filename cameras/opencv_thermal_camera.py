@@ -11,17 +11,14 @@ def thermal_gstreamer_pipeline(
         framerate=25,
         flip_method=0,
 ):
-    video_source = f"rtsp://192.168.20.249:554/ONVIFMedia"
-    pipeline = (
-        f"rtspsrc location={video_source} latency=0 ! videoconvert ! appsink"
-        # % (
-        #     capture_width,
-        #     capture_height,
-        #     framerate,
-        # )
+    rtsp_url = f"rtsp://192.168.20.249:554/ONVIFMedia"
+    gst_pipeline = (
+        f"rtspsrc location={rtsp_url} latency=0 ! "
+        f"rtph264depay ! h264parse ! avdec_h264 ! videoconvert ! "
+        f"videoscale ! video/x-raw, width={capture_width}, height={capture_height}, framerate={framerate}/1 ! appsink"
     )
-    print(pipeline)
-    return (pipeline)
+    print(gst_pipeline)
+    return (gst_pipeline)
 
 class ThermalCamera():
     video_source = thermal_gstreamer_pipeline()
