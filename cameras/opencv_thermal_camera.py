@@ -15,7 +15,7 @@ def thermal_gstreamer_pipeline(
 ):
     video_source = f"rtsp://192.168.20.249:554/ONVIFMedia"
     pipeline = (
-        f"rtspsrc location={video_source} ! rtph264depay ! avdec_h264 ! videoconvert ! appsink name=sink"
+        f"rtspsrc location={video_source} ! videoconvert ! appsink name=sink"
         # % (
         #     capture_width,
         #     capture_height,
