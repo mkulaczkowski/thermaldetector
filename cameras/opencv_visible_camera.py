@@ -14,8 +14,8 @@ def visible_gstreamer_pipeline(
     gst_pipeline = (
         f"rtspsrc location={rtsp_url} latency=0 ! "
         f"rtph264depay ! h264parse ! nvv4l2decoder ! "
-        f"video/x-raw(memory:NVMM), width=(int){capture_width}, height=(int){capture_height}, format=(string)NV12 ! "
-        f"videoconvert ! video/x-raw, format=(string)BGR ! appsink"
+        #f"video/x-raw(memory:NVMM), width=(int){capture_width}, height=(int){capture_height}, format=(string)NV12 ! "
+        f"appsink"
     )
     print(gst_pipeline)
     return gst_pipeline
