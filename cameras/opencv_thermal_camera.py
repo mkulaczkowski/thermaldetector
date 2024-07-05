@@ -6,10 +6,8 @@ import cv2
 from cameras.base_camera import BaseCamera
 
 def thermal_gstreamer_pipeline(
-        capture_width=640,
-        capture_height=480,
-        display_width=720,
-        display_height=480,
+        capture_width=720,
+        capture_height=576,
         framerate=25,
         flip_method=0,
 ):
