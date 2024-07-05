@@ -13,7 +13,7 @@ def thermal_gstreamer_pipeline(
         framerate=25,
         flip_method=0,
 ):
-    pipeline = f"rtsp://192.168.20.6:554/ONVIFMedia"
+    pipeline = f"rtsp://192.168.20.249:554/ONVIFMedia"
     print(pipeline)
     return (pipeline)
 

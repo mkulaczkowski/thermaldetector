@@ -7,6 +7,7 @@ from onvif import ONVIFCamera
 from onvif import ONVIFCamera
 from time import sleep
 
+
 class PTZCamera:
     def __init__(self, ip, port, user, password):
         self.ip = ip
@@ -45,6 +46,7 @@ class PTZCamera:
         self.stop_request.PanTilt = False
         self.stop_request.Zoom = True
         self.ptz_service.Stop(self.stop_request)
+
 
 if __name__ == "__main__":
     camera_ip = '192.168.20.94'

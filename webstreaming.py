@@ -7,10 +7,18 @@ import time
 from flask import Flask, Response, jsonify, render_template
 from flask_socketio import SocketIO, emit
 from logging.config import dictConfig
+
+from JetsonNano_PTZ.camera_controlers.onvif_controler import PTZCamera
 from JetsonNano_PTZ.pelco.ptz_control import PELCO_Functions
 from cameras.fusion_camera import FusionCamera, VisibleThermalCamera
 from cameras.opencv_thermal_camera import ThermalCamera
 from cameras.opencv_visible_camera import VisibleCamera
+
+camera_ip = '192.168.20.94'
+camera_port = 8899
+camera_user = 'admin'
+camera_password = 'admin'
+
 
 # Configure logging
 dictConfig({
@@ -36,6 +44,8 @@ socketio = SocketIO(app, logger=True, engineio_logger=True)
 
 # Initialize PTZ controller
 ptz_controller = PELCO_Functions(ip_address="192.168.20.22")
+
+visible_camera_ptz = PTZCamera(ip=camera_ip, port=camera_port, user=camera_user, password=camera_password)
 
 @socketio.on("connect")
 def connect():
@@ -95,8 +105,10 @@ def handle_stop_event():
 @socketio.on('optic')
 def handle_optic_event(json):
     app.logger.debug('Received optic event: ' + str(json))
-    value_zoom = int(200 * json['zoom'])
-    value_focus = int(200 * json['focus'])
+    value_zoom = float(json['zoom'])
+
+    visible_camera_ptz.zoom(value_zoom)  # Example zoom in
+
     # Implement focusing logic here if necessary
 
 @app.route("/")
