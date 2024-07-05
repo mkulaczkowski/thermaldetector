@@ -44,7 +44,8 @@ socketio = SocketIO(app, logger=True, engineio_logger=True)
 
 # Initialize PTZ controller
 ptz_controller = PELCO_Functions(ip_address="192.168.20.22")
-
+visible_camera = VisibleCamera()
+thermal_camera = ThermalCamera()
 visible_camera_ptz = PTZCamera(ip=camera_ip, port=camera_port, user=camera_user, password=camera_password)
 
 @socketio.on("connect")
@@ -132,18 +133,17 @@ def gen(camera):
 def visible_video_feed():
     app.logger.info('Visible video feed')
 
-    camera = VisibleCamera()
-    camera.start()
+    visible_camera.start()
 
-    return Response(gen(camera), mimetype='multipart/x-mixed-replace; boundary=frame')
+    return Response(gen(visible_camera), mimetype='multipart/x-mixed-replace; boundary=frame')
 
 @app.route('/video_feed/thermal/')
 def thermal_video_feed():
     app.logger.info('Thermal video feed')
-    camera = ThermalCamera()
-    camera.start()
 
-    return Response(gen(camera), mimetype='multipart/x-mixed-replace; boundary=frame')
+    thermal_camera.start()
+
+    return Response(gen(thermal_camera), mimetype='multipart/x-mixed-replace; boundary=frame')
 
 @app.route('/video_feed/fusion/')
 def fusion_video_feed():
