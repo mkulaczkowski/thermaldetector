@@ -139,7 +139,7 @@ def visible_video_feed():
 def thermal_video_feed():
     app.logger.info('Thermal video feed')
 
-    thermal_camera = ThermalCamera(thermal_camera_ptz.get_stream_url())
+    thermal_camera = VisibleCamera(thermal_camera_ptz.get_stream_url())
     thermal_camera.start()
 
     return Response(gen(thermal_camera), mimetype='multipart/x-mixed-replace; boundary=frame')

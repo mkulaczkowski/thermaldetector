@@ -15,10 +15,7 @@ class VisibleCamera:
         # Initialize the NanoCamera
         self.camera = Camera(
             camera_type=2,
-            source=rtsp_url,     # RTSP URL
-            width=1920,
-            height=1080,
-            fps=30
+            source=rtsp_url     # RTSP URL
         )
         self.is_running = False
         self.read_lock = threading.Lock()
