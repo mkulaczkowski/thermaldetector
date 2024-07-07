@@ -39,6 +39,7 @@ class PTZCamera:
             'Transport': {'Protocol': 'RTSP'}
         }
         response = self.media_service.GetStreamUri(stream_setup)
+        logging.info(f'URL: {response.Uri}')
         return response.Uri
 
     def _get_ptz_configuration_options(self):
