@@ -130,7 +130,7 @@ def gen(camera):
 @app.route('/video_feed/visible/')
 def visible_video_feed():
     app.logger.info('Visible video feed')
-    visible_camera = VisibleCamera(visible_camera_ptz.get_stream_url())
+    visible_camera = VisibleCamera(visible_camera_ptz.get_stream_url()[7:])
     visible_camera.start()
 
     return Response(gen(visible_camera), mimetype='multipart/x-mixed-replace; boundary=frame')
@@ -139,7 +139,7 @@ def visible_video_feed():
 def thermal_video_feed():
     app.logger.info('Thermal video feed')
 
-    thermal_camera = VisibleCamera(thermal_camera_ptz.get_stream_url())
+    thermal_camera = VisibleCamera(thermal_camera_ptz.get_stream_url()[7:])
     thermal_camera.start()
 
     return Response(gen(thermal_camera), mimetype='multipart/x-mixed-replace; boundary=frame')
