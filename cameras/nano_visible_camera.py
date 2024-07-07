@@ -11,11 +11,14 @@ from nanocamera import Camera
 
 
 class VisibleCamera:
-    def __init__(self, rtsp_url):
+    def __init__(self, rtsp_url, capture_width=640, capture_height=480, fps=25):
         # Initialize the NanoCamera
         self.camera = Camera(
             camera_type=2,
-            source=rtsp_url     # RTSP URL
+            source=rtsp_url,     # RTSP URL
+            width=capture_width,
+            height=capture_height,
+            fps=fps
         )
         self.is_running = False
         self.read_lock = threading.Lock()

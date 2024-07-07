@@ -42,6 +42,16 @@ class PTZCamera:
         logging.info(f'URL: {response.Uri}')
         return response.Uri
 
+    # Define the function to get stream resolution
+    def get_stream_resolution(self):
+        video_source_config = self.media_service.GetVideoSourceConfigurations()
+        video_source_token = video_source_config[0].token
+        video_source = self.media_service.GetVideoSources()
+        for source in video_source:
+            if source.token == video_source_token:
+                resolution = source.Resolution
+                return (resolution.Width, resolution.Height)
+
     def _get_ptz_configuration_options(self):
         request = self.ptz_service.create_type('GetConfigurationOptions')
         request.ConfigurationToken = self.profile.PTZConfiguration.token
