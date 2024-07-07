@@ -5,27 +5,25 @@ import cv2
 import threading
 
 def visible_gstreamer_pipeline(
+        rtsp_url,
         capture_width=1920,
         capture_height=1080,
         framerate=30,
 ):
-    rtsp_url = "rtsp://192.168.20.94:554/user=admin_password=oTyLhoPM_channel=1_stream=0&onvif=0.sdp?real_stream"
     # Define the GStreamer pipeline
     gst_pipeline = (
         f"rtspsrc location={rtsp_url} latency=0 ! "
         f"rtph264depay ! h264parse ! nvv4l2decoder ! "
-        #f"video/x-raw(memory:NVMM), width=(int){capture_width}, height=(int){capture_height}, format=(string)NV12 ! "
-        f"appsink"
+        f"video/x-raw(memory:NVMM), width=(int){capture_width}, height=(int){capture_height}, format=(string)NV12 ! "
+        f"videoconvert ! video/x-raw, format=(string)BGR ! appsink"
     )
     print(gst_pipeline)
     return gst_pipeline
 
 class VisibleCamera:
-    video_source = visible_gstreamer_pipeline()
-
-    def __init__(self):
+    def __init__(self, rtsp_url):
         # Initialize video capture only once in the constructor
-        self.capture = cv2.VideoCapture(VisibleCamera.video_source, cv2.CAP_GSTREAMER)
+        self.capture = cv2.VideoCapture(visible_gstreamer_pipeline(rtsp_url), cv2.CAP_GSTREAMER)
         self.is_running = False
         self.read_lock = threading.Lock()
         self.frame = None

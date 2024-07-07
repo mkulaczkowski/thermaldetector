@@ -3,12 +3,12 @@ import time
 import cv2
 
 def thermal_gstreamer_pipeline(
+        rtsp_url,
         capture_width=720,
         capture_height=576,
         framerate=25,
         flip_method=0,
 ):
-    rtsp_url = f"rtsp://192.168.20.249:554/ONVIFMedia"
     gst_pipeline = (
         f"rtspsrc location={rtsp_url} latency=0 ! "
         f"rtph264depay ! h264parse ! nvv4l2decoder ! "
@@ -19,10 +19,9 @@ def thermal_gstreamer_pipeline(
     return gst_pipeline
 
 class ThermalCamera:
-    video_source = thermal_gstreamer_pipeline()
 
-    def __init__(self):
-        self.capture = cv2.VideoCapture(self.video_source, cv2.CAP_GSTREAMER)
+    def __init__(self, rtsp_url):
+        self.capture = cv2.VideoCapture(thermal_gstreamer_pipeline(rtsp_url), cv2.CAP_GSTREAMER)
         self.is_running = False
         self.read_lock = threading.Lock()
         self.frame = None
