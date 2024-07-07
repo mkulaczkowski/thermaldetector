@@ -13,7 +13,8 @@ from JetsonNano_PTZ.camera_controlers.onvif_controler import PTZCamera
 from JetsonNano_PTZ.pelco.ptz_control import PELCO_Functions
 from cameras.fusion_camera import VisibleThermalCamera
 from cameras.opencv_thermal_camera import ThermalCamera
-from cameras.opencv_visible_camera import VisibleCamera
+#from cameras.opencv_visible_camera import VisibleCamera
+from cameras.nano_visible_camera import VisibleCamera
 
 
 # Configure logging
@@ -53,7 +54,7 @@ def connect():
 
 @socketio.on("get_ptz_angles")
 def get_ptz_angles():
-    app.logger.debug(f'Received GET PTZ ANGLE')
+    #app.logger.debug(f'Received GET PTZ ANGLE')
     emit("ptz", {"horizontal": ptz_controller.query_horizontal_angle(),
                  "vertical": ptz_controller.query_vertical_angle()})
 

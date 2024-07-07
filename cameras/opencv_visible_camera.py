@@ -11,12 +11,18 @@ def visible_gstreamer_pipeline(
         framerate=30,
 ):
     # Define the GStreamer pipeline
-    gst_pipeline = (
-        f"rtspsrc location={rtsp_url} latency=0 ! "
+    # gst_pipeline = (
+    #     f"rtspsrc location={rtsp_url} latency=0 ! "
+    #     f"rtph264depay ! h264parse ! nvv4l2decoder ! "
+    #     f"video/x-raw(memory:NVMM), width=(int){capture_width}, height=(int){capture_height}, format=(string)NV12 ! "
+    #     f"videoconvert ! video/x-raw, format=(string)BGR ! appsink"
+    # )
+
+    gst_pipeline = (f"rtspsrc location={rtsp_url} latency=0 ! "
         f"rtph264depay ! h264parse ! nvv4l2decoder ! "
-        f"video/x-raw(memory:NVMM), width=(int){capture_width}, height=(int){capture_height}, format=(string)NV12 ! "
+        f"video/x-raw, width=(int){capture_width}, height=(int){capture_height}, format=(string)BGRx ! "
         f"videoconvert ! video/x-raw, format=(string)BGR ! appsink"
-    )
+                    )
     print(gst_pipeline)
     return gst_pipeline
 
