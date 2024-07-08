@@ -61,6 +61,15 @@ class PTZCamera:
         imaging_settings.ForcePersistence = True
         self.imaging_service.SetImagingSettings(imaging_settings)
 
+    def set_brightness(self, brightness_value):
+        imaging_settings = self.imaging_service.create_type('SetImagingSettings')
+        imaging_settings.VideoSourceToken = self.media_profile.VideoSourceConfiguration.SourceToken
+        imaging_settings.ImagingSettings = {
+            'Brightness': brightness_value
+        }
+        imaging_settings.ForcePersistence = True
+        self.imaging_service.SetImagingSettings(imaging_settings)
+
     def zoom(self, zoom_value):
         move = self.ptz_service.create_type('ContinuousMove')
         move.ProfileToken = self.media_profile.token
@@ -79,8 +88,8 @@ class PTZCamera:
 
 
 if __name__ == "__main__":
-    camera_ip = '192.168.20.94'
-    camera_port = 8899
+    camera_ip = '192.168.20.249'
+    camera_port = 8000
     camera_user = 'admin'
     camera_password = 'admin'
 
@@ -95,12 +104,12 @@ if __name__ == "__main__":
     print(f'Resolution: {width}, {height}')
 
     # Set contrast to 50
-    camera.set_contrast(50)
-
+    camera.set_contrast(75)
+    camera.set_brightness(25)
     # Zoom in
-    camera.zoom(0.1)
-    # Wait a bit and then stop zoom
-    import time
-
-    time.sleep(2)
-    camera.stop_zoom()
+    # camera.zoom(0.1)
+    # # Wait a bit and then stop zoom
+    # import time
+    #
+    # time.sleep(2)
+    # camera.stop_zoom()

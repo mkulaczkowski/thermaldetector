@@ -79,8 +79,8 @@ logger = logging.getLogger('tester.sub')
 class VisibleThermalCamera:
     def __init__(self, visible_camera_source, thermal_camera_source):
 
-        self.visible_camera_source = visible_gstreamer_pipeline(visible_camera_source)
-        self.thermal_camera_source = thermal_gstreamer_pipeline(thermal_camera_source)
+        self.visible_camera_source = visible_camera_source
+        self.thermal_camera_source = thermal_camera_source
 
         self.visible_camera = self.init_camera(self.visible_camera_source, 'visible')
         self.thermal_camera = self.init_camera(self.thermal_camera_source, 'thermal')
