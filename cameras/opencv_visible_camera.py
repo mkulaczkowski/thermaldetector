@@ -48,7 +48,8 @@ class OpenCVVisibleCamera:
 
     def stop(self):
         self.is_running = False
-        self.thread.join()
+        if self.thread.is_alive():
+            self.thread.join()
 
     def release(self):
         self.capture.release()
