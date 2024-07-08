@@ -9,6 +9,8 @@ from flask import Flask, Response, jsonify, render_template
 from flask_socketio import SocketIO, emit
 from logging.config import dictConfig
 
+from onvif import ONVIFError
+
 from JetsonNano_PTZ.camera_controlers.onvif_controler import PTZCamera
 from JetsonNano_PTZ.pelco.ptz_control import PELCO_Functions
 from cameras.fusion_camera import VisibleThermalCamera
@@ -42,9 +44,44 @@ socketio = SocketIO(app, logger=True, engineio_logger=True)
 # Initialize PTZ controller
 ptz_controller = PELCO_Functions(ip_address=os.getenv('PTZ_IP', '192.168.20.22'))
 
-visible_camera_ptz = PTZCamera(ip=os.getenv('VISIBLE_CAMERA_IP', '192.168.20.94'), port=os.getenv('VISIBLE_CAMERA_PORT', 8899), username=os.getenv('VISIBLE_CAMERA_USER', 'admin'), password=os.getenv('VISIBLE_CAMERA_PASS', 'admin'))
-thermal_camera_ptz = PTZCamera(ip=os.getenv('THERMAL_CAMERA_IP', '192.168.20.249'), port=os.getenv('THERMAL_CAMERA_PORT', 8000), username=os.getenv('THERMAL_CAMERA_USER', 'admin'), password=os.getenv('THERMAL_CAMERA_PASS', 'admin'))
 
+
+
+def start_cameras():
+    ptz_controller.turn_on_light()
+    time.sleep(10)
+
+    def connect_camera(ip, port, username, password, ptz_functions=True, retries=5, timeout=10):
+        attempt = 0
+        while attempt < retries:
+            try:
+                app.logger.info(f'Started Camera {ip}')
+                return PTZCamera(ip=ip, port=port, username=username, password=password, ptz_functions=ptz_functions)
+            except ONVIFError as e:
+                attempt += 1
+                if attempt < retries:
+                    app.logger.warning(f'Attempt {attempt} failed to connect to camera at {ip}:{port}, retrying...')
+                    time.sleep(timeout)
+                else:
+                    app.logger.error(f'Cannot connect to camera at {ip}:{port} after {retries} attempts')
+                    return None7328
+
+    visible_camera_ptz = connect_camera(
+        ip=os.getenv('VISIBLE_CAMERA_IP', '192.168.20.94'),
+        port=os.getenv('VISIBLE_CAMERA_PORT', 8899),
+        username=os.getenv('VISIBLE_CAMERA_USER', 'admin'),
+        password=os.getenv('VISIBLE_CAMERA_PASS', 'admin')
+    )
+
+    thermal_camera_ptz = connect_camera(
+        ip=os.getenv('THERMAL_CAMERA_IP', '192.168.20.249'),
+        port=os.getenv('THERMAL_CAMERA_PORT', 8000),
+        username=os.getenv('THERMAL_CAMERA_USER', 'admin'),
+        password=os.getenv('THERMAL_CAMERA_PASS', 'admin'),
+        ptz_functions=False
+    )
+
+    return visible_camera_ptz, thermal_camera_ptz
 
 @socketio.on("connect")
 def connect():
@@ -105,7 +142,7 @@ def handle_stop_event():
 def handle_optic_event(json):
     app.logger.debug('Received optic event: ' + str(json))
     value_zoom = float(json['zoom'])
-
+    visible_camera_ptz, thermal_camera = start_cameras()
     visible_camera_ptz.zoom(value_zoom)  # Example zoom in
     time.sleep(1)
     visible_camera_ptz.stop_zoom()
@@ -132,7 +169,7 @@ def visible_video_feed():
     app.logger.info('Visible video feed')
     app.logger.info('Restarting video sources')
     restart_service = subprocess.run(["sudo", "systemctl", "restart", "nvargus-daemon.service"])
-
+    visible_camera_ptz, thermal_camera = start_cameras()
     visible_camera = VisibleCamera(visible_camera_ptz.get_stream_url()[7:], visible_camera_ptz.get_stream_resolution()[0], visible_camera_ptz.get_stream_resolution()[1], fps=30)
     visible_camera.start()
 
@@ -143,6 +180,9 @@ def thermal_video_feed():
     app.logger.info('Thermal video feed')
     app.logger.info('Restarting video sources')
     restart_service = subprocess.run(["sudo", "systemctl", "restart", "nvargus-daemon.service"])
+    visible_camera_ptz, thermal_camera_ptz = start_cameras()
+
+
 
     thermal_camera = VisibleCamera(thermal_camera_ptz.get_stream_url()[7:], thermal_camera_ptz.get_stream_resolution()[0], thermal_camera_ptz.get_stream_resolution()[1], fps=25)
     thermal_camera.start()
@@ -152,7 +192,7 @@ def thermal_video_feed():
 @app.route('/video_feed/fusion/')
 def fusion_video_feed():
     app.logger.info('Fusion video feed')
-
+    visible_camera_ptz, thermal_camera_ptz = start_cameras()
     camera = VisibleThermalCamera(visible_camera_ptz.get_stream_url(), thermal_camera_ptz.get_stream_url())
 
     return Response(gen(camera), mimetype='multipart/x-mixed-replace; boundary=frame')

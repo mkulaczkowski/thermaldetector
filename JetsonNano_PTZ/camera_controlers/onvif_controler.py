@@ -10,7 +10,7 @@ from time import sleep
 
 
 class PTZCamera:
-    def __init__(self, ip, port, username, password):
+    def __init__(self, ip, port, username, password, ptz_functions=True):
         self.mycam = ONVIFCamera(ip, port, username, password)
         self.media_service = self.mycam.create_media_service()
 
@@ -19,17 +19,14 @@ class PTZCamera:
         self.media_profile = self.media_service.GetProfiles()[0]
         # Get and print camera name and IP address
         device_info = self.mycam.devicemgmt.GetDeviceInformation()
+        self.ptz_service = None
         camera_name = device_info.Model
         camera_ip = ip
 
         print(f'Camera Name: {camera_name}')
         print(f'Camera IP Address: {camera_ip}')
-
-        try:
+        if ptz_functions:
             self.ptz_service = self.mycam.create_ptz_service()
-        except ONVIFError as e:
-            self.ptz_service = None
-            logging.warning(f'Camera: {camera_name}, does not support PTZ')
 
     def get_stream_url(self):
         stream_setup = self.media_service.create_type('GetStreamUri')
@@ -45,12 +42,10 @@ class PTZCamera:
     # Define the function to get stream resolution
     def get_stream_resolution(self):
         video_source_config = self.media_service.GetVideoSourceConfigurations()
-        video_source_token = video_source_config[0].token
         video_source = self.media_service.GetVideoSources()
         for source in video_source:
-            if source.token == video_source_token:
-                resolution = source.Resolution
-                return (resolution.Width, resolution.Height)
+            resolution = source.Resolution
+            return resolution.Width, resolution.Height
 
     def _get_ptz_configuration_options(self):
         request = self.ptz_service.create_type('GetConfigurationOptions')
@@ -84,16 +79,20 @@ class PTZCamera:
 
 
 if __name__ == "__main__":
-    camera_ip = '192.168.20.94'
-    camera_port = 8899
+    camera_ip = '192.168.20.249'
+    camera_port = 8000
     camera_user = 'admin'
     camera_password = 'admin'
 
-    camera = PTZCamera(ip=camera_ip, port=camera_port, username=camera_user, password=camera_password)
+    camera = PTZCamera(ip=camera_ip, port=camera_port, username=camera_user, password=camera_password, ptz_functions=False)
     print(camera)
     # Get stream URL
     stream_url = camera.get_stream_url()
     print(f'Stream URL: {stream_url}')
+
+    # Get Resolution
+    width, height = camera.get_stream_resolution()
+    print(f'Resolution: {width}, {height}')
 
     # Set contrast to 50
     camera.set_contrast(50)
