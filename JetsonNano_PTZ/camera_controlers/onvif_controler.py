@@ -79,8 +79,8 @@ class PTZCamera:
 
 
 if __name__ == "__main__":
-    camera_ip = '192.168.20.249'
-    camera_port = 8000
+    camera_ip = '192.168.20.94'
+    camera_port = 8899
     camera_user = 'admin'
     camera_password = 'admin'
 

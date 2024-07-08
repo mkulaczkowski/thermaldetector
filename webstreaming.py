@@ -171,7 +171,7 @@ def visible_video_feed():
     app.logger.info('Visible video feed')
     app.logger.info('Restarting video sources')
     restart_service = subprocess.run(["sudo", "systemctl", "restart", "nvargus-daemon.service"])
-    visible_camera = VisibleCamera(visible_camera_ptz.get_stream_url()[7:], visible_camera_ptz.get_stream_resolution()[0], visible_camera_ptz.get_stream_resolution()[1], fps=30)
+    visible_camera = VisibleCamera(visible_camera_ptz.get_stream_url()[7:], visible_camera_ptz.get_stream_resolution()[0], visible_camera_ptz.get_stream_resolution()[1], fps=25)
     visible_camera.start()
 
     return Response(gen(visible_camera), mimetype='multipart/x-mixed-replace; boundary=frame')
