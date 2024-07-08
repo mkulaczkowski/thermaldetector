@@ -19,6 +19,7 @@ from cameras.opencv_thermal_camera import ThermalCamera
 from cameras.nano_visible_camera import VisibleCamera
 
 
+
 # Configure logging
 dictConfig({
     'version': 1,
@@ -40,10 +41,6 @@ dictConfig({
 app = Flask(__name__, template_folder='templates', static_folder='static', static_url_path='/static')
 app.config['SECRET_KEY'] = 'Ranger'
 socketio = SocketIO(app, logger=True, engineio_logger=True)
-
-# Initialize PTZ controller
-ptz_controller = PELCO_Functions(ip_address=os.getenv('PTZ_IP', '192.168.20.22'))
-
 
 
 
@@ -82,6 +79,12 @@ def start_cameras():
     )
 
     return visible_camera_ptz, thermal_camera_ptz
+
+
+# Initialize PTZ controller
+ptz_controller = PELCO_Functions(ip_address=os.getenv('PTZ_IP', '192.168.20.22'))
+# Start Cameras
+visible_camera_ptz, thermal_camera_ptz = start_cameras()
 
 @socketio.on("connect")
 def connect():
@@ -142,7 +145,6 @@ def handle_stop_event():
 def handle_optic_event(json):
     app.logger.debug('Received optic event: ' + str(json))
     value_zoom = float(json['zoom'])
-    visible_camera_ptz, thermal_camera = start_cameras()
     visible_camera_ptz.zoom(value_zoom)  # Example zoom in
     time.sleep(1)
     visible_camera_ptz.stop_zoom()
@@ -169,7 +171,6 @@ def visible_video_feed():
     app.logger.info('Visible video feed')
     app.logger.info('Restarting video sources')
     restart_service = subprocess.run(["sudo", "systemctl", "restart", "nvargus-daemon.service"])
-    visible_camera_ptz, thermal_camera = start_cameras()
     visible_camera = VisibleCamera(visible_camera_ptz.get_stream_url()[7:], visible_camera_ptz.get_stream_resolution()[0], visible_camera_ptz.get_stream_resolution()[1], fps=30)
     visible_camera.start()
 
@@ -180,10 +181,6 @@ def thermal_video_feed():
     app.logger.info('Thermal video feed')
     app.logger.info('Restarting video sources')
     restart_service = subprocess.run(["sudo", "systemctl", "restart", "nvargus-daemon.service"])
-    visible_camera_ptz, thermal_camera_ptz = start_cameras()
-
-
-
     thermal_camera = VisibleCamera(thermal_camera_ptz.get_stream_url()[7:], thermal_camera_ptz.get_stream_resolution()[0], thermal_camera_ptz.get_stream_resolution()[1], fps=25)
     thermal_camera.start()
 
@@ -192,9 +189,7 @@ def thermal_video_feed():
 @app.route('/video_feed/fusion/')
 def fusion_video_feed():
     app.logger.info('Fusion video feed')
-    visible_camera_ptz, thermal_camera_ptz = start_cameras()
     camera = VisibleThermalCamera(visible_camera_ptz.get_stream_url(), thermal_camera_ptz.get_stream_url())
-
     return Response(gen(camera), mimetype='multipart/x-mixed-replace; boundary=frame')
 
 if __name__ == '__main__':
