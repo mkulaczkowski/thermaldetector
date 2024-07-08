@@ -103,6 +103,10 @@ $(document).ready(function () {
         console.log('Stop rotating');
         socket.emit('stop'); // Replace with actual PTZ stop command
     };
+    const stopZoom = () => {
+        console.log('Stop zoom');
+        socket.emit('stop_zoom'); // Replace with actual PTZ stop command
+    };
 
     const handleMotion = (pan, tilt) => {
         socket.emit('motion', {pan, tilt, relative: true});
@@ -122,6 +126,8 @@ $(document).ready(function () {
                 'ArrowUp': () => handleMotion(0, amount(event)),
                 'ArrowRight': () => handleMotion(-amount(event), 0),
                 'ArrowDown': () => handleMotion(0, -amount(event)),
+                '-': () => socket.emit('optic', { zoom: zoomLevel = -0.1, relative: false }),
+                '+': () => socket.emit('optic', { zoom: zoomLevel = 0.1, relative: false }),
                 '1': () => changeChannel('Optical'),
                 '2': () => changeChannel('Thermal'),
                 '3': () => changeChannel('Fusion'),
@@ -139,6 +145,9 @@ $(document).ready(function () {
 
         if (['ArrowLeft', 'ArrowUp', 'ArrowRight', 'ArrowDown'].includes(event.key)) {
             stopRotation();
+        }
+        if (['-', '+'].includes(event.key)) {
+            stopZoom();
         }
     });
 
@@ -164,16 +173,16 @@ $(document).ready(function () {
     //     $('#container').css('cursor', 'default');
     // });
 
-    // $(".control-button").on("mousedown", function () {
-    //     const action = $(this).attr("id");
-    //     if (action === "up") handleMotion(0, amount(event));
-    //     else if (action === "down") handleMotion(0, -amount(event));
-    //     else if (action === "left") handleMotion(amount(event), 0);
-    //     else if (action === "right") handleMotion(-amount(event), 0);
-    //     else if (action === "zoom-in") socket.emit('optic', { zoom: zoomLevel += 0.1, relative: false });
-    //     else if (action === "zoom-out") socket.emit('optic', { zoom: zoomLevel -= 0.1, relative: false });
-    //     $("#zoom-level").text(`Zoom: ${zoomLevel.toFixed(1)}`);
-    // });
+    $(".control-button").on("mousedown", function () {
+        const action = $(this).attr("id");
+        if (action === "up") handleMotion(0, amount(event));
+        else if (action === "down") handleMotion(0, -amount(event));
+        else if (action === "left") handleMotion(amount(event), 0);
+        else if (action === "right") handleMotion(-amount(event), 0);
+        else if (action === "zoom-in") socket.emit('optic', { zoom: zoomLevel = 1, relative: false });
+        else if (action === "zoom-out") socket.emit('optic', { zoom: zoomLevel = -1, relative: false });
+        $("#zoom-level").text(`Zoom: ${zoomLevel.toFixed(1)}`);
+    });
 
     showUIOverlay();
 });

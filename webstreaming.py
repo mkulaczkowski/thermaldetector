@@ -145,7 +145,11 @@ def handle_optic_event(json):
     app.logger.debug('Received optic event: ' + str(json))
     value_zoom = float(json['zoom'])
     visible_camera_ptz.zoom(value_zoom)  # Example zoom in
-    time.sleep(1)
+
+
+@socketio.on('stop_zoom')
+def handle_stop_event():
+    app.logger.debug('Received stop zoom')
     visible_camera_ptz.stop_zoom()
 
 @app.route("/")
