@@ -7,7 +7,7 @@ import threading
 
 import os
 import time
-import threading
+#import threading
 from nanocamera import Camera
 
 
@@ -23,23 +23,21 @@ class VisibleCamera:
             fps=fps
         )
         self.is_running = False
-        self.read_lock = threading.Lock()
         self.frame = None
 
     def start(self):
         if not self.is_running:
             self.is_running = True
-            self.thread = threading.Thread(target=self.update, args=())
-            self.thread.start()
+            # self.thread = threading.Thread(target=self.update, args=())
+            # self.thread.start()
 
     def read(self):
-        with self.read_lock:
-            frame = self.frame.copy() if self.frame is not None else None
+        frame = self.frame.copy() if self.frame is not None else None
         return frame
 
     def stop(self):
         self.is_running = False
-        self.thread.join()
+        # self.thread.join()
 
     def release(self):
         self.camera.release()
@@ -47,11 +45,10 @@ class VisibleCamera:
     def update(self):
         while self.is_running:
             frame = self.camera.read()
-            with self.read_lock:
-                if frame is not None:
-                    self.frame = frame
-                else:
-                    self.is_running = False
+            if frame is not None:
+                self.frame = frame
+            else:
+                self.is_running = False
 
     def __del__(self):
         # Release the NanoCamera object when the instance is destroyed
