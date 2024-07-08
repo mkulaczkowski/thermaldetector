@@ -144,36 +144,36 @@ $(document).ready(function () {
 
     setInterval(emitGetPtzAngles, 1000);
 
-    $('#container').on('mousedown', e => {
-        $('#container').css('cursor', 'grab');
-        lp = e.pageX;
-        lt = e.pageY;
-        tracking = true;
-    }).on('mousemove', e => {
-        if (tracking) {
-            const pv = (e.pageX - lp) / 4;
-            const tv = (e.pageY - lt) / 4;
-            if (pv || tv) {
-                socket.emit('motion', {pan: pv, tilt: tv, relative: true});
-                lp = e.pageX;
-                lt = e.pageY;
-            }
-        }
-    }).on('mouseup', () => {
-        tracking = false;
-        $('#container').css('cursor', 'default');
-    });
+    // $('#container').on('mousedown', e => {
+    //     $('#container').css('cursor', 'grab');
+    //     lp = e.pageX;
+    //     lt = e.pageY;
+    //     tracking = true;
+    // }).on('mousemove', e => {
+    //     if (tracking) {
+    //         const pv = (e.pageX - lp) / 4;
+    //         const tv = (e.pageY - lt) / 4;
+    //         if (pv || tv) {
+    //             socket.emit('motion', {pan: pv, tilt: tv, relative: true});
+    //             lp = e.pageX;
+    //             lt = e.pageY;
+    //         }
+    //     }
+    // }).on('mouseup', () => {
+    //     tracking = false;
+    //     $('#container').css('cursor', 'default');
+    // });
 
-    $(".control-button").on("mousedown", function () {
-        const action = $(this).attr("id");
-        if (action === "up") handleMotion(0, amount(event));
-        else if (action === "down") handleMotion(0, -amount(event));
-        else if (action === "left") handleMotion(amount(event), 0);
-        else if (action === "right") handleMotion(-amount(event), 0);
-        else if (action === "zoom-in") socket.emit('optic', { zoom: zoomLevel += 0.1, relative: false });
-        else if (action === "zoom-out") socket.emit('optic', { zoom: zoomLevel -= 0.1, relative: false });
-        $("#zoom-level").text(`Zoom: ${zoomLevel.toFixed(1)}`);
-    });
+    // $(".control-button").on("mousedown", function () {
+    //     const action = $(this).attr("id");
+    //     if (action === "up") handleMotion(0, amount(event));
+    //     else if (action === "down") handleMotion(0, -amount(event));
+    //     else if (action === "left") handleMotion(amount(event), 0);
+    //     else if (action === "right") handleMotion(-amount(event), 0);
+    //     else if (action === "zoom-in") socket.emit('optic', { zoom: zoomLevel += 0.1, relative: false });
+    //     else if (action === "zoom-out") socket.emit('optic', { zoom: zoomLevel -= 0.1, relative: false });
+    //     $("#zoom-level").text(`Zoom: ${zoomLevel.toFixed(1)}`);
+    // });
 
     showUIOverlay();
 });
