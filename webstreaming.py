@@ -17,8 +17,7 @@ from cameras.fusion_camera import VisibleThermalCamera
 from cameras.opencv_thermal_camera import ThermalCamera
 #from cameras.opencv_visible_camera import VisibleCamera
 from cameras.nano_visible_camera import VisibleCamera
-
-
+from cameras.opencv_visible_camera import OpenCVVisibleCamera
 
 # Configure logging
 dictConfig({
@@ -169,21 +168,29 @@ def gen(camera):
 @app.route('/video_feed/visible/')
 def visible_video_feed():
     app.logger.info('Visible video feed')
-    app.logger.info('Restarting video sources')
-    restart_service = subprocess.run(["sudo", "systemctl", "restart", "nvargus-daemon.service"])
-    visible_camera = VisibleCamera(visible_camera_ptz.get_stream_url()[7:], 1920, 1080, fps=25)
-    visible_camera.start()
+
+    if os.getenv('NANO', False):
+        app.logger.info('Restarting video sources')
+        restart_service = subprocess.run(["sudo", "systemctl", "restart", "nvargus-daemon.service"])
+        visible_camera = VisibleCamera(visible_camera_ptz.get_stream_url()[7:], 1920, 1080, fps=25)
+        visible_camera.start()
+    else:
+        visible_camera = OpenCVVisibleCamera(visible_camera_ptz.get_stream_url())
+        visible_camera.start()
 
     return Response(gen(visible_camera), mimetype='multipart/x-mixed-replace; boundary=frame')
 
 @app.route('/video_feed/thermal/')
 def thermal_video_feed():
     app.logger.info('Thermal video feed')
-    app.logger.info('Restarting video sources')
-    restart_service = subprocess.run(["sudo", "systemctl", "restart", "nvargus-daemon.service"])
-    thermal_camera = VisibleCamera(thermal_camera_ptz.get_stream_url()[7:], thermal_camera_ptz.get_stream_resolution()[0], thermal_camera_ptz.get_stream_resolution()[1], fps=25)
-    thermal_camera.start()
-
+    if os.getenv('NANO', False):
+        app.logger.info('Restarting video sources')
+        restart_service = subprocess.run(["sudo", "systemctl", "restart", "nvargus-daemon.service"])
+        thermal_camera = VisibleCamera(thermal_camera_ptz.get_stream_url()[7:], thermal_camera_ptz.get_stream_resolution()[0], thermal_camera_ptz.get_stream_resolution()[1], fps=25)
+        thermal_camera.start()
+    else:
+        thermal_camera = OpenCVVisibleCamera(thermal_camera_ptz.get_stream_url())
+        thermal_camera.start()
     return Response(gen(thermal_camera), mimetype='multipart/x-mixed-replace; boundary=frame')
 
 @app.route('/video_feed/fusion/')
