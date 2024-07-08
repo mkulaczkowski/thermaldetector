@@ -3,7 +3,7 @@ import time
 
 import cv2
 import threading
-
+import logging
 def visible_gstreamer_pipeline(
         rtsp_url,
         capture_width=1920,
@@ -29,6 +29,7 @@ def visible_gstreamer_pipeline(
 class OpenCVVisibleCamera:
     def __init__(self, rtsp_url):
         # Initialize video capture only once in the constructor
+        logging.info(f'Camera {rtsp_url}')
         self.capture = cv2.VideoCapture(rtsp_url)
         self.is_running = False
         self.read_lock = threading.Lock()
