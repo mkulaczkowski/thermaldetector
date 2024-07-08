@@ -18,6 +18,15 @@ def visible_gstreamer_pipeline(
     #     f"videoconvert ! video/x-raw, format=(string)BGR ! appsink"
     # )
 
+    gst_pipeline = (
+        f"rtspsrc location={rtsp_url} ! "
+        "rtph264depay ! "
+        "h264parse ! "
+        "nvv4l2decoder ! "
+        "videoconvert ! "
+        "appsink"
+    )
+
     gst_pipeline = (f"rtspsrc location={rtsp_url} latency=0 ! "
         f"rtph264depay ! h264parse ! nvv4l2decoder ! "
         f"video/x-raw, width=(int){capture_width}, height=(int){capture_height}, format=(string)BGRx ! "
