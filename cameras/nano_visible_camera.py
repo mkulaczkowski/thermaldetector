@@ -1,3 +1,4 @@
+import logging
 import os
 import time
 
@@ -13,6 +14,7 @@ from nanocamera import Camera
 class VisibleCamera:
     def __init__(self, rtsp_url, capture_width=640, capture_height=480, fps=25):
         # Initialize the NanoCamera
+        logging.info(f'Camera {rtsp_url}, capture_width={capture_width}, capture_height={capture_height}, fps={fps}')
         self.camera = Camera(
             camera_type=2,
             source=rtsp_url,     # RTSP URL
