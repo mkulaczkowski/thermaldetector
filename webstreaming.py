@@ -61,7 +61,7 @@ def start_cameras():
                     time.sleep(timeout)
                 else:
                     app.logger.error(f'Cannot connect to camera at {ip}:{port} after {retries} attempts')
-                    return None7328
+                    return None
 
     visible_camera_ptz = connect_camera(
         ip=os.getenv('VISIBLE_CAMERA_IP', '192.168.20.94'),
