@@ -1,18 +1,22 @@
 import os
 import time
+
+from deffcode import FFdecoder
 from vidgear.gears import CamGear
 import cv2
 import threading
 import logging
 
-
-
+# define suitable parameters
+ffparams = {
+    "-rtsp_transport": "tcp",
+}
 
 class OpenCVVisibleCamera:
     def __init__(self, rtsp_url):
         # Initialize video capture only once in the constructor
         logging.info(f'Camera {rtsp_url}')
-        self.capture = CamGear(source=rtsp_url, backend=cv2.CAP_FFMPEG).start()
+        self.capture = FFdecoder(rtsp_url, frame_format="bgr24", verbose=True, **ffparams).formulate()
         self.is_running = False
         self.frame = None
 
@@ -27,7 +31,7 @@ class OpenCVVisibleCamera:
         self.is_running = False
 
     def release(self):
-        self.capture.stop()
+        self.capture.terminate()
 
     def update(self):
         while self.is_running:
@@ -39,9 +43,10 @@ class OpenCVVisibleCamera:
         self.release()
 
     def get_frame(self):
-        while self.is_running:
-            frame = self.read()
-            if frame is not None:
-                ret, jpeg = cv2.imencode('.jpg', frame)
-                if ret:
-                    yield jpeg.tobytes()
+        for frame in self.capture.generateFrame():
+            if frame is None:
+                break
+
+            ret, jpeg = cv2.imencode('.jpg', frame)
+            if ret:
+                yield jpeg.tobytes()
