@@ -184,6 +184,11 @@ $(document).ready(function () {
         $("#zoom-level").text(`Zoom: ${zoomLevel.toFixed(1)}`);
     });
 
+    $(".control-button").on("mouseup", function () {
+         stopRotation();
+         stopZoom();
+    });
+
     showUIOverlay();
 });
 
