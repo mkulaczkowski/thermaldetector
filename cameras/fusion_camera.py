@@ -6,8 +6,8 @@ import time
 import cv2
 
 
-from cameras.opencv_thermal_camera import thermal_gstreamer_pipeline
-from cameras.opencv_visible_camera import visible_gstreamer_pipeline
+#from cameras.opencv_thermal_camera import thermal_gstreamer_pipeline
+#from cameras.opencv_visible_camera import visible_gstreamer_pipeline
 
 logger = logging.getLogger('tester.sub')
 

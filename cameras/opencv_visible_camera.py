@@ -12,7 +12,7 @@ class OpenCVVisibleCamera:
     def __init__(self, rtsp_url):
         # Initialize video capture only once in the constructor
         logging.info(f'Camera {rtsp_url}')
-        self.capture = CamGear(source=rtsp_url, backend=cv2.CAP_FFMPEG).start()
+        self.capture = CamGear(source=rtsp_url, backend=cv2.CAP_FFMPEG, time_delay=1).start()
         self.is_running = False
         self.frame = None
 
