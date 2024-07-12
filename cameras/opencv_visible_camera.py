@@ -1,101 +1,38 @@
 import os
-import time
-
 import cv2
-import threading
-import logging
-def visible_gstreamer_pipeline(
-        rtsp_url,
-        capture_width=1920,
-        capture_height=1080,
-        framerate=30,
-):
-    # Define the GStreamer pipeline
-    # gst_pipeline = (
-    #     f"rtspsrc location={rtsp_url} latency=0 ! "
-    #     f"rtph264depay ! h264parse ! nvv4l2decoder ! "
-    #     f"video/x-raw(memory:NVMM), width=(int){capture_width}, height=(int){capture_height}, format=(string)NV12 ! "
-    #     f"videoconvert ! video/x-raw, format=(string)BGR ! appsink"
-    # )
+import numpy as np
 
-    gst_pipeline = (
-        f"rtspsrc location={rtsp_url} ! "
-        "rtph264depay ! "
-        "h264parse ! "
-        "nvv4l2decoder ! "
-        "videoconvert ! "
-        "appsink"
-    )
-
-    gst_pipeline = (f"rtspsrc location={rtsp_url} latency=0 ! "
-        f"rtph264depay ! h264parse ! nvv4l2decoder ! "
-        f"video/x-raw, width=(int){capture_width}, height=(int){capture_height}, format=(string)BGRx ! "
-        f"videoconvert ! video/x-raw, format=(string)BGR ! appsink"
-                    )
-    print(gst_pipeline)
-    return gst_pipeline
+from cameras.base_camera import BaseCamera
 
 
+class OpenCVVisibleCamera(BaseCamera):
+    video_source = 0
 
-class OpenCVVisibleCamera:
     def __init__(self, rtsp_url):
-        # Initialize video capture only once in the constructor
-        logging.info(f'Camera {rtsp_url}')
-        self.capture = cv2.VideoCapture(rtsp_url)
-        logging.info(f'Camera CAP {self.capture.get(cv2.CAP_PROP_BUFFERSIZE)}')
-        thread = threading.Thread(target=self.rtsp_cam_buffer, args=(), name="rtsp_read_thread")
-        thread.daemon = True
-        thread.start()
+        OpenCVVisibleCamera.set_video_source(rtsp_url)
+        super(OpenCVVisibleCamera, self).__init__()
 
-    def rtsp_cam_buffer(self):
+    @staticmethod
+    def set_video_source(source):
+        OpenCVVisibleCamera.video_source = source
+
+    @staticmethod
+    def frames():
+        camera = cv2.VideoCapture(OpenCVVisibleCamera.video_source)
+
+        camera.set(cv2.CAP_PROP_BUFFERSIZE , 10)
+        camera.set(cv2.CAP_PROP_POS_FRAMES, 0)
+        camera.set(cv2.CAP_PROP_POS_AVI_RATIO, 1)
+        if not camera.isOpened():
+            raise RuntimeError('Could not start camera.')
+        black_frame = np.zeros((480, 640, 3), dtype=np.uint8)  # Creating a black frame with default resolution
+
         while True:
-            with self.lock:
-                self.last_ready = self.capture.grab()
+            # read current frame
+            try:
+                _, img = camera.read()
 
-    def getFrame(self):
-        if (self.last_ready is not None):
-            self.last_ready, self.last_frame = self.capture.retrieve()
-            return self.last_frame.copy()
-        else:
-            return -1
-
-    def start(self):
-        if not self.is_running:
-            self.is_running = True
-            self.thread = threading.Thread(target=self.update, daemon=True)
-            self.thread.start()
-
-    def read(self):
-        with self.read_lock:
-            frame = self.frame.copy() if self.frame is not None else None
-        return frame
-
-    def stop(self):
-        self.is_running = False
-        if self.thread.is_alive():
-            self.thread.join()
-
-    def release(self):
-        self.capture.release()
-
-    def update(self):
-        while self.is_running:
-            ret, frame = self.capture.read()
-            with self.read_lock:
-                if ret:
-                    self.frame = frame
-                else:
-                    self.is_running = False
-
-    def __del__(self):
-        # Release the video capture object when the instance is destroyed
-        self.stop()
-        self.release()
-
-    def get_frame(self):
-        while self.is_running:
-            frame = self.read()
-            if frame is not None:
-                ret, buffer = cv2.imencode('.jpg', frame)
-                frame = buffer.tobytes()
-                yield frame
+                # encode as a jpeg image and return it
+                yield cv2.imencode('.jpg', img)[1].tobytes()
+            except Exception as e:
+                yield cv2.imencode('.jpg', black_frame)[1].tobytes()

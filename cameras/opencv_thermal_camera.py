@@ -65,7 +65,7 @@ class ThermalCamera:
                 ret, jpeg = cv2.imencode('.jpg', frame)
                 if ret:
                     yield jpeg.tobytes()
-            time.sleep(0.03)
+
 
 # Example usage:
 # camera = ThermalCamera()

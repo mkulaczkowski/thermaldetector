@@ -159,7 +159,7 @@ def start_video_sources():
 def gen(camera):
     """Video streaming generator function."""
     yield b'--frame\r\n'
-    for frame in camera.get_frame():
+    for frame in camera.frames():
         yield b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n--frame\r\n'
 
 
@@ -214,4 +214,4 @@ if __name__ == '__main__':
 
     print(f'Started on port {args.ip}:{args.port}')
     initialize_cameras()
-    socketio.run(app, host=args.ip, port=args.port, debug=True)
+    socketio.run(app, host=args.ip, port=args.port, debug=True, allow_unsafe_werkzeug=True)
