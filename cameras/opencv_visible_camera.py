@@ -1,6 +1,6 @@
 import os
 import time
-
+import ffmpeg
 from deffcode import FFdecoder
 from vidgear.gears import CamGear
 import cv2
@@ -10,18 +10,17 @@ import logging
 # define suitable parameters
 ffparams = {
     "-rtsp_transport": "udp",
-    "-fflags": "nobuffer",
-    "-flags": "low_delay",
-    "-tune": "zerolatency",
-    "-probesize": 32,
-    "-vcodec": "h264"
+    "-vcodec": "h264_cuvid",
+    "-preset": "ultrafast",
+    "-tune": "zero_latency",
+    "-vf": "setpts=0"
 }
 
 class OpenCVVisibleCamera:
     def __init__(self, rtsp_url):
         # Initialize video capture only once in the constructor
         logging.info(f'Camera {rtsp_url}')
-        self.capture = FFdecoder(rtsp_url, verbose=True, **ffparams).formulate()
+        self.capture = FFdecoder(rtsp_url, frame_format="bgr24", verbose=True, **ffparams).formulate()
         self.is_running = False
         self.frame = None
 
