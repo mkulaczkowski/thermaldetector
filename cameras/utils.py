@@ -6,7 +6,7 @@ from onvif import ONVIFError
 from JetsonNano_PTZ.camera_controlers.onvif_controler import PTZCamera
 import logging
 
-logger = logging.getLogger('root'),
+logger = logging.getLogger(__name__)
 
 
 def connect_camera(ip, port, username, password, ptz_functions=True, retries=5, timeout=10):
@@ -38,7 +38,7 @@ def connect_thermal_camera():
 
 def connect_visible_camera():
     visible_camera_ptz = connect_camera(
-        ip=os.getenv('VISIBLE_CAMERA_IP', '192.168.20.94'),
+        ip=os.getenv('VISIBLE_CAMERA_IP', '192.168.20.174'),
         port=os.getenv('VISIBLE_CAMERA_PORT', 8899),
         username=os.getenv('VISIBLE_CAMERA_USER', 'admin'),
         password=os.getenv('VISIBLE_CAMERA_PASS', 'admin')

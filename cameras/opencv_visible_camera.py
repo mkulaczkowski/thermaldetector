@@ -35,14 +35,29 @@ def visible_gstreamer_pipeline(
     print(gst_pipeline)
     return gst_pipeline
 
+
+
 class OpenCVVisibleCamera:
     def __init__(self, rtsp_url):
         # Initialize video capture only once in the constructor
         logging.info(f'Camera {rtsp_url}')
         self.capture = cv2.VideoCapture(rtsp_url)
-        self.is_running = False
-        self.read_lock = threading.Lock()
-        self.frame = None
+        logging.info(f'Camera CAP {self.capture.get(cv2.CAP_PROP_BUFFERSIZE)}')
+        thread = threading.Thread(target=self.rtsp_cam_buffer, args=(), name="rtsp_read_thread")
+        thread.daemon = True
+        thread.start()
+
+    def rtsp_cam_buffer(self):
+        while True:
+            with self.lock:
+                self.last_ready = self.capture.grab()
+
+    def getFrame(self):
+        if (self.last_ready is not None):
+            self.last_ready, self.last_frame = self.capture.retrieve()
+            return self.last_frame.copy()
+        else:
+            return -1
 
     def start(self):
         if not self.is_running:

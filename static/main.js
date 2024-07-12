@@ -11,15 +11,13 @@ $(document).ready(function () {
     let zoomLevel = 1;
 
     function changeChannel(channel) {
-        $("#primary_video").attr("src", '');
-        setTimeout(() => {
             $("#primary_video").attr("src", {
                 'Fusion': fusionFeed,
                 'Thermal': thermalFeed,
                 'Optical': visibleFeed
             }[channel]);
             $("#channel").text(`Channel: ${channel}`);
-        }, 1000);
+            $("#primary_video").show();
     }
 
     function emitGetPtzAngles() {
@@ -35,6 +33,11 @@ $(document).ready(function () {
         socket.emit('cmd', {'cmd': isCameraOn ? 'camera-off' : 'camera-on'});
         isCameraOn = !isCameraOn;
         $("#toggle-camera").text(isCameraOn ? 'Turn Camera Off' : 'Turn Camera On');
+    }
+
+    function reInitCameras() {
+        socket.emit('cmd', {'cmd': 'reinit_cameras'});
+        isCameraOn = true;
     }
 
     function toggleLights() {
@@ -94,6 +97,7 @@ $(document).ready(function () {
     $("#reload").click(() => location.reload());
     $("#toggle").click(switchChannels);
     $("#toggle-camera").click(toggleCamera);
+    $("#reinit-camera").click(reInitCameras);
     $("#toggle-lights").click(toggleLights);
 
     const amount = event => event.shiftKey ? 5 : 1;
