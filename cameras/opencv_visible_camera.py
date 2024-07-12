@@ -9,14 +9,19 @@ import logging
 
 # define suitable parameters
 ffparams = {
-    "-rtsp_transport": "tcp",
+    "-rtsp_transport": "udp",
+    "-fflags": "nobuffer",
+    "-flags": "low_delay",
+    "-tune": "zerolatency",
+    "-probesize": 32,
+    "-vcodec": "h264"
 }
 
 class OpenCVVisibleCamera:
     def __init__(self, rtsp_url):
         # Initialize video capture only once in the constructor
         logging.info(f'Camera {rtsp_url}')
-        self.capture = FFdecoder(rtsp_url, frame_format="bgr24", verbose=True, **ffparams).formulate()
+        self.capture = FFdecoder(rtsp_url, verbose=True, **ffparams).formulate()
         self.is_running = False
         self.frame = None
 
@@ -44,9 +49,6 @@ class OpenCVVisibleCamera:
 
     def get_frame(self):
         for frame in self.capture.generateFrame():
-            if frame is None:
-                break
-
             ret, jpeg = cv2.imencode('.jpg', frame)
             if ret:
                 yield jpeg.tobytes()

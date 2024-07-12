@@ -63,7 +63,7 @@ def start_cameras():
                     return None
 
     visible_camera_ptz = connect_camera(
-        ip=os.getenv('VISIBLE_CAMERA_IP', '192.168.20.94'),
+        ip=os.getenv('VISIBLE_CAMERA_IP', '192.168.20.174'),
         port=os.getenv('VISIBLE_CAMERA_PORT', 8899),
         username=os.getenv('VISIBLE_CAMERA_USER', 'admin'),
         password=os.getenv('VISIBLE_CAMERA_PASS', 'admin')
@@ -174,8 +174,8 @@ def visible_video_feed():
     app.logger.info('Visible video feed')
 
     if os.getenv('NANO', False):
-        app.logger.info('Restarting video sources')
-        restart_service = subprocess.run(["sudo", "systemctl", "restart", "nvargus-daemon.service"])
+        # app.logger.info('Restarting video sources')
+        # restart_service = subprocess.run(["sudo", "systemctl", "restart", "nvargus-daemon.service"])
         visible_camera = VisibleCamera(visible_camera_ptz.get_stream_url()[7:], 1920, 1080, fps=25)
         visible_camera.start()
     else:
