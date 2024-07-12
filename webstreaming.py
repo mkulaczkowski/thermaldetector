@@ -160,14 +160,18 @@ def visible_video_feed():
 @app.route('/video_feed/thermal/')
 def thermal_video_feed():
     app.logger.info('Thermal video feed')
-    if os.getenv('NANO', False):
-        app.logger.info('Restarting video sources')
-        restart_service = subprocess.run(["sudo", "systemctl", "restart", "nvargus-daemon.service"])
-        thermal_camera = VisibleCamera(thermal_camera_ptz.get_stream_url()[7:], thermal_camera_ptz.get_stream_resolution()[0], thermal_camera_ptz.get_stream_resolution()[1], fps=25)
-        thermal_camera.start()
-    else:
-        thermal_camera = OpenCVVisibleCamera(thermal_camera_ptz.get_stream_url())
-        thermal_camera.start()
+    try:
+        if os.getenv('NANO', False):
+            app.logger.info('Restarting video sources')
+            restart_service = subprocess.run(["sudo", "systemctl", "restart", "nvargus-daemon.service"])
+            thermal_camera = VisibleCamera(thermal_camera_ptz.get_stream_url()[7:], thermal_camera_ptz.get_stream_resolution()[0], thermal_camera_ptz.get_stream_resolution()[1], fps=25)
+            thermal_camera.start()
+        else:
+            thermal_camera = OpenCVVisibleCamera(thermal_camera_ptz.get_stream_url())
+            thermal_camera.start()
+    except Exception as e:
+        app.logger.critical('Thermal video Error ' + str(e))
+        return Response('Error', status=500)
     return Response(gen(thermal_camera), mimetype='multipart/x-mixed-replace; boundary=frame')
 
 @app.route('/video_feed/fusion/')

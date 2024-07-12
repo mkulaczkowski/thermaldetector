@@ -126,8 +126,8 @@ $(document).ready(function () {
                 'ArrowUp': () => handleMotion(0, amount(event)),
                 'ArrowRight': () => handleMotion(-amount(event), 0),
                 'ArrowDown': () => handleMotion(0, -amount(event)),
-                '-': () => socket.emit('optic', { zoom: zoomLevel = -0.1, relative: false }),
-                '+': () => socket.emit('optic', { zoom: zoomLevel = 0.1, relative: false }),
+                '-': () => socket.emit('optic', {zoom: zoomLevel = -0.1, relative: false}),
+                '+': () => socket.emit('optic', {zoom: zoomLevel = 0.1, relative: false}),
                 '1': () => changeChannel('Optical'),
                 '2': () => changeChannel('Thermal'),
                 '3': () => changeChannel('Fusion'),
@@ -179,10 +179,17 @@ $(document).ready(function () {
         else if (action === "down") handleMotion(0, -amount(event));
         else if (action === "left") handleMotion(amount(event), 0);
         else if (action === "right") handleMotion(-amount(event), 0);
-        else if (action === "zoom-in") socket.emit('optic', { zoom: zoomLevel = 1, relative: false });
-        else if (action === "zoom-out") socket.emit('optic', { zoom: zoomLevel = -1, relative: false });
+        else if (action === "zoom-in") socket.emit('optic', {zoom: zoomLevel = 1, relative: false});
+        else if (action === "zoom-out") socket.emit('optic', {zoom: zoomLevel = -1, relative: false});
         $("#zoom-level").text(`Zoom: ${zoomLevel.toFixed(1)}`);
     });
+
+    // Error handling for video feed
+    $("#primary_video").on('error', function () {
+        $("#error-message").text("Error: Unable to load the camera feed. Please check the connection or try again later.").show();
+        $("#primary_video").hide();
+    });
+
 
     showUIOverlay();
 });
