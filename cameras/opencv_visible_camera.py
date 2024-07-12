@@ -81,6 +81,6 @@ class OpenCVVisibleCamera:
         while self.is_running:
             frame = self.read()
             if frame is not None:
-                ret, jpeg = cv2.imencode('.jpg', frame)
-                if ret:
-                    yield jpeg.tobytes()
+                ret, buffer = cv2.imencode('.jpg', frame)
+                frame = buffer.tobytes()
+                yield frame

@@ -1,41 +1,62 @@
-import time
-
-switch_camera = 23
-switch_laser = 21
-try:
-    import Jetson.GPIO as GPIO
-
-    GPIO.setmode(GPIO.BOARD)
-    GPIO.setup(switch_camera, GPIO.OUT)
-    GPIO.setup(switch_laser, GPIO.OUT)
-
-except ImportError as e:
-    print(e)
-    print("Failed to import Jetson.GPIO library")
+import socket
 
 
+class RelayModuleController:
+    def __init__(self, ip_address='192.168.1.100', tcp_port=6722):
+        self.ip_address = ip_address
+        self.tcp_port = tcp_port
 
-class GPIO_switch():
+    def send_command(self, command):
+        try:
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                s.connect((self.ip_address, self.tcp_port))
+                s.sendall(command.encode('utf-8'))
+                response = s.recv(1024).decode('utf-8')
+                return response
+        except Exception as e:
+            print(f"Error: {e}")
+            return None
 
-    def __init__(self):
-        print('GPIO init')
-        super(GPIO_switch, self).__init__()
-    # BCM pin-numbering scheme from Raspberry Pi
-    # set pin as an output pin with optional initial state of HIGH
+    def get_relay_status(self):
+        return self.send_command('00')
 
-    def thermal_camera_on(self):
-        GPIO.output(switch_camera, GPIO.HIGH)
+    def ch1_pull_in(self):
+        return self.send_command('11')
 
-    def thermal_camera_restart(self):
-        GPIO.output(switch_camera, GPIO.LOW)
-        time.sleep(5)
-        GPIO.output(switch_camera, GPIO.HIGH)
+    def ch1_release(self):
+        return self.send_command('21')
 
-    def laser_on(self):
-        GPIO.output(switch_laser, GPIO.HIGH)
+    def ch2_pull_in(self):
+        return self.send_command('12')
 
-    def thermal_camera_off(self):
-        GPIO.output(switch_camera, GPIO.LOW)
+    def ch2_release(self):
+        return self.send_command('22')
 
-    def laser_off(self):
-        GPIO.output(switch_laser, GPIO.LOW)
+    def delay_command(self, command, delay_seconds):
+        return self.send_command(f"{command}:{delay_seconds}")
+
+
+if __name__ == "__main__":
+    controller = RelayModuleController()
+
+    print("Initial Relay Status:", controller.get_relay_status())
+
+    # Example of pulling in CH1 and CH2
+    print("CH1 Pull In:", controller.ch1_pull_in())
+    print("CH2 Pull In:", controller.ch2_pull_in())
+
+    # Get status after pulling in relays
+    print("Relay Status after Pull In:", controller.get_relay_status())
+
+    # Example of releasing CH1 and CH2
+    print("CH1 Release:", controller.ch1_release())
+    print("CH2 Release:", controller.ch2_release())
+
+    # Get status after releasing relays
+    print("Relay Status after Release:", controller.get_relay_status())
+
+    # Example of delaying CH1 pull in by 30 seconds
+    print("CH1 Pull In with 30s delay:", controller.delay_command('11', 30))
+
+    # Example of delaying CH2 release by 30 seconds
+    print("CH2 Release with 30s delay:", controller.delay_command('22', 30))
