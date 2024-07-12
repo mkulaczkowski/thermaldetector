@@ -1,0 +1,141 @@
+/* fallback */
+@font-face {
+    font-family: 'Material Symbols Outlined';
+    font-style: normal;
+    font-weight: 100 700;
+    src: url(gfonts.woff2) format('woff2');
+}
+
+.material-symbols-outlined {
+    font-family: 'Material Symbols Outlined';
+    font-weight: normal;
+    font-style: normal;
+    font-size: 24px;
+    line-height: 1;
+    letter-spacing: normal;
+    text-transform: none;
+    display: inline-block;
+    white-space: nowrap;
+    word-wrap: normal;
+    direction: ltr;
+    -webkit-font-feature-settings: 'liga';
+    -webkit-font-smoothing: antialiased;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    background: #222;
+    color: #ddd;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 16px;
+}
+
+#container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100vh;
+}
+
+#video-container {
+    position: relative;
+    width: 100%;
+    background: #000;
+    border: 2px solid #444;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 20px;
+}
+
+#primary_video {
+    width: 100%;
+    object-fit: cover;
+}
+
+#info-panel {
+    display: flex;
+    justify-content: space-between;
+    width: 80%;
+    max-width: 1280px;
+    padding: 10px;
+    background: #333;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+#info-panel div {
+    flex: 1;
+    text-align: center;
+    margin: 0 10px;
+}
+
+#controls {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 20px;
+}
+
+.control-button {
+    width: 50px;
+    height: 50px;
+    background: #444;
+    border: 2px solid #888;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ddd;
+    font-size: 24px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.control-button:hover {
+    background: #666;
+}
+
+.control-button.wide {
+    width: auto;
+    padding: 0 20px;
+    border-radius: 25px;
+}
+
+#bottom-controls {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+ #hidden-panel {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 20px;
+            padding: 20px;
+            background: #333;
+            border-radius: 8px;
+            width:80%;
+        }
+
+        #toggle-hidden-panel {
+            width: auto;
+            padding: 0 20px;
+            border-radius: 25px;
+            background: #444;
+            border: 2px solid #888;
+            color: #ddd;
+            font-size: 24px;
+            cursor: pointer;
+            transition: background 0.3s;
+            margin-bottom: 20px;
+        }
+
+        #toggle-hidden-panel:hover {
+            background: #666;
+        }

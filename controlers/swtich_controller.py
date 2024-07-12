@@ -2,7 +2,7 @@ import socket
 
 
 class RelayModuleController:
-    def __init__(self, ip_address='192.168.1.100', tcp_port=6722):
+    def __init__(self, ip_address='192.168.20.100', tcp_port=6722):
         self.ip_address = ip_address
         self.tcp_port = tcp_port
 
@@ -43,6 +43,7 @@ if __name__ == "__main__":
 
     # Example of pulling in CH1 and CH2
     print("CH1 Pull In:", controller.ch1_pull_in())
+    print("Relay Status after Pull In:", controller.get_relay_status())
     print("CH2 Pull In:", controller.ch2_pull_in())
 
     # Get status after pulling in relays
@@ -60,3 +61,6 @@ if __name__ == "__main__":
 
     # Example of delaying CH2 release by 30 seconds
     print("CH2 Release with 30s delay:", controller.delay_command('22', 30))
+    # Example of releasing CH1 and CH2
+    print("CH1 Release:", controller.ch1_release())
+    print("CH2 Release:", controller.ch2_release())

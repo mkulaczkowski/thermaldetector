@@ -32,7 +32,7 @@ $(document).ready(function () {
     function toggleCamera() {
         socket.emit('cmd', {'cmd': isCameraOn ? 'camera-off' : 'camera-on'});
         isCameraOn = !isCameraOn;
-        $("#toggle-camera").text(isCameraOn ? 'Turn Camera Off' : 'Turn Camera On');
+        $("#toggle-camera span").text(isCameraOn ? 'power_off' : 'power_settings_new');
     }
 
     function reInitCameras() {
@@ -45,6 +45,7 @@ $(document).ready(function () {
         areLightsOn = !areLightsOn;
         $("#toggle-lights").text(areLightsOn ? 'Turn Lights Off' : 'Turn Lights On');
     }
+
 
     function handleGamepadInput() {
         const myGamepad = navigator.getGamepads()[gamepadIndex];
@@ -194,7 +195,15 @@ $(document).ready(function () {
         $("#primary_video").hide();
     });
 
-
+     $('#toggle-hidden-panel').click(function() {
+            $('#hidden-panel').slideToggle('slow', function() {
+                if ($('#hidden-panel').is(':visible')) {
+                    $('#toggle-hidden-panel').text('Hide More Controls');
+                } else {
+                    $('#toggle-hidden-panel').text('Show More Controls');
+                }
+            });
+        });
     showUIOverlay();
 });
 

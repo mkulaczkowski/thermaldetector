@@ -213,5 +213,8 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     print(f'Started on port {args.ip}:{args.port}')
+    ptz_controller.turn_on_light()
+    time.sleep(10)
+    print(f'Init Cameras')
     initialize_cameras()
     socketio.run(app, host=args.ip, port=args.port, debug=True, allow_unsafe_werkzeug=True)

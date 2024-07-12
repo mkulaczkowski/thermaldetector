@@ -7,91 +7,8 @@
     <title>Pan/Tilt Camera</title>
     <link rel="apple-touch-icon" href="static/app.png">
     <link rel="stylesheet" href="static/jquery-ui.min.css">
-    <style>
-        body {
-            margin: 0;
-            padding: 0;
-            background: #222;
-            color: #ddd;
-            font-family: Arial, Helvetica, sans-serif;
-            font-size: 16px;
-        }
+    <link rel="stylesheet" href="static/fonts.css">
 
-        #container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            width: 100%;
-            height: 100vh;
-        }
-
-        #video-container {
-            position: relative;
-            width: 100%;
-            max-width: 1280px;
-            background: #000;
-            border: 2px solid #444;
-            border-radius: 8px;
-            overflow: hidden;
-            margin-bottom: 20px;
-        }
-
-        #primary_video {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        #info-panel {
-            display: flex;
-            justify-content: space-between;
-            width: 80%;
-            max-width: 1280px;
-            padding: 10px;
-            background: #333;
-            border-radius: 8px;
-            margin-bottom: 20px;
-        }
-
-        #info-panel div {
-            flex: 1;
-            text-align: center;
-            margin: 0 10px;
-        }
-
-        #controls {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 20px;
-        }
-
-        .control-button {
-            width: 50px;
-            height: 50px;
-            background: #444;
-            border: 2px solid #888;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #ddd;
-            font-size: 24px;
-            cursor: pointer;
-            transition: background 0.3s;
-        }
-
-        .control-button:hover {
-            background: #666;
-        }
-
-        .control-button.wide {
-            width: auto;
-            padding: 0 20px;
-            border-radius: 25px;
-        }
-    </style>
     <script src="static/jquery-1.12.4.min.js"></script>
     <script src="static/jquery-ui.min.js"></script>
     <script src="static/socket.io.js"></script>
@@ -114,9 +31,14 @@
         <div class="control-button" id="down">&#9660;</div>
         <div class="control-button" id="zoom-in">+</div>
         <div class="control-button" id="zoom-out">-</div>
-        <div class="control-button" id="reinit-camera">Reinit Camera</div>
-        <div class="control-button wide" id="toggle-camera">Toggle Camera</div>
-        <div class="control-button wide" id="toggle-lights">Toggle Lights</div>
+
+        <div class="control-button wide" id="toggle-lights"><span class="material-symbols-outlined">flashlight_on</span></div>
+        <div class="control-button wide" id="toggle-lights-ir"><span class="material-symbols-outlined">bedtime</span></div>
+    </div>
+    <button id="toggle-hidden-panel">Show More Controls</button>
+    <div id="hidden-panel">
+        <div class="control-button" id="reinit-camera"><span class="material-symbols-outlined">restart_alt</span></div>
+        <div class="control-button" id="toggle-camera"><span class="material-symbols-outlined">power_off</span></div>
     </div>
 </div>
 
