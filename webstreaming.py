@@ -19,6 +19,7 @@ from cameras.opencv_thermal_camera import ThermalCamera
 from cameras.nano_visible_camera import VisibleCamera
 from cameras.opencv_visible_camera import OpenCVVisibleCamera
 from cameras.utils import connect_camera, connect_thermal_camera, connect_visible_camera
+from controlers.swtich_controller import RelayModuleController
 
 # Configure logging
 dictConfig({
@@ -42,8 +43,11 @@ app = Flask(__name__, template_folder='templates', static_folder='static', stati
 app.config['SECRET_KEY'] = 'Ranger'
 socketio = SocketIO(app, logger=True, engineio_logger=True)
 from flask import g
+
 # Initialize PTZ controller
 ptz_controller = PELCO_Functions(ip_address=os.getenv('PTZ_IP', '192.168.20.22'))
+
+relay_controller = RelayModuleController(ip_address=os.getenv('PTZ_RELAY', '192.168.20.100'))
 
 # Camera objects
 visible_camera_ptz = None
@@ -69,6 +73,13 @@ def get_ptz_angles():
     # app.logger.debug(f'Received GET PTZ ANGLE')
     emit("ptz", {"horizontal": ptz_controller.query_horizontal_angle(),
                  "vertical": ptz_controller.query_vertical_angle()})
+
+
+@socketio.on("get_relay_status")
+def get_relay_status():
+    # app.logger.debug(f'Received GET RELAY STATUS')
+    emit("relay", {"channel1": relay_controller.get_channel_status(1),
+                   "channel2": relay_controller.get_channel_status(2)})
 
 
 @socketio.on('message')
@@ -99,6 +110,15 @@ def handle_cmd(data):
         ptz_controller.turn_off_light()
     elif cmd == 'reinit_cameras':
         initialize_cameras()
+
+    elif cmd == 'lights-on':
+        relay_controller.ch1_activate()
+    elif cmd == 'lights-off':
+        relay_controller.ch1_deactivate()
+    elif cmd == 'ir-lights-on':
+        relay_controller.ch2_activate()
+    elif cmd == 'ir-lights-off':
+        relay_controller.ch2_deactivate()
 
 
 @socketio.on('motion')

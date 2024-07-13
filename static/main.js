@@ -6,23 +6,30 @@ $(document).ready(function () {
     let isLaserOn = false;
     let isCameraOn = true;
     let areLightsOn = false;
+    let areIRLightsOn = false;
     let gamepadIndex;
     let tracking;
     let zoomLevel = 1;
 
     function changeChannel(channel) {
-            $("#primary_video").attr("src", {
-                'Fusion': fusionFeed,
-                'Thermal': thermalFeed,
-                'Optical': visibleFeed
-            }[channel]);
-            $("#channel").text(`Channel: ${channel}`);
-            $("#primary_video").show();
+        $("#primary_video").attr("src", {
+            'Fusion': fusionFeed,
+            'Thermal': thermalFeed,
+            'Optical': visibleFeed
+        }[channel]);
+        $("#channel").text(`Channel: ${channel}`);
+        $("#primary_video").show();
+
     }
 
     function emitGetPtzAngles() {
         socket.emit('get_ptz_angles');
     }
+
+    function emitGetRelayStatus() {
+        socket.emit('get_relay_status');
+    }
+
 
     function switchChannels() {
         currentFeed = (currentFeed + 1) % 3;
@@ -43,9 +50,14 @@ $(document).ready(function () {
     function toggleLights() {
         socket.emit('cmd', {'cmd': areLightsOn ? 'lights-off' : 'lights-on'});
         areLightsOn = !areLightsOn;
-        $("#toggle-lights").text(areLightsOn ? 'Turn Lights Off' : 'Turn Lights On');
+        $("#toggle-lights span").text(areLightsOn ? 'flashlight_off' : 'flashlight_on');
     }
 
+    function toggleIRLights() {
+        socket.emit('cmd', {'cmd': areIRLightsOn ? 'ir-lights-off' : 'ir-lights-on'});
+        areIRLightsOn = !areIRLightsOn;
+        $("#toggle-lights-ir span").text(areIRLightsOn ? 'bedtime_off' : 'bedtime');
+    }
 
     function handleGamepadInput() {
         const myGamepad = navigator.getGamepads()[gamepadIndex];
@@ -89,10 +101,29 @@ $(document).ready(function () {
         $("#pantilt").text(`Pan: ${data.start_horizontal} | Tilt: ${data.start_vertical}`);
         isThermalOn = data.thermal_status;
         $("#primary_video").attr("src", thermalFeed);
+        emitGetRelayStatus()
     });
 
     socket.on('ptz', data => {
         $("#pantilt").text(`Pan: ${data.horizontal} | Tilt: ${data.vertical}`);
+    });
+
+    socket.on('relay', data => {
+        if (data.channel1) {
+            $('#toggle-lights span').text('flashlight_on'); // Add class to indicate active status
+            areLightsOn = true;
+        } else {
+            $('#toggle-lights span').text('flashlight_off'); // Remove class to indicate inactive status
+            areLightsOn = false;
+        }
+
+        if (data.channel2) {
+            $('#toggle-lights-ir span').text('bedtime'); // Add class to indicate active status
+            areIRLightsOn = true;
+        } else {
+            $('#toggle-lights-ir span').text('bedtime_off'); // Remove class to indicate inactive status
+            areIRLightsOn = false;
+        }
     });
 
     $("#reload").click(() => location.reload());
@@ -100,7 +131,7 @@ $(document).ready(function () {
     $("#toggle-camera").click(toggleCamera);
     $("#reinit-camera").click(reInitCameras);
     $("#toggle-lights").click(toggleLights);
-
+    $("#toggle-lights-ir").click(toggleIRLights);
     const amount = event => event.shiftKey ? 5 : 1;
     const activeKeys = {};
 
@@ -195,15 +226,15 @@ $(document).ready(function () {
         $("#primary_video").hide();
     });
 
-     $('#toggle-hidden-panel').click(function() {
-            $('#hidden-panel').slideToggle('slow', function() {
-                if ($('#hidden-panel').is(':visible')) {
-                    $('#toggle-hidden-panel').text('Hide More Controls');
-                } else {
-                    $('#toggle-hidden-panel').text('Show More Controls');
-                }
-            });
+    $('#toggle-hidden-panel').click(function () {
+        $('#hidden-panel').slideToggle('slow', function () {
+            if ($('#hidden-panel').is(':visible')) {
+                $('#toggle-hidden-panel').text('Hide More Controls');
+            } else {
+                $('#toggle-hidden-panel').text('Show More Controls');
+            }
         });
+    });
     showUIOverlay();
 });
 
