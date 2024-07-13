@@ -13,11 +13,12 @@ from onvif import ONVIFError
 
 from JetsonNano_PTZ.camera_controlers.onvif_controler import PTZCamera
 from JetsonNano_PTZ.pelco.ptz_control import PELCO_Functions
+from cameras.ffmpeg_visible_camera import OpenCVVisibleCamera
 from cameras.fusion_camera import VisibleThermalCamera
 from cameras.opencv_thermal_camera import ThermalCamera
 # from cameras.opencv_visible_camera import VisibleCamera
-from cameras.nano_visible_camera import VisibleCamera
-from cameras.opencv_visible_camera import OpenCVVisibleCamera
+
+
 from cameras.utils import connect_camera, connect_thermal_camera, connect_visible_camera
 from controlers.swtich_controller import RelayModuleController
 
@@ -186,14 +187,12 @@ def gen(camera):
 @app.route('/video_feed/visible/')
 def visible_video_feed():
     app.logger.info('Visible video feed')
-
-    if os.getenv('NANO', False):
-        visible_camera = VisibleCamera(visible_camera_ptz.get_stream_url()[7:], 1920, 1080, fps=25)
-        visible_camera.start()
-    else:
+    try:
         visible_camera = OpenCVVisibleCamera(visible_camera_ptz.get_stream_url())
         visible_camera.start()
-
+    except Exception as e:
+        app.logger.critical('Visible video Error ' + str(e))
+        return Response('Error', status=500)
     return Response(gen(visible_camera), mimetype='multipart/x-mixed-replace; boundary=frame')
 
 
@@ -201,14 +200,8 @@ def visible_video_feed():
 def thermal_video_feed():
     app.logger.info('Thermal video feed')
     try:
-        if os.getenv('NANO', False):
-            thermal_camera = VisibleCamera(thermal_camera_ptz.get_stream_url()[7:],
-                                           thermal_camera_ptz.get_stream_resolution()[0],
-                                           thermal_camera_ptz.get_stream_resolution()[1], fps=25)
-            thermal_camera.start()
-        else:
-            thermal_camera = OpenCVVisibleCamera(thermal_camera_ptz.get_stream_url())
-            thermal_camera.start()
+        thermal_camera = OpenCVVisibleCamera(thermal_camera_ptz.get_stream_url())
+        thermal_camera.start()
     except Exception as e:
         app.logger.critical('Thermal video Error ' + str(e))
         return Response('Error', status=500)

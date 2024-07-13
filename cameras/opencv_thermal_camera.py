@@ -1,75 +1,44 @@
 import threading
-import time
+import numpy as np
 import cv2
-
-def thermal_gstreamer_pipeline(
-        rtsp_url,
-        capture_width=720,
-        capture_height=576,
-        framerate=25,
-        flip_method=0,
-):
-    gst_pipeline = (
-        f"rtspsrc location={rtsp_url} latency=0 ! "
-        f"rtph264depay ! h264parse ! nvv4l2decoder ! "
-        f"video/x-raw(memory:NVMM), width=(int){capture_width}, height=(int){capture_height}, format=(string)NV12 ! "
-        f"videoconvert ! video/x-raw, format=(string)BGR ! appsink"
-    )
-    print(gst_pipeline)
-    return gst_pipeline
+import subprocess as sp
 
 class ThermalCamera:
-
     def __init__(self, rtsp_url):
-        self.capture = cv2.VideoCapture(thermal_gstreamer_pipeline(rtsp_url), cv2.CAP_GSTREAMER)
+        ffmpeg_options = "ffmpeg -rtsp_transport udp -i " + rtsp_url + " -fflags nobuffer -flags low_delay -strict experimental -fflags discardcorrupt -analyzeduration 0 -probesize 32 -flags +low_delay"
+        print(ffmpeg_options)
+        self.cap = cv2.VideoCapture(ffmpeg_options, cv2.CAP_FFMPEG)
         self.is_running = False
-        self.read_lock = threading.Lock()
-        self.frame = None
+        # Set the buffer size to a smaller value to reduce latency
+        # CAP_PROP_BUFFERSIZE property might not be supported by all backends
+        # The value is in frames, so setting it to 1 or 2 can help reduce latency
+        self.cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
 
     def start(self):
         if not self.is_running:
             self.is_running = True
-            self.thread = threading.Thread(target=self.update, daemon=True)
-            self.thread.start()
-
-    def read(self):
-        with self.read_lock:
-            frame = self.frame.copy() if self.frame is not None else None
-        return frame
 
     def stop(self):
         self.is_running = False
-        if self.thread.is_alive():
-            self.thread.join()
 
-    def release(self):
-        self.capture.release()
+    def frames(self):
 
-    def update(self):
+        # Check if the video capture is opened
+        if not self.cap.isOpened():
+            print("Error: Unable to open the RTSP stream.")
+            return None
+
+        black_frame = np.zeros((480, 640, 3), dtype=np.uint8)  # Creating a black frame with default resolution
         while self.is_running:
-            ret, frame = self.capture.read()
-            if not ret:
-                self.is_running = False
-                break
-            with self.read_lock:
-                self.frame = frame
-
-    def __del__(self):
-        self.stop()
-        self.release()
-
-    def get_frame(self):
-        while self.is_running:
-            frame = self.read()
-            if frame is not None:
-                ret, jpeg = cv2.imencode('.jpg', frame)
-                if ret:
-                    yield jpeg.tobytes()
-
+            ret, frame = self.cap.read()
+            if frame is None:
+                yield cv2.imencode('.jpg', black_frame)[1].tobytes()
+            else:
+                yield cv2.imencode('.jpg', frame)[1].tobytes()
 
 # Example usage:
-# camera = ThermalCamera()
+# camera = ThermalCamera(rtsp_url="your_rtsp_url_here", skip_frames=5)
 # camera.start()
-# for frame in camera.get_frame():
+# for frame in camera.frames():
 #     # process frame
 # camera.stop()
