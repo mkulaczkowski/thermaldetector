@@ -18,11 +18,10 @@ class OpenCVVisibleCamera(BaseCamera):
 
     @staticmethod
     def frames():
-        camera = cv2.VideoCapture(OpenCVVisibleCamera.video_source)
-
-        # camera.set(cv2.CAP_PROP_BUFFERSIZE, 10)
-        # camera.set(cv2.CAP_PROP_POS_FRAMES, 0)
-        # camera.set(cv2.CAP_PROP_POS_AVI_RATIO, 1)
+        camera = cv2.VideoCapture(OpenCVVisibleCamera.video_source, cv2.CAP_FFMPEG)
+        camera.set(cv2.CAP_PROP_BUFFERSIZE, 10)
+        camera.set(cv2.CAP_PROP_POS_FRAMES, 0)
+        camera.set(cv2.CAP_PROP_POS_AVI_RATIO, 1)
         if not camera.isOpened():
             raise RuntimeError('Could not start camera.')
         black_frame = np.zeros((480, 640, 3), dtype=np.uint8)  # Creating a black frame with default resolution

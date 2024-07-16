@@ -27,7 +27,7 @@ def connect_camera(ip, port, username, password, ptz_functions=True, retries=5, 
 
 def connect_thermal_camera():
     thermal_camera_ptz = connect_camera(
-        ip=os.getenv('THERMAL_CAMERA_IP', '192.168.20.249'),
+        ip=os.getenv('THERMAL_CAMERA_IP', '192.168.137.102'),
         port=os.getenv('THERMAL_CAMERA_PORT', 8000),
         username=os.getenv('THERMAL_CAMERA_USER', 'admin'),
         password=os.getenv('THERMAL_CAMERA_PASS', 'admin'),
@@ -38,7 +38,7 @@ def connect_thermal_camera():
 
 def connect_visible_camera():
     visible_camera_ptz = connect_camera(
-        ip=os.getenv('VISIBLE_CAMERA_IP', '192.168.20.174'),
+        ip=os.getenv('VISIBLE_CAMERA_IP', '192.168.137.103'),
         port=os.getenv('VISIBLE_CAMERA_PORT', 8899),
         username=os.getenv('VISIBLE_CAMERA_USER', 'admin'),
         password=os.getenv('VISIBLE_CAMERA_PASS', 'admin')

@@ -63,7 +63,6 @@ class PELCO_Functions:
                 response = s.recv(1024)
                 return response, command_bytes
             except socket.timeout:
-                print(f"Request timed out after {self.timeout} seconds")
                 return None, command_bytes
             except Exception as e:
                 print(f"An error occurred: {e}")
@@ -80,6 +79,16 @@ class PELCO_Functions:
         return self.construct_cmd('STOP')
 
     def pantilt_move(self, direction, pan_speed=0x3F, tilt_speed=0xE9):
+        # Query current horizontal angle
+        self.query_horizontal_angle()
+
+        # Ensure we stay within the allowed range
+        if direction == 'LEFT' and not (0 < self.horizontal_angle <= 270):
+            print(f"Cannot move LEFT, current angle: {self.horizontal_angle}")
+            return self.horizontal_positioning('HORIZONTAL_315')
+        elif direction == 'RIGHT' and not (320 <= self.horizontal_angle < 360 or 0 <= self.horizontal_angle < 270):
+            print(f"Cannot move RIGHT, current angle: {self.horizontal_angle}")
+            return self.horizontal_positioning('HORIZONTAL_270')
         return self.construct_cmd(direction, pan_speed, tilt_speed)
 
     def turn_on_light(self):
@@ -137,7 +146,7 @@ class PELCO_Functions:
 
 # Example usage
 if __name__ == "__main__":
-    controller = PELCO_Functions(ip_address="192.168.20.22")
+    controller = PELCO_Functions(ip_address="192.168.137.99")
 
     # # Other commands can be tested similarly
     # # Move right

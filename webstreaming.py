@@ -13,9 +13,10 @@ from onvif import ONVIFError
 
 from JetsonNano_PTZ.camera_controlers.onvif_controler import PTZCamera
 from JetsonNano_PTZ.pelco.ptz_control import PELCO_Functions
-from cameras.ffmpeg_visible_camera import OpenCVVisibleCamera
+from cameras.ffmpeg_visible_camera import FFMPEGCamera
 from cameras.fusion_camera import VisibleThermalCamera
 from cameras.opencv_thermal_camera import ThermalCamera
+from cameras.opencv_visible_camera import OpenCVVisibleCamera
 # from cameras.opencv_visible_camera import VisibleCamera
 
 
@@ -46,14 +47,12 @@ socketio = SocketIO(app, logger=True, engineio_logger=True)
 from flask import g
 
 # Initialize PTZ controller
-ptz_controller = PELCO_Functions(ip_address=os.getenv('PTZ_IP', '192.168.20.22'))
+ptz_controller = PELCO_Functions(ip_address=os.getenv('PTZ_IP', '192.168.137.99'))
 
-relay_controller = RelayModuleController(ip_address=os.getenv('PTZ_RELAY', '192.168.20.100'))
+relay_controller = RelayModuleController(ip_address=os.getenv('PTZ_RELAY', '192.168.137.100'))
 
-# Camera objects
-visible_camera_ptz = None
 thermal_camera_ptz = None
-
+visible_camera_ptz = None
 
 def initialize_cameras():
     global visible_camera_ptz, thermal_camera_ptz
@@ -65,6 +64,10 @@ def initialize_cameras():
 @socketio.on("connect")
 def connect():
     app.logger.debug("Client connected")
+
+    ptz_controller.turn_on_light()
+    initialize_cameras()
+
     emit("handshake", {"data": "Connected", "start_horizontal": ptz_controller.query_horizontal_angle(),
                        "start_vertical": ptz_controller.query_vertical_angle()})
 
@@ -72,8 +75,12 @@ def connect():
 @socketio.on("get_ptz_angles")
 def get_ptz_angles():
     # app.logger.debug(f'Received GET PTZ ANGLE')
-    emit("ptz", {"horizontal": ptz_controller.query_horizontal_angle(),
+
+    horizontal_angle = ptz_controller.query_horizontal_angle()
+
+    emit("ptz", {"horizontal": horizontal_angle,
                  "vertical": ptz_controller.query_vertical_angle()})
+
 
 
 @socketio.on("get_relay_status")
@@ -81,6 +88,7 @@ def get_relay_status():
     # app.logger.debug(f'Received GET RELAY STATUS')
     emit("relay", {"channel1": relay_controller.get_channel_status(1),
                    "channel2": relay_controller.get_channel_status(2)})
+
 
 
 @socketio.on('message')
@@ -187,6 +195,11 @@ def gen(camera):
 @app.route('/video_feed/visible/')
 def visible_video_feed():
     app.logger.info('Visible video feed')
+    global visible_camera_ptz, thermal_camera_ptz
+
+    if not visible_camera_ptz:
+        initialize_cameras()
+
     try:
         visible_camera = OpenCVVisibleCamera(visible_camera_ptz.get_stream_url())
         visible_camera.start()
@@ -199,8 +212,12 @@ def visible_video_feed():
 @app.route('/video_feed/thermal/')
 def thermal_video_feed():
     app.logger.info('Thermal video feed')
+
+    if not thermal_camera_ptz:
+        initialize_cameras()
+
     try:
-        thermal_camera = OpenCVVisibleCamera(thermal_camera_ptz.get_stream_url())
+        thermal_camera = FFMPEGCamera(thermal_camera_ptz.get_stream_url())
         thermal_camera.start()
     except Exception as e:
         app.logger.critical('Thermal video Error ' + str(e))

@@ -10,7 +10,7 @@ ffparams = {
     "-fflags" : "nobuffer"
 }
 
-class OpenCVVisibleCamera:
+class FFMPEGCamera:
     def __init__(self, rtsp_url):
         logging.info(f'Initializing camera with URL: {rtsp_url}')
         self.capture = FFdecoder(rtsp_url, frame_format="bgr24", verbose=True, **ffparams).formulate()
