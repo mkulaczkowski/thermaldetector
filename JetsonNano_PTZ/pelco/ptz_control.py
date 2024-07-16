@@ -1,4 +1,5 @@
 import socket
+import threading
 import time
 
 # Commands structure according to the provided PELCO D protocol template
@@ -48,6 +49,11 @@ class PELCO_Functions:
         self.horizontal_angle = 0
         self.vertical_angle = 0
 
+        self.lock = threading.Lock()  # Add a lock for thread-safe angle updates
+        self.running = True
+        self.monitor_thread = threading.Thread(target=self.monitor_rotation)
+        self.monitor_thread.start()
+
     def calculate_checksum(self, command):
         return sum(command) % 256
 
@@ -80,15 +86,6 @@ class PELCO_Functions:
 
     def pantilt_move(self, direction, pan_speed=0x3F, tilt_speed=0xE9):
         # Query current horizontal angle
-        self.query_horizontal_angle()
-
-        # Ensure we stay within the allowed range
-        if direction == 'LEFT' and not (0 < self.horizontal_angle <= 270):
-            print(f"Cannot move LEFT, current angle: {self.horizontal_angle}")
-            return self.horizontal_positioning('HORIZONTAL_315')
-        elif direction == 'RIGHT' and not (320 <= self.horizontal_angle < 360 or 0 <= self.horizontal_angle < 270):
-            print(f"Cannot move RIGHT, current angle: {self.horizontal_angle}")
-            return self.horizontal_positioning('HORIZONTAL_270')
         return self.construct_cmd(direction, pan_speed, tilt_speed)
 
     def turn_on_light(self):
@@ -132,6 +129,24 @@ class PELCO_Functions:
             return False
         data1, data2 = POSITIONS[position]
         return self.construct_cmd('VERTICAL_POSITION')
+
+    def monitor_rotation(self):
+        while self.running:
+            self.query_horizontal_angle()
+            if self.horizontal_angle > 240:
+                print("Angle exceeded 240 degrees, repositioning to 240 degrees.")
+                self.horizontal_positioning('HORIZONTAL_240')
+            elif self.horizontal_angle < 0:
+                print("Angle below 0 degrees, repositioning to 0 degrees.")
+                self.horizontal_positioning('HORIZONTAL_0')
+            time.sleep(0.5)  # Adjust the sleep time as necessary
+
+    def stop_monitoring(self):
+        self.running = False
+        self.monitor_thread.join()
+
+    def __del__(self):
+        self.stop_monitoring()
 
     def test_turn_on_light(self):
         expected_command = bytearray([0xFF, 0x00, 0x00, 0x09, 0x00, 0x02, 0x0B])
