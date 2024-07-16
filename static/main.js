@@ -187,7 +187,7 @@ $(document).ready(function () {
         }
     });
 
-    setInterval(emitGetPtzAngles, 1000);
+    setInterval(emitGetPtzAngles, 500);
 
     // $('#container').on('mousedown', e => {
     //     $('#container').css('cursor', 'grab');

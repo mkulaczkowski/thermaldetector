@@ -86,6 +86,14 @@ class PELCO_Functions:
 
     def pantilt_move(self, direction, pan_speed=0x3F, tilt_speed=0xE9):
         # Query current horizontal angle
+
+        if self.horizontal_angle > 240:
+            print("Angle exceeded 240 degrees, repositioning to 180 degrees.")
+            return self.construct_cmd('STOP')
+        elif self.horizontal_angle < 0:
+            print("Angle below 0 degrees, repositioning to 0 degrees.")
+            return self.construct_cmd('STOP')
+
         return self.construct_cmd(direction, pan_speed, tilt_speed)
 
     def turn_on_light(self):
@@ -134,12 +142,12 @@ class PELCO_Functions:
         while self.running:
             self.query_horizontal_angle()
             if self.horizontal_angle > 240:
-                print("Angle exceeded 240 degrees, repositioning to 240 degrees.")
-                self.horizontal_positioning('HORIZONTAL_240')
+                print("Angle exceeded 240 degrees, repositioning to 180 degrees.")
+                self.horizontal_positioning('HORIZONTAL_180')
             elif self.horizontal_angle < 0:
                 print("Angle below 0 degrees, repositioning to 0 degrees.")
                 self.horizontal_positioning('HORIZONTAL_0')
-            time.sleep(0.5)  # Adjust the sleep time as necessary
+            time.sleep(0.1)  # Adjust the sleep time as necessary
 
     def stop_monitoring(self):
         self.running = False
