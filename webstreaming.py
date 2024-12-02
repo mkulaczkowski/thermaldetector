@@ -10,9 +10,13 @@ from flask_socketio import SocketIO, emit
 from logging.config import dictConfig
 
 from onvif import ONVIFError
+from stream_infer import Player, Inference
+from stream_infer.dispatcher import Dispatcher
+from stream_infer.producer import PyAVProducer
 
 from JetsonNano_PTZ.camera_controlers.onvif_controler import PTZCamera
 from JetsonNano_PTZ.pelco.ptz_control import PELCO_Functions
+from algos.yolo import YoloDetectionAlgo2
 from cameras.ffmpeg_visible_camera import FFMPEGCamera
 from cameras.fusion_camera import VisibleThermalCamera
 from cameras.opencv_thermal_camera import ThermalCamera
@@ -135,10 +139,23 @@ def handle_motion_event(json):
     app.logger.debug('Received motion event: ' + str(json))
     value_x = int(2 * json['pan'])
     value_y = int(2 * json['tilt'])
+
+    speed = int(json['speed'])
+
+    # Define speed levels
+    speed_settings = {
+        1: 0x09,
+        2: 0x2D,
+        3: 0x3F  # Max speed
+    }
+
+    # Get the speed factor, default to 1 if not found
+    speed_factor = speed_settings.get(speed, 1)
+
     if value_x < 0:
-        ptz_controller.pantilt_move('RIGHT')
+        ptz_controller.pantilt_move('RIGHT', pan_speed=speed_factor)
     elif value_x > 0:
-        ptz_controller.pantilt_move('LEFT')
+        ptz_controller.pantilt_move('LEFT', pan_speed=speed_factor)
     elif value_y > 0:
         ptz_controller.pantilt_move('UP')
     elif value_y < 0:
@@ -191,6 +208,12 @@ def gen(camera):
     for frame in camera.frames():
         yield b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n--frame\r\n'
 
+def gen2(player):
+    """Video streaming generator function."""
+    yield b'--frame\r\n'
+    for frame, index in player.play():
+
+        yield b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n--frame\r\n'
 
 @app.route('/video_feed/visible/')
 def visible_video_feed():
@@ -201,7 +224,7 @@ def visible_video_feed():
         initialize_cameras()
 
     try:
-        visible_camera = OpenCVVisibleCamera(visible_camera_ptz.get_stream_url())
+        visible_camera = FFMPEGCamera(visible_camera_ptz.get_stream_url())
         visible_camera.start()
     except Exception as e:
         app.logger.critical('Visible video Error ' + str(e))
@@ -228,8 +251,16 @@ def thermal_video_feed():
 @app.route('/video_feed/fusion/')
 def fusion_video_feed():
     app.logger.info('Fusion video feed')
-    camera = VisibleThermalCamera(visible_camera_ptz.get_stream_url(), thermal_camera_ptz.get_stream_url())
-    return Response(gen(camera), mimetype='multipart/x-mixed-replace; boundary=frame')
+
+    dispatcher = Dispatcher.create()
+    inference = Inference(dispatcher)
+    #inference.load_algo(YoloDetectionAlgo2(), frame_count=1, frame_step=0, interval=1)
+
+    player = Player(dispatcher, PyAVProducer(800, 600), source=thermal_camera_ptz.get_stream_url())
+    inference.start(player, fps=30)
+
+    #camera = VisibleThermalCamera(visible_camera_ptz.get_stream_url(), thermal_camera_ptz.get_stream_url())
+    return Response(gen2(player), mimetype='multipart/x-mixed-replace; boundary=frame')
 
 
 if __name__ == '__main__':

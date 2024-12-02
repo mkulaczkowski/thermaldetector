@@ -48,11 +48,8 @@ class PELCO_Functions:
         self.timeout = timeout
         self.horizontal_angle = 0
         self.vertical_angle = 0
-
-        self.lock = threading.Lock()  # Add a lock for thread-safe angle updates
-        self.running = True
-        self.monitor_thread = threading.Thread(target=self.monitor_rotation)
-        self.monitor_thread.start()
+        #self.monitor_thread = threading.Thread(target=self.monitor_rotation)
+        #self.monitor_thread.start()
 
     def calculate_checksum(self, command):
         return sum(command) % 256
@@ -86,14 +83,6 @@ class PELCO_Functions:
 
     def pantilt_move(self, direction, pan_speed=0x3F, tilt_speed=0xE9):
         # Query current horizontal angle
-
-        if self.horizontal_angle > 240:
-            print("Angle exceeded 240 degrees, repositioning to 180 degrees.")
-            return self.construct_cmd('STOP')
-        elif self.horizontal_angle < 0:
-            print("Angle below 0 degrees, repositioning to 0 degrees.")
-            return self.construct_cmd('STOP')
-
         return self.construct_cmd(direction, pan_speed, tilt_speed)
 
     def turn_on_light(self):

@@ -144,10 +144,12 @@ class VisibleThermalCamera:
 
             try:
                 # Resize thermal frame to match the size of the visible frame
-                thermal_frame_resized = cv2.resize(self.thermal_frame, (self.visible_frame.shape[1], self.visible_frame.shape[0]))
+
+                thermal_frame = self.thermal_frame
+                #thermal_frame_resized = cv2.resize(self.thermal_frame, (self.visible_frame.shape[1], self.visible_frame.shape[0]))
 
                 # Blend the frames with 50% transparency
-                blended_frame = cv2.addWeighted(self.visible_frame, 0.3, thermal_frame_resized, 0.7, 0)
+                #blended_frame = cv2.addWeighted(self.visible_frame, 0.3, thermal_frame_resized, 0.7, 0)
 
                 # Calculate FPS
                 new_frame_time = time.time()
@@ -156,11 +158,11 @@ class VisibleThermalCamera:
 
                 # Convert FPS to string and put on frame
                 fps_text = f"FPS: {int(fps)}"
-                cv2.putText(blended_frame, fps_text, (7, 70), cv2.FONT_HERSHEY_SIMPLEX, 3, (100, 255, 0), 3, cv2.LINE_AA)
+                cv2.putText(thermal_frame, fps_text, (7, 70), cv2.FONT_HERSHEY_SIMPLEX, 3, (100, 255, 0), 3, cv2.LINE_AA)
 
                 # Encode as a JPEG image and return it
                 encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 80]
-                ret, jpeg = cv2.imencode('.jpg', blended_frame, encode_param)
+                ret, jpeg = cv2.imencode('.jpg', thermal_frame, encode_param)
                 if not ret:
                     logger.info('Failed to encode frame to JPEG.')
                     continue
@@ -170,3 +172,6 @@ class VisibleThermalCamera:
             except Exception as e:
                 logger.info('Fusion video feed Error: ' + str(e))
                 continue
+
+    def frames(self):
+        return self.get_frame()

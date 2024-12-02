@@ -10,6 +10,7 @@ $(document).ready(function () {
     let gamepadIndex;
     let tracking;
     let zoomLevel = 1;
+    let ptzSpeed = 1; // 1: Slow, 2: Medium, 3: Fast
 
     function changeChannel(channel) {
         $("#primary_video").attr("src", {
@@ -105,7 +106,11 @@ $(document).ready(function () {
     });
 
     socket.on('ptz', data => {
+
         $("#pantilt").text(`Pan: ${data.horizontal} | Tilt: ${data.vertical}`);
+        if (data.horizontal > 240 || data.horizontal < 5) {
+            stopRotation();
+        }
     });
 
     socket.on('relay', data => {
@@ -132,6 +137,11 @@ $(document).ready(function () {
     $("#reinit-camera").click(reInitCameras);
     $("#toggle-lights").click(toggleLights);
     $("#toggle-lights-ir").click(toggleIRLights);
+
+     $("#speed-1").click(() => setSpeed(1));
+        $("#speed-2").click(() => setSpeed(2));
+        $("#speed-3").click(() => setSpeed(3));
+
     const amount = event => event.shiftKey ? 5 : 1;
     const activeKeys = {};
 
@@ -145,8 +155,14 @@ $(document).ready(function () {
     };
 
     const handleMotion = (pan, tilt) => {
-        socket.emit('motion', {pan, tilt, relative: true});
+        socket.emit('motion', {pan, tilt, speed: ptzSpeed, relative: true});
     };
+
+    const setSpeed = (speed) => {
+            ptzSpeed = speed;
+            $("#speed-level").text(`Speed: ${speed}`);
+            console.log(`PTZ speed set to ${speed}`);
+        };
 
     $(document).keydown(event => {
         if (activeKeys[event.key]) return; // If the key is already active, do nothing
@@ -168,7 +184,10 @@ $(document).ready(function () {
                 '2': () => changeChannel('Thermal'),
                 '3': () => changeChannel('Fusion'),
                 't': () => toggleCamera(),
-                'h': () => $('#help').css('opacity', $('#help').css('opacity') === '0' ? 1 : 0)
+                'h': () => $('#help').css('opacity', $('#help').css('opacity') === '0' ? 1 : 0),
+                'z': () => setSpeed(1),
+                'x': () => setSpeed(2),
+                'c': () => setSpeed(3)
             };
 
             if (keyActions[event.key]) keyActions[event.key]();
