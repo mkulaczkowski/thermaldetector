@@ -60,58 +60,99 @@ $(document).ready(function () {
         $("#toggle-lights-ir span").text(areIRLightsOn ? 'bedtime_off' : 'bedtime');
     }
 
-    function handleGamepadInput() {
-        const myGamepad = navigator.getGamepads()[gamepadIndex];
-        if (!myGamepad) return;
+    const deadzone = 0.1; // Adjust for desired sensitivity
+    const baseSpeed = 1.0; // Base speed scaling factor
+    const pollInterval = 1000;
 
-        if (myGamepad.axes.some(axis => axis.toFixed(2) != 0.00)) {
-            const [pan, tilt, zoom, focus] = myGamepad.axes.map(axis => parseFloat(axis.toFixed(2)));
-            socket.emit('motion', {pan: -pan, tilt: tilt, relative: true});
-            socket.emit('optic', {zoom: zoom, focus: -focus, relative: true});
-        }
-
-        myGamepad.buttons.forEach((button, index) => {
-            if (button.pressed) {
-                const actions = [
-                    () => changeChannel('Fusion'), () => changeChannel('Optical'), () => changeChannel('Thermal'),
-                    () => socket.emit('cmd', {'cmd': 'ir-cut'}), null, null,
-                    () => socket.emit('cmd', {'cmd': 'min-zoom'}), () => socket.emit('cmd', {'cmd': 'max-zoom'}),
-                    switchChannels, toggleThermal,
-                    () => {
-                        socket.emit('cmd', {'cmd': 'laser-off'});
-                        isLaserOn = false;
-                    },
-                    () => {
-                        socket.emit('cmd', {'cmd': 'laser-on'});
-                        isLaserOn = true;
-                    },
-                    toggleThermal, switchChannels, () => socket.emit('cmd', {'cmd': 'ir-cut'}), null
-                ];
-                actions[index]?.();
-            }
-        });
+    function normalize(value, deadzone) {
+        // If within deadzone, treat as 0
+        if (Math.abs(value) < deadzone) return 0;
+        // Remap from [-1, 1] to [-1, 1] but with deadzone removed
+        const sign = Math.sign(value);
+        const adjusted = (Math.abs(value) - deadzone) / (1 - deadzone);
+        return sign * adjusted;
     }
 
-    window.addEventListener('gamepadconnected', event => {
-        gamepadIndex = event.gamepad.index;
-        setInterval(handleGamepadInput, 100);
+    function pollGamepad() {
+        const gamepad = navigator.getGamepads()[0];
+        if (!gamepad) return; // No gamepad connected
+
+        // Left stick used for PTZ control
+        let pan = gamepad.axes[0];  // Horizontal axis: -1 (left), +1 (right)
+        let tilt = gamepad.axes[1]; // Vertical axis: -1 (up), +1 (down) – we may invert this if needed
+
+        // Normalize inputs
+        pan = normalize(pan, deadzone);
+        tilt = normalize(-tilt, deadzone); // Invert tilt to have up as positive
+
+        // Calculate a speed factor based on how far the stick is pushed
+        // Speed factor: 0.0 (no movement) to 1.0 (max tilt/pan)
+        const panAbs = Math.abs(pan);
+        const tiltAbs = Math.abs(tilt);
+        const speedFactor = Math.max(panAbs, tiltAbs) * baseSpeed;
+
+        // Send the current pan, tilt, and speed to the server
+        // Assumes a socket.io or WebSocket connection is established as `socket`
+
+        socket.emit('motion', {pan, tilt, speed: speedFactor});
+
+    }
+
+// Start polling when gamepad is connected
+    window.addEventListener('gamepadconnected', () => {
+        console.log('Gamepad connected!');
+        setInterval(pollGamepad, pollInterval);
     });
+
+
+    // function handleGamepadInput() {
+    //     const myGamepad = navigator.getGamepads()[gamepadIndex];
+    //     if (!myGamepad) return;
+    //
+    //     if (myGamepad.axes.some(axis => axis.toFixed(2) != 0.00)) {
+    //         const [pan, tilt, zoom, focus] = myGamepad.axes.map(axis => parseFloat(axis.toFixed(2)));
+    //         socket.emit('motion', {pan: -pan, tilt: tilt, relative: true});
+    //         socket.emit('optic', {zoom: zoom, focus: -focus, relative: true});
+    //     }
+    //
+    //     myGamepad.buttons.forEach((button, index) => {
+    //         if (button.pressed) {
+    //             const actions = [
+    //                 () => changeChannel('Fusion'), () => changeChannel('Optical'), () => changeChannel('Thermal'),
+    //                 () => socket.emit('cmd', {'cmd': 'ir-cut'}), null, null,
+    //                 () => socket.emit('cmd', {'cmd': 'min-zoom'}), () => socket.emit('cmd', {'cmd': 'max-zoom'}),
+    //                 switchChannels, toggleThermal,
+    //                 () => {
+    //                     socket.emit('cmd', {'cmd': 'laser-off'});
+    //                     isLaserOn = false;
+    //                 },
+    //                 () => {
+    //                     socket.emit('cmd', {'cmd': 'laser-on'});
+    //                     isLaserOn = true;
+    //                 },
+    //                 toggleThermal, switchChannels, () => socket.emit('cmd', {'cmd': 'ir-cut'}), null
+    //             ];
+    //             actions[index]?.();
+    //         }
+    //     });
+    //}
+
 
     socket.on('connect', () => socket.emit('handshake', {data: 'I\'m connected!'}));
     socket.on('handshake', data => {
         $("#pantilt").text(`Pan: ${data.start_horizontal} | Tilt: ${data.start_vertical}`);
         isThermalOn = data.thermal_status;
-        $("#primary_video").attr("src", thermalFeed);
+        //$("#primary_video").attr("src", thermalFeed);
         emitGetRelayStatus()
     });
 
-    socket.on('ptz', data => {
-
-        $("#pantilt").text(`Pan: ${data.horizontal} | Tilt: ${data.vertical}`);
-        if (data.horizontal > 240 || data.horizontal < 5) {
-            stopRotation();
-        }
-    });
+    // socket.on('ptz', data => {
+    //
+    //     $("#pantilt").text(`Pan: ${data.horizontal} | Tilt: ${data.vertical}`);
+    //     if (data.horizontal > 240 || data.horizontal < 5) {
+    //         stopRotation();
+    //     }
+    // });
 
     socket.on('relay', data => {
         if (data.channel1) {
@@ -138,9 +179,9 @@ $(document).ready(function () {
     $("#toggle-lights").click(toggleLights);
     $("#toggle-lights-ir").click(toggleIRLights);
 
-     $("#speed-1").click(() => setSpeed(1));
-        $("#speed-2").click(() => setSpeed(2));
-        $("#speed-3").click(() => setSpeed(3));
+    $("#speed-1").click(() => setSpeed(1));
+    $("#speed-2").click(() => setSpeed(2));
+    $("#speed-3").click(() => setSpeed(3));
 
     const amount = event => event.shiftKey ? 5 : 1;
     const activeKeys = {};
@@ -154,15 +195,16 @@ $(document).ready(function () {
         socket.emit('stop_zoom'); // Replace with actual PTZ stop command
     };
 
-    const handleMotion = (pan, tilt) => {
-        socket.emit('motion', {pan, tilt, speed: ptzSpeed, relative: true});
+    const handleMotion = (pan, tilt, speed = ptzSpeed) => {
+        console.log(`pan: ${pan}, tilt: ${tilt}, speed: ${speed}`);
+        socket.emit('motion', {pan, tilt, speed: speed, relative: true});
     };
 
     const setSpeed = (speed) => {
-            ptzSpeed = speed;
-            $("#speed-level").text(`Speed: ${speed}`);
-            console.log(`PTZ speed set to ${speed}`);
-        };
+        ptzSpeed = speed;
+        $("#speed-level").text(`Speed: ${speed}`);
+        console.log(`PTZ speed set to ${speed}`);
+    };
 
     $(document).keydown(event => {
         if (activeKeys[event.key]) return; // If the key is already active, do nothing

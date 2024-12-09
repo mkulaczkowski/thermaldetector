@@ -127,24 +127,6 @@ class PELCO_Functions:
         data1, data2 = POSITIONS[position]
         return self.construct_cmd('VERTICAL_POSITION')
 
-    def monitor_rotation(self):
-        while self.running:
-            self.query_horizontal_angle()
-            if self.horizontal_angle > 240:
-                print("Angle exceeded 240 degrees, repositioning to 180 degrees.")
-                self.horizontal_positioning('HORIZONTAL_180')
-            elif self.horizontal_angle < 0:
-                print("Angle below 0 degrees, repositioning to 0 degrees.")
-                self.horizontal_positioning('HORIZONTAL_0')
-            time.sleep(0.1)  # Adjust the sleep time as necessary
-
-    def stop_monitoring(self):
-        self.running = False
-        self.monitor_thread.join()
-
-    def __del__(self):
-        self.stop_monitoring()
-
     def test_turn_on_light(self):
         expected_command = bytearray([0xFF, 0x00, 0x00, 0x09, 0x00, 0x02, 0x0B])
         _, sent_command = self.turn_on_light()
@@ -159,40 +141,7 @@ class PELCO_Functions:
 # Example usage
 if __name__ == "__main__":
     controller = PELCO_Functions(ip_address="192.168.137.99")
-
-    # # Other commands can be tested similarly
-    # # Move right
-    # response, _ = controller.pantilt_move('RIGHT', 0x3F)
-    # print(f"Move right response: {response}")
-    #
-    # # Move up
-    #response, _ = controller.pantilt_move('UP', tilt_speed=0x40)
-    # print(f"Move up response: {response}")
-    #
-    # # Stop movement
-    # response, _ = controller.pantilt_stop()
-    # print(f"Stop movement response: {response}")
-    # while True:
-    #     time.sleep(1)
-    #     # Query horizontal angle
-    #     controller.query_horizontal_angle()
-    #
-    #     # Query vertical angle
-    #     controller.query_vertical_angle()
-
-    # # Horizontal 90° positioning
-    # response, _ = controller.horizontal_positioning('HORIZONTAL_45')
-    # print(f"Horizontal 90° positioning response: {response}")
-    #
-    # # Vertical 45° positioning
-    # response, _ = controller.vertical_positioning('VERTICAL_45')
-    # print(f"Vertical 45° positioning response: {response}")
-
-    # # Query horizontal angle
-    # controller.query_horizontal_angle()
-    #
-    # # Query vertical angle
-    # controller.query_vertical_angle()
-
-    command = [0xFF, 0x00, 0x00, 0x10, 0x3F, 0xAF]
-    controller.send_command(command)
+    controller.turn_on_light()
+    print(controller.query_vertical_angle())
+    print(controller.query_horizontal_angle())
+    controller.pantilt_stop()

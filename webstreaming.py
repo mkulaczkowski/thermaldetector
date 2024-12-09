@@ -15,7 +15,7 @@ from stream_infer.dispatcher import Dispatcher
 from stream_infer.producer import PyAVProducer
 
 from JetsonNano_PTZ.camera_controlers.onvif_controler import PTZCamera
-from JetsonNano_PTZ.pelco.ptz_control import PELCO_Functions
+from JetsonNano_PTZ.pelco.pelco_d import PELCO_Functions
 from algos.yolo import YoloDetectionAlgo2
 from cameras.ffmpeg_visible_camera import FFMPEGCamera
 from cameras.fusion_camera import VisibleThermalCamera
@@ -58,6 +58,49 @@ relay_controller = RelayModuleController(ip_address=os.getenv('PTZ_RELAY', '192.
 thermal_camera_ptz = None
 visible_camera_ptz = None
 
+# Global PTZ state and lock
+ptz_state = {
+    'direction': 'STOP',   # 'UP', 'DOWN', 'LEFT', 'RIGHT', etc.
+    'pan_speed': 0x09,
+    'tilt_speed': 0x09
+}
+ptz_lock = threading.Lock()
+
+
+def update_ptz_state(direction, pan_speed, tilt_speed):
+    with ptz_lock:
+        ptz_state['direction'] = direction
+        ptz_state['pan_speed'] = pan_speed
+        ptz_state['tilt_speed'] = tilt_speed
+
+
+def get_ptz_state():
+    with ptz_lock:
+        return ptz_state['direction'], ptz_state['pan_speed'], ptz_state['tilt_speed']
+
+
+def ptz_command_sender(controller, interval=1):
+    last_direction, last_pan_speed, last_tilt_speed = 'STOP', 0, 0
+    while True:
+        direction, pan_speed, tilt_speed = get_ptz_state()
+        print(f'{direction}, {pan_speed}, {tilt_speed}')
+
+        # Only send if direction/speed changed significantly
+        if (direction != last_direction):
+            if direction == 'STOP':
+                controller.pantilt_stop()
+            else:
+                controller.pantilt_move(direction, pan_speed, tilt_speed)
+
+            last_direction, last_pan_speed, last_tilt_speed = direction, pan_speed, tilt_speed
+
+        time.sleep(interval)
+
+
+# Start background thread for sending PTZ commands
+threading.Thread(target=ptz_command_sender, args=(ptz_controller,), daemon=True).start()
+
+
 def initialize_cameras():
     global visible_camera_ptz, thermal_camera_ptz
 
@@ -69,8 +112,7 @@ def initialize_cameras():
 def connect():
     app.logger.debug("Client connected")
 
-    ptz_controller.turn_on_light()
-    initialize_cameras()
+    #initialize_cameras()
 
     emit("handshake", {"data": "Connected", "start_horizontal": ptz_controller.query_horizontal_angle(),
                        "start_vertical": ptz_controller.query_vertical_angle()})
@@ -78,7 +120,7 @@ def connect():
 
 @socketio.on("get_ptz_angles")
 def get_ptz_angles():
-    # app.logger.debug(f'Received GET PTZ ANGLE')
+    #app.logger.debug(f'Received GET PTZ ANGLE')
 
     horizontal_angle = ptz_controller.query_horizontal_angle()
 
@@ -137,35 +179,57 @@ def handle_cmd(data):
 @socketio.on('motion')
 def handle_motion_event(json):
     app.logger.debug('Received motion event: ' + str(json))
-    value_x = int(2 * json['pan'])
-    value_y = int(2 * json['tilt'])
 
-    speed = int(json['speed'])
+    pan_input = float(json.get('pan', 0.0))   # Range: [-1.0, 1.0]
+    tilt_input = float(json.get('tilt', 0.0)) # Range: [-1.0, 1.0]
+    speed_input = float(json.get('speed', 0.0)) # Range: [0.0, 1.0]
 
-    # Define speed levels
-    speed_settings = {
-        1: 0x09,
-        2: 0x2D,
-        3: 0x3F  # Max speed
-    }
+    # If both pan and tilt are near zero, update state to STOP
+    deadzone = 0.05
+    if abs(pan_input) < deadzone and abs(tilt_input) < deadzone:
+        update_ptz_state('STOP', 0x09, 0x09)
+        return
 
-    # Get the speed factor, default to 1 if not found
-    speed_factor = speed_settings.get(speed, 1)
+    # Pelco-D speed range
+    min_speed = 0x09
+    max_speed = 0x3F
 
-    if value_x < 0:
-        ptz_controller.pantilt_move('RIGHT', pan_speed=speed_factor)
-    elif value_x > 0:
-        ptz_controller.pantilt_move('LEFT', pan_speed=speed_factor)
-    elif value_y > 0:
-        ptz_controller.pantilt_move('UP')
-    elif value_y < 0:
-        ptz_controller.pantilt_move('DOWN')
+    pan_speed_val = min_speed + int((max_speed - min_speed) * (abs(pan_input) * speed_input))
+    tilt_speed_val = min_speed + int((max_speed - min_speed) * (abs(tilt_input) * speed_input))
 
+    direction = 'STOP'
+    if tilt_input > deadzone:
+        if pan_input > deadzone:
+            direction = 'UP-RIGHT'
+        elif pan_input < -deadzone:
+            direction = 'UP-LEFT'
+        else:
+            direction = 'UP'
+    elif tilt_input < -deadzone:
+        if pan_input > deadzone:
+            direction = 'DOWN-RIGHT'
+        elif pan_input < -deadzone:
+            direction = 'DOWN-LEFT'
+        else:
+            direction = 'DOWN'
+    else:
+        if pan_input > deadzone:
+            direction = 'RIGHT'
+        elif pan_input < -deadzone:
+            direction = 'LEFT'
+
+    # Update PTZ state (background thread will send command)
+    update_ptz_state(direction, pan_speed_val, tilt_speed_val)
 
 @socketio.on('stop')
 def handle_stop_event():
     app.logger.debug('Received stop event')
-    ptz_controller.pantilt_stop()
+    update_ptz_state('STOP', 0x09, 0x09)
+
+# @socketio.on('stop')
+# def handle_stop_event():
+#     app.logger.debug('Received stop event')
+#     ptz_controller.pantilt_stop()
 
 
 @socketio.on('optic')
@@ -274,8 +338,5 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     print(f'Started on port {args.ip}:{args.port}')
-    ptz_controller.turn_on_light()
-    time.sleep(10)
-    print(f'Init Cameras')
-    initialize_cameras()
-    socketio.run(app, host=args.ip, port=args.port, debug=True, allow_unsafe_werkzeug=True)
+
+    socketio.run(app, host=args.ip, port=args.port, debug=True)

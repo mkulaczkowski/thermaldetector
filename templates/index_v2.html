@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>PTZ Control</title>
+    <script src="static/socket.io.js"></script>
+</head>
+<body>
+<h1>PTZ Control via Gamepad</h1>
+<p>Connect a gamepad and move the left stick to control the camera.</p>
+
+<script>
+    const socket = io();
+    const deadzone = 0.1;
+    const baseSpeed = 1.0;
+    let gamepadIndex = null;
+
+    let lastEmitTime = 0;
+    const emitInterval = 100; // in ms
+    let lastPan = 0, lastTilt = 0, lastSpeed = 0;
+    let hasStopped = false; // Track if stop command was sent
+
+    function normalize(value, deadzone) {
+        if (Math.abs(value) < deadzone) return 0;
+        const sign = Math.sign(value);
+        const adjusted = (Math.abs(value) - deadzone) / (1 - deadzone);
+        return sign * adjusted;
+    }
+
+    window.addEventListener('gamepadconnected', (e) => {
+        console.log(`Gamepad connected: ${e.gamepad.id}`);
+        gamepadIndex = e.gamepad.index;
+        requestAnimationFrame(pollGamepad);
+    });
+
+    function pollGamepad() {
+        if (gamepadIndex === null) {
+            requestAnimationFrame(pollGamepad);
+            return;
+        }
+
+        const gp = navigator.getGamepads()[gamepadIndex];
+        if (!gp) {
+            requestAnimationFrame(pollGamepad);
+            return;
+        }
+
+        let pan = normalize(gp.axes[0], deadzone);
+        let tilt = -normalize(gp.axes[1], deadzone); // invert so up is positive
+        const speedFactor = Math.max(Math.abs(pan), Math.abs(tilt)) * baseSpeed;
+
+        const now = performance.now();
+        const panDiff = Math.abs(pan - lastPan);
+        const tiltDiff = Math.abs(tilt - lastTilt);
+        const speedDiff = Math.abs(speedFactor - lastSpeed);
+
+        const inDeadzone = (Math.abs(pan) < deadzone && Math.abs(tilt) < deadzone);
+
+        if (inDeadzone) {
+            // If we are in the deadzone and haven't stopped yet, emit 'stop' once
+            if (!hasStopped) {
+                socket.emit('stop');
+                hasStopped = true;
+            }
+        } else {
+            // Joystick moved out of deadzone
+            hasStopped = false;
+            // Only emit motion if changes are significant and interval passed
+            if ((panDiff > 0.05 || tiltDiff > 0.05 || speedDiff > 0.05) && (now - lastEmitTime > emitInterval)) {
+                socket.emit('motion', {pan, tilt, speed: speedFactor});
+                lastPan = pan;
+                lastTilt = tilt;
+                lastSpeed = speedFactor;
+                lastEmitTime = now;
+            }
+        }
+
+        requestAnimationFrame(pollGamepad);
+    }
+</script>
+</body>
+</html>
