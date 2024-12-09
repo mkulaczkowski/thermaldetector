@@ -54,7 +54,7 @@ def ptz_command_sender():
     and sends commands to the camera only when necessary.
     """
     last_direction, last_pan_speed, last_tilt_speed = 'STOP', 0x05, 0x05
-    interval = 1  # 50ms interval (~20 commands per second)
+    interval = 0.5  # 50ms interval (~20 commands per second)
     while True:
         direction, pan_speed, tilt_speed = get_ptz_state()
 
@@ -104,7 +104,7 @@ def handle_motion_event(json):
     tilt_input = float(json.get('tilt', 0.0))
     speed_input = float(json.get('speed', 0.0))
 
-    deadzone = 0.1
+    deadzone = 0.05
     # Check if we're in the deadzone for both axes
     if abs(pan_input) < deadzone and abs(tilt_input) < deadzone:
         # Joystick in deadzone -> STOP
