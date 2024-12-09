@@ -29,13 +29,13 @@ def get_ptz_state():
 
 def ptz_command_sender():
     last_direction, last_pan_speed, last_tilt_speed = 'STOP', 0x09, 0x09
-    interval = 0.2 # 50ms interval (~20 commands per second max)
+    interval = 0.05 # 50ms interval (~20 commands per second max)
     while True:
         direction, pan_speed, tilt_speed = get_ptz_state()
         # Only send if changed significantly
-        if (direction != last_direction or
-            abs(pan_speed - last_pan_speed) > 2 or
-            abs(tilt_speed - last_tilt_speed) > 2):
+
+
+        if (direction != last_direction or abs(pan_speed - last_pan_speed) > 2 or abs(tilt_speed - last_tilt_speed) > 2):
             if direction == 'STOP':
                 ptz_controller.pantilt_stop()
             else:
