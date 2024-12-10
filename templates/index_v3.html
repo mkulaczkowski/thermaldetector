@@ -60,20 +60,6 @@
             font-size: 14px;
         }
 
-        /* Gamepad icon */
-        .gamepad-status {
-            position: absolute;
-            top: 10px;
-            right: 20px;
-            font-size: 18px;
-        }
-        .gamepad-status.connected {
-            color: #00ff00;
-        }
-        .gamepad-status.disconnected {
-            color: #555;
-        }
-
         .camera-feed {
             flex: 2;
             background-color: #000;
@@ -93,6 +79,18 @@
             padding: 5px 10px;
             border-radius: 5px;
         }
+        .ptz-off-message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #ff0000;
+            font-size: 36px;
+            background: rgba(0,0,0,0.7);
+            padding: 20px 40px;
+            border-radius: 10px;
+            display: none;
+        }
         .ptz-controls {
             position: absolute;
             bottom: 20px;
@@ -108,13 +106,9 @@
             background-color: #333;
             border: 2px solid #00ff00;
             border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 16px;
-            color: #d4d4d4;
-            cursor: pointer;
             position: relative;
+            overflow: hidden;
+            touch-action: none;
         }
         .joystick-handle {
             width: 40px;
@@ -125,7 +119,6 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            touch-action: none;
         }
         .action-bar {
             display: flex;
@@ -133,6 +126,7 @@
             padding: 10px;
             background-color: #1a1a1a;
             border-top: 2px solid #444;
+            position: relative;
         }
         .action-bar button {
             background-color: #333;
@@ -169,6 +163,25 @@
         .toggle-button:hover {
             background-color: #444;
         }
+
+        /* Gamepad status icon on action bar */
+        .gamepad-status {
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            font-size: 18px;
+        }
+        .action-bar .gamepad-status {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+        }
+        .gamepad-status.connected {
+            color: #00ff00;
+        }
+        .gamepad-status.disconnected {
+            color: #555;
+        }
     </style>
     <script src="static/mgrs.min.js"></script>
 </head>
@@ -182,7 +195,6 @@
         <div class="header">
             <div class="heading-indicator">Heading: N 45°</div>
             <div class="vehicle-data" id="vehicle-data">Lat: N/A, Lon: N/A, MGRS: N/A</div>
-            <div class="gamepad-status disconnected">🎮</div>
         </div>
         <div class="camera-feed">
             <video id="cameraVideo" autoplay playsinline muted></video>
@@ -190,9 +202,10 @@
                 PTZ Rotation: N/A<br>
                 Tilt: N/A
             </div>
+            <div class="ptz-off-message" id="ptz-off-message">PTZ OFF</div>
             <div class="ptz-controls">
-                <div class="joystick">
-                    <div class="joystick-handle" draggable="true"></div>
+                <div class="joystick" id="touch-joystick">
+                    <div class="joystick-handle" id="joystick-handle"></div>
                 </div>
                 <button class="toggle-button" id="toggle-thermal">Thermal / Visible</button>
             </div>
@@ -203,6 +216,7 @@
             <button id="power-ir-light">IR Light</button>
             <button id="default-position">Default Position</button>
             <button id="scan-button">Scan</button>
+            <div class="gamepad-status disconnected">🎮</div>
         </div>
     </div>
 
@@ -221,12 +235,15 @@
 
         let visibleLightOn = false;
         let irLightOn = false;
-        let cameraOn = false; // Represents PTZ power
+        let cameraOn = false; // PTZ power
         let scanning = false;
         let gamepadConnected = false;
 
         const gamepadStatusEl = document.querySelector('.gamepad-status');
         const vehicleDataEl = document.getElementById('vehicle-data');
+        const ptzOffMessageEl = document.getElementById('ptz-off-message');
+
+        let locationRequested = false;
 
         socket.on('connect', () => {
             console.log("Connected to server");
@@ -235,7 +252,7 @@
 
         socket.on('ptz-angles', (data) => {
             const overlay = document.getElementById('cameraOverlay');
-            overlay.innerHTML = `PTZ Rotation: ${data.horizontal.toFixed(2)}°<br> Tilt: ${data.vertical.toFixed(2)}°`;
+            overlay.innerHTML = `PTZ Rotation: ${data.horizontal.toFixed(2)}°<br>Tilt: ${data.vertical.toFixed(2)}°`;
         });
 
         function stopWebRTCFeed() {
@@ -274,12 +291,13 @@
 
             const answer = await response.json();
             await pc.setRemoteDescription(new RTCSessionDescription(answer));
+
+            updatePTZOffMessage();
         }
 
-        // Start with the PTZ Thermal camera
+        // Start with PTZ Thermal camera
         playWebRTCStream(cameraSources[currentCamera]);
 
-        // Sidebar thumbnails logic
         const thumbnails = document.querySelectorAll('.sidebar .thumbnail');
         thumbnails.forEach(thumb => {
             thumb.addEventListener('click', () => {
@@ -292,8 +310,22 @@
                 } else {
                     console.warn(`No source defined for ${cameraName}`);
                 }
+
+                // If location not requested yet, request now (user gesture)
+                if (!locationRequested) {
+                    locationRequested = true;
+                    requestLocation();
+                }
             });
         });
+
+        function updatePTZOffMessage() {
+            if (!cameraOn && (currentCamera === "PTZ Thermal Camera" || currentCamera === "PTZ Visible Camera")) {
+                ptzOffMessageEl.style.display = 'block';
+            } else {
+                ptzOffMessageEl.style.display = 'none';
+            }
+        }
 
         // Joystick and motion logic
         const deadzone = 0.3;
@@ -305,6 +337,13 @@
         let lastPan = 0, lastTilt = 0, lastSpeed = 0;
         let hasStopped = false;
         let lastButtonStates = [];
+
+        // Gamepad button to action mapping:
+        // 17: PTZ Power
+        // 1: Visible Light
+        // 2: IR Light
+        // 3: Default Position
+        // 4: Scan
 
         window.addEventListener('gamepadconnected', (e) => {
             console.log(`Gamepad connected: ${e.gamepad.id}`);
@@ -349,7 +388,7 @@
             }
 
             handleJoystick(gp);
-            handleButtons(gp);
+            handleGamepadButtons(gp);
 
             requestAnimationFrame(pollGamepad);
         }
@@ -357,14 +396,105 @@
         function handleJoystick(gp) {
             let pan = normalize(gp.axes[0], deadzone);
             let tilt = -normalize(gp.axes[1], deadzone);
-            const speedFactor = Math.max(Math.abs(pan), Math.abs(tilt)) * baseSpeed;
+            handleMotion(pan, tilt);
+        }
 
+        function handleGamepadButtons(gp) {
+            if (lastButtonStates.length === 0) {
+                lastButtonStates = gp.buttons.map(b => b.pressed);
+            }
+
+            gp.buttons.forEach((button, index) => {
+                const wasPressed = lastButtonStates[index];
+                const isPressed = button.pressed;
+                if (!wasPressed && isPressed) {
+                    // Button pressed
+                    switch (index) {
+                        case 17: // PTZ Power
+                            cameraOn = !cameraOn;
+                            socket.emit('cmd', { cmd: cameraOn ? 'PTZ-on' : 'PTZ-off' });
+                            updateButtonState();
+                            updatePTZOffMessage();
+                            break;
+                        case 1: // Visible Light
+                            visibleLightOn = !visibleLightOn;
+                            socket.emit('cmd', { cmd: visibleLightOn ? 'lights-on' : 'lights-off' });
+                            updateButtonState();
+                            break;
+                        case 2: // IR Light
+                            irLightOn = !irLightOn;
+                            socket.emit('cmd', { cmd: irLightOn ? 'ir-lights-on' : 'ir-lights-off' });
+                            updateButtonState();
+                            break;
+                        case 3: // Default Position
+                            socket.emit('cmd', { cmd: 'default-position' });
+                            break;
+                        case 4: // Scan
+                            scanning = !scanning;
+                            socket.emit('cmd', { cmd: scanning ? 'start-scan' : 'stop-scan' });
+                            updateButtonState();
+                            break;
+                        default:
+                            // Other buttons if needed
+                            break;
+                    }
+                }
+                lastButtonStates[index] = isPressed;
+            });
+        }
+
+        // Touch joystick logic
+        const joystick = document.getElementById('touch-joystick');
+        const joystickHandle = document.getElementById('joystick-handle');
+
+        let touchActive = false;
+        let joystickCenterX, joystickCenterY;
+
+        joystick.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            touchActive = true;
+            const rect = joystick.getBoundingClientRect();
+            joystickCenterX = rect.x + rect.width / 2;
+            joystickCenterY = rect.y + rect.height / 2;
+        }, {passive: false});
+
+        joystick.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            if (!touchActive) return;
+            const touch = e.touches[0];
+            const dx = touch.clientX - joystickCenterX;
+            const dy = touch.clientY - joystickCenterY;
+            const maxRadius = 50; // half joystick size
+            const distance = Math.min(maxRadius, Math.sqrt(dx*dx + dy*dy));
+
+            const angle = Math.atan2(dy, dx);
+            const x = distance * Math.cos(angle);
+            const y = distance * Math.sin(angle);
+
+            joystickHandle.style.transform = `translate(${x}px, ${y}px)`;
+
+            let pan = x / maxRadius;   // range approx -1 to 1
+            let tilt = -y / maxRadius; // invert Y
+            if (Math.abs(pan) < deadzone) pan = 0;
+            if (Math.abs(tilt) < deadzone) tilt = 0;
+            handleMotion(pan, tilt);
+        }, {passive: false});
+
+        joystick.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            touchActive = false;
+            joystickHandle.style.transform = `translate(-50%, -50%)`;
+            socket.emit('stop'); // stop motion when touch ends
+        }, {passive: false});
+
+        function handleMotion(pan, tilt) {
+            const speedFactor = Math.max(Math.abs(pan), Math.abs(tilt)) * baseSpeed;
             const now = performance.now();
             const panDiff = Math.abs(pan - lastPan);
             const tiltDiff = Math.abs(tilt - lastTilt);
             const speedDiff = Math.abs(speedFactor - lastSpeed);
 
-            const inDeadzone = (Math.abs(pan) < deadzone && Math.abs(tilt) < deadzone);
+            const inDeadzone = (pan === 0 && tilt === 0);
 
             if (inDeadzone) {
                 if (!hasStopped) {
@@ -383,28 +513,6 @@
             }
         }
 
-        function handleButtons(gp) {
-            if (lastButtonStates.length === 0) {
-                lastButtonStates = gp.buttons.map(b => b.pressed);
-            }
-
-            // Adjust button mapping as needed. This example doesn't specify all gamepad buttons now.
-            // Add logic here if you need certain buttons for toggling lights/scanning from gamepad.
-            gp.buttons.forEach((button, index) => {
-                const wasPressed = lastButtonStates[index];
-                const isPressed = button.pressed;
-                if (!wasPressed && isPressed) {
-                    handleButtonPress(index);
-                }
-                lastButtonStates[index] = isPressed;
-            });
-        }
-
-        function handleButtonPress(buttonIndex) {
-            // Define additional gamepad button actions if required
-        }
-
-        // Action bar buttons
         const powerPtzBtn = document.getElementById('power-ptz');
         const powerVisibleLightBtn = document.getElementById('power-visible-light');
         const powerIrLightBtn = document.getElementById('power-ir-light');
@@ -415,6 +523,7 @@
             cameraOn = !cameraOn;
             socket.emit('cmd', { cmd: cameraOn ? 'PTZ-on' : 'PTZ-off' });
             updateButtonState();
+            updatePTZOffMessage();
         });
 
         powerVisibleLightBtn.addEventListener('click', () => {
@@ -451,24 +560,26 @@
         }
 
         updateButtonState();
+        updatePTZOffMessage();
 
-        // Get real GPS location
-        if ('geolocation' in navigator) {
-            navigator.geolocation.getCurrentPosition(
-                (pos) => {
-                    const lat = pos.coords.latitude;
-                    const lon = pos.coords.longitude;
-                    const mgrsStr = mgrs.forward([lon, lat], 5);
-                    vehicleDataEl.textContent = `Lat: ${lat.toFixed(4)}°, Lon: ${lon.toFixed(4)}°, MGRS: ${mgrsStr}`;
-                },
-                (err) => {
-                    console.warn(`GPS error: ${err.message}`);
-                    vehicleDataEl.textContent = `Lat: N/A, Lon: N/A, MGRS: N/A (GPS unavailable)`;
-                },
-                { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-            );
-        } else {
-            vehicleDataEl.textContent = `Lat: N/A, Lon: N/A, MGRS: N/A (GPS not supported)`;
+        function requestLocation() {
+            if ('geolocation' in navigator) {
+                navigator.geolocation.getCurrentPosition(
+                    (pos) => {
+                        const lat = pos.coords.latitude;
+                        const lon = pos.coords.longitude;
+                        const mgrsStr = mgrs.forward([lon, lat], 5);
+                        vehicleDataEl.textContent = `Lat: ${lat.toFixed(4)}°, Lon: ${lon.toFixed(4)}°, MGRS: ${mgrsStr}`;
+                    },
+                    (err) => {
+                        console.warn(`GPS error: ${err.message}`);
+                        vehicleDataEl.textContent = `Lat: N/A, Lon: N/A, MGRS: N/A (GPS unavailable)`;
+                    },
+                    { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+                );
+            } else {
+                vehicleDataEl.textContent = `Lat: N/A, Lon: N/A, MGRS: N/A (GPS not supported)`;
+            }
         }
     </script>
 </body>
