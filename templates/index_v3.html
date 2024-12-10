@@ -678,23 +678,23 @@
                         updateButtonState();
                         updatePTZOffMessage();
                         break;
-                    case 1: // Visible Light
+                    case 0: // Visible Light
                         visibleLightOn = !visibleLightOn;
                         socket.emit('cmd', {cmd: visibleLightOn ? 'lights-on' : 'lights-off'});
                         logMessage(`Gamepad: Visible Light -> ${visibleLightOn ? 'ON' : 'OFF'}`);
                         updateButtonState();
                         break;
-                    case 2: // IR Light
+                    case 1: // IR Light
                         irLightOn = !irLightOn;
                         socket.emit('cmd', {cmd: irLightOn ? 'ir-lights-on' : 'ir-lights-off'});
                         logMessage(`Gamepad: IR Light -> ${irLightOn ? 'ON' : 'OFF'}`);
                         updateButtonState();
                         break;
-                    case 3: // Default Position
+                    case 2: // Default Position
                         socket.emit('cmd', {cmd: 'default-position'});
                         logMessage(`Gamepad: Default Position`);
                         break;
-                    case 4: // Scan
+                    case 3: // Scan
                         scanning = !scanning;
                         socket.emit('cmd', {cmd: scanning ? 'start-scan' : 'stop-scan'});
                         logMessage(`Gamepad: Scan -> ${scanning ? 'START' : 'STOP'}`);
