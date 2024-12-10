@@ -104,7 +104,7 @@ def angle_query_thread():
             vert_angle = ptz_controller.query_vertical_angle()
             if horiz_angle is not None and vert_angle is not None:
                 socketio.emit('ptz-angles', {'horizontal': horiz_angle, 'vertical': vert_angle})
-        time.sleep(1.0)  # Query angles every 1 second
+        time.sleep(0.5)  # Query angles every 1 second
 
 
 threading.Thread(target=angle_query_thread, daemon=True).start()
