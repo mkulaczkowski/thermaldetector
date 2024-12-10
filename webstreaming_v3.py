@@ -15,6 +15,9 @@ app = Flask(__name__, template_folder='templates', static_folder='static', stati
 app.config['SECRET_KEY'] = 'Ranger'
 socketio = SocketIO(app, logger=True, engineio_logger=True)
 query_angles = False
+scanning = False  # Flag to indicate scanning state
+
+
 @atexit.register
 def shutdown_go2rtc():
     if hasattr(app, 'go2rtc_process'):
@@ -92,6 +95,7 @@ def ptz_command_sender():
 # Start the PTZ command sender thread
 threading.Thread(target=ptz_command_sender, daemon=True).start()
 
+
 def angle_query_thread():
     # Periodically query angles after handshake
     while True:
@@ -102,7 +106,48 @@ def angle_query_thread():
                 socketio.emit('ptz-angles', {'horizontal': horiz_angle, 'vertical': vert_angle})
         time.sleep(1.0)  # Query angles every 1 second
 
+
 threading.Thread(target=angle_query_thread, daemon=True).start()
+
+
+def scanning_thread():
+    """
+    This thread continuously scans from HORIZONTAL_0 to HORIZONTAL_180 and back.
+    Uses predefined positions for demonstration.
+    """
+    # Define the sequence of horizontal positions you want to scan through
+    scan_positions = [
+        'HORIZONTAL_0',
+        'HORIZONTAL_45',
+        'HORIZONTAL_90',
+        'HORIZONTAL_135',
+        'HORIZONTAL_180'
+    ]
+    delay = 4.0  # seconds between moves
+
+    forward = True
+    index = 0
+
+    while scanning:
+        position = scan_positions[index]
+        # Use horizontal positioning
+        success = ptz_controller.horizontal_positioning(position)
+        if not success:
+            app.logger.warning(f"Failed to move to {position}")
+
+        time.sleep(delay)
+
+        if forward:
+            index += 1
+            if index >= len(scan_positions):
+                index = len(scan_positions) - 2
+                forward = False
+        else:
+            index -= 1
+            if index < 0:
+                index = 1
+                forward = True
+
 
 @socketio.on('stop')
 def handle_stop_event():
@@ -116,35 +161,40 @@ def handle_stop_event():
 def handle_connect():
     app.logger.info("Client connected")
 
+
 @socketio.on('handshake')
 def handle_handshake():
     global query_angles
     app.logger.info("Received handshake from client.")
     query_angles = True
 
+
 @socketio.on("get_relay_status")
 def get_relay_status():
     # app.logger.debug(f'Received GET RELAY STATUS')
     socketio.emit("relay", {"visible_lights": relay_controller.get_channel_status(1),
-                   "ir_lights": relay_controller.get_channel_status(2)})
+                            "ir_lights": relay_controller.get_channel_status(2)})
+
+
 @socketio.on('cmd')
 def handle_cmd(data):
+    global scanning
     cmd = data.get('cmd')
     app.logger.info(f"Received cmd: {cmd}")
     # Handle various commands
     if cmd == 'lights-on':
-        #relay_controller.ch2_activate()
+        # relay_controller.ch2_activate()
         socketio.emit('status', {'message': 'lights on command sent'})
     elif cmd == 'lights-off':
-        #relay_controller.ch2_deactivate()
+        # relay_controller.ch2_deactivate()
         socketio.emit('status', {'message': 'lights off command sent'})
     elif cmd == 'ir-lights-on':
         # Implement IR lights on if supported
-        #relay_controller.ch1_activate()
+        # relay_controller.ch1_activate()
         socketio.emit('status', {'message': 'IR lights on command sent'})
     elif cmd == 'ir-lights-off':
         # Implement IR lights off if supported
-        #relay_controller.ch1_deactivate()
+        # relay_controller.ch1_deactivate()
         socketio.emit('status', {'message': 'IR lights off command sent'})
     elif cmd == 'PTZ-on':
         # Implement camera on logic
@@ -158,8 +208,18 @@ def handle_cmd(data):
         # Implement default position logic if device supports preset/home position
         ptz_controller.move_to_default_position()
         socketio.emit('status', {'message': 'Moved to default position'})
+    elif cmd == 'start-scan':
+        if not scanning:
+            scanning = True
+            threading.Thread(target=scanning_thread, daemon=True).start()
+            socketio.emit('status', {'message': 'Started horizontal scanning'})
+    elif cmd == 'stop-scan':
+        scanning = False
+        socketio.emit('status', {'message': 'Stopped horizontal scanning'})
     else:
         app.logger.warning(f"Unknown command received: {cmd}")
+
+
 @socketio.on('motion')
 def handle_motion_event(json):
     """
@@ -227,6 +287,7 @@ def index():
     """
     return render_template('index_v2.html')
 
+
 if __name__ == "__main__":
 
     with app.app_context():
@@ -247,7 +308,8 @@ if __name__ == "__main__":
 
         parser = argparse.ArgumentParser()
         parser.add_argument("-i", "--ip", type=str, required=True, default='0.0.0.0', help="IP address of the device")
-        parser.add_argument("-o", "--port", type=int, required=True, default=5000, help="Port number of the server (1024 to 65535)")
+        parser.add_argument("-o", "--port", type=int, required=True, default=5000,
+                            help="Port number of the server (1024 to 65535)")
         parser.add_argument("-f", "--frame-count", type=int, default=25,
                             help="# of frames used to construct the background model")
         args = parser.parse_args()

@@ -23,6 +23,7 @@
     let visibleLightOn = false;
     let irLightOn = false;
     let cameraOn = false;
+    let scanning = false;
     let lastButtonStates = [];
 
     function normalize(value, deadzone) {
@@ -128,12 +129,16 @@
                 irLightOn = !irLightOn;
                 socket.emit('cmd', { cmd: irLightOn ? 'ir-lights-on' : 'ir-lights-off' });
                 break;
-            case 2: // X: Toggle Camera On/Off
-                cameraOn = !cameraOn;
-                socket.emit('cmd', { cmd: cameraOn ? 'PTZ-on' : 'PTZ-off' });
+            case 2: // X: Start Scanning
+                scanning = !scanning;
+                socket.emit('cmd', { cmd: scanning ? 'start-scan' : 'stop-scan' });
                 break;
             case 3: // Y: Default Position
                 socket.emit('cmd', { cmd: 'default-position' });
+                break;
+             case 17: // X: Toggle Camera On/Off
+                cameraOn = !cameraOn;
+                socket.emit('cmd', { cmd: cameraOn ? 'PTZ-on' : 'PTZ-off' });
                 break;
             default:
                 // Add more buttons if needed
