@@ -345,8 +345,9 @@
             // Button Mappings:
             // A (0): Toggle visible light
             // B (1): Toggle IR light
-            // X (2): Toggle Camera On/Off
+            // X (2): Toggle Scan On/Off
             // Y (3): Default Position
+            // start (17): Start: Toggle PTZ On/Off
 
             gp.buttons.forEach((button, index) => {
                 const wasPressed = lastButtonStates[index];
@@ -375,7 +376,7 @@
                 case 3: // Y: Default Position
                     socket.emit('cmd', { cmd: 'default-position' });
                     break;
-                case 17: // X: Toggle Camera On/Off
+                case 17: // Start: Toggle PTZ On/Off
                     cameraOn = !cameraOn;
                     socket.emit('cmd', { cmd: cameraOn ? 'PTZ-on' : 'PTZ-off' });
                     break;
@@ -387,7 +388,7 @@
         // Action bar buttons
         document.getElementById('power-ptz').addEventListener('click', () => {
             // Toggle PTZ power if implemented
-            socket.emit('cmd', { cmd: 'camera-on' }); // or camera-off as needed
+            socket.emit('cmd', { cmd: 'PTZ-on' }); // or camera-off as needed
         });
 
         document.getElementById('power-visible-light').addEventListener('click', () => {
@@ -410,11 +411,6 @@
 
         document.getElementById('stop-scan').addEventListener('click', () => {
             socket.emit('cmd', { cmd: 'stop-scan' });
-        });
-
-        document.getElementById('camera-onoff').addEventListener('click', () => {
-            cameraOn = !cameraOn;
-            socket.emit('cmd', { cmd: cameraOn ? 'camera-on' : 'camera-off' });
         });
 
         // Toggle Thermal / Visible
