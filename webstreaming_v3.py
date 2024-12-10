@@ -14,7 +14,7 @@ from controlers.swtich_controller import RelayModuleController
 app = Flask(__name__, template_folder='templates', static_folder='static', static_url_path='/static')
 app.config['SECRET_KEY'] = 'Ranger'
 socketio = SocketIO(app, logger=True, engineio_logger=True)
-
+query_angles = False
 @atexit.register
 def shutdown_go2rtc():
     if hasattr(app, 'go2rtc_process'):
@@ -92,6 +92,17 @@ def ptz_command_sender():
 # Start the PTZ command sender thread
 threading.Thread(target=ptz_command_sender, daemon=True).start()
 
+def angle_query_thread():
+    # Periodically query angles after handshake
+    while True:
+        if query_angles:
+            horiz_angle = ptz_controller.query_horizontal_angle()
+            vert_angle = ptz_controller.query_vertical_angle()
+            if horiz_angle is not None and vert_angle is not None:
+                socketio.emit('ptz-angles', {'horizontal': horiz_angle, 'vertical': vert_angle})
+        time.sleep(1.0)  # Query angles every 1 second
+
+threading.Thread(target=angle_query_thread, daemon=True).start()
 
 @socketio.on('stop')
 def handle_stop_event():
