@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced Military Vehicle PTZ UI</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #121212;
+            color: #d4d4d4;
+            display: flex;
+            height: 100vh;
+        }
+        .sidebar {
+            width: 15%;
+            background-color: #1a1a1a;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px;
+            border-right: 2px solid #444;
+        }
+        .sidebar .thumbnail {
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            background-color: #333;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 12px;
+            color: #d4d4d4;
+            border: 2px solid #444;
+            cursor: pointer;
+        }
+        .sidebar .thumbnail.active {
+            border-color: #00ff00;
+        }
+        .main-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 20px;
+            background-color: #1a1a1a;
+            border-bottom: 2px solid #444;
+        }
+        .heading-indicator {
+            font-size: 18px;
+            color: #00ff00;
+        }
+        .vehicle-data {
+            font-size: 14px;
+        }
+        .camera-feed {
+            flex: 2;
+            background-color: #000;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-bottom: 2px solid #444;
+        }
+        .camera-overlay {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: #00ff00;
+            font-size: 16px;
+        }
+        .ptz-controls {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            align-items: center;
+        }
+        .joystick {
+            width: 100px;
+            height: 100px;
+            background-color: #333;
+            border: 2px solid #00ff00;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 16px;
+            color: #d4d4d4;
+            cursor: pointer;
+            position: relative;
+        }
+        .joystick-handle {
+            width: 40px;
+            height: 40px;
+            background-color: #00ff00;
+            border-radius: 50%;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            touch-action: none;
+        }
+        .action-bar {
+            display: flex;
+            justify-content: space-around;
+            padding: 10px;
+            background-color: #1a1a1a;
+            border-top: 2px solid #444;
+        }
+        .action-bar button {
+            background-color: #333;
+            color: #d4d4d4;
+            border: none;
+            padding: 10px 15px;
+            font-size: 14px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .action-bar button:hover {
+            background-color: #444;
+        }
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .toggle-button {
+            background-color: #333;
+            color: #d4d4d4;
+            border: none;
+            padding: 5px 10px;
+            font-size: 14px;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        .toggle-button:hover {
+            background-color: #444;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="thumbnail" data-camera="Front Camera">Front Thermal Camera</div>
+        <div class="thumbnail active" data-camera="PTZ Thermal Camera">PTZ Thermal Camera</div>
+        <div class="thumbnail" data-camera="PTZ Visible Camera">PTZ Visible Camera</div>
+    </div>
+    <div class="main-container">
+        <div class="header">
+            <div class="heading-indicator">Heading: N 45°</div>
+            <div class="vehicle-data">Speed: 60 km/h | GPS: 37.7749° N, 122.4194° W</div>
+        </div>
+        <div class="camera-feed">
+            <video id="cameraVideo" autoplay playsinline muted></video>
+            <div class="camera-overlay" id="cameraOverlay">
+                PTZ Rotation: N/A<br>
+                Tilt: N/A
+            </div>
+            <div class="ptz-controls">
+                <div class="joystick">
+                    <div class="joystick-handle" draggable="true"></div>
+                </div>
+                <button class="toggle-button" id="toggle-thermal">Thermal / Visible</button>
+            </div>
+        </div>
+        <div class="action-bar">
+            <button id="power-ptz">Power PTZ</button>
+            <button id="power-visible-light">Power Visible Light</button>
+            <button id="power-ir-light">Power IR Light</button>
+            <button id="default-position">Default Position</button>
+            <button id="start-scan">Start Scan</button>
+            <button id="stop-scan">Stop Scan</button>
+            <button id="camera-onoff">Camera On/Off</button>
+        </div>
+    </div>
+
+    <script src="static/socket.io.js"></script>
+    <script>
+        const socket = io();
+
+        // Example camera sources mapping
+        const cameraSources = {
+            "PTZ Thermal Camera": "http://localhost:1984/api/webrtc?src=PTZ_Thermal",
+            "PTZ Visible Camera": "http://localhost:1984/api/webrtc?src=PTZ_Visual"
+        };
+
+        let pc = null; // PeerConnection reference
+        let currentCamera = "PTZ Thermal Camera";
+
+        socket.on('connect', () => {
+            console.log("Connected to server");
+            socket.emit('handshake');
+        });
+
+        socket.on('ptz-angles', (data) => {
+            const overlay = document.getElementById('cameraOverlay');
+            overlay.innerHTML = `PTZ Rotation: ${data.horizontal.toFixed(2)}°<br> Tilt: ${data.vertical.toFixed(2)}°`;
+        });
+
+        function stopWebRTCFeed() {
+            if (pc) {
+                pc.getSenders().forEach(sender => sender.track && sender.track.stop());
+                pc.getReceivers().forEach(receiver => receiver.track && receiver.track.stop());
+                pc.close();
+                pc = null;
+            }
+        }
+
+        async function playWebRTCStream(webrtcUrl) {
+            stopWebRTCFeed();
+
+            pc = new RTCPeerConnection();
+            // Add a recvonly transceiver for video so that we request video from go2rtc
+            pc.addTransceiver('video', {direction:'recvonly'});
+
+            pc.ontrack = event => {
+                const video = document.getElementById('cameraVideo');
+                video.srcObject = event.streams[0];
+            };
+
+            // Create local offer
+            const offer = await pc.createOffer();
+            await pc.setLocalDescription(offer);
+
+            // Send offer to go2rtc
+            const response = await fetch(webrtcUrl, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({type: 'offer', sdp: offer.sdp})
+            });
+
+            if (!response.ok) {
+                console.error(`Error from go2rtc: ${response.status}`);
+                return;
+            }
+
+            const answer = await response.json();
+            // Set remote description with answer from go2rtc
+            await pc.setRemoteDescription(new RTCSessionDescription(answer));
+        }
+
+        // Start with the PTZ Thermal camera
+        playWebRTCStream(cameraSources[currentCamera]);
+
+        // Sidebar thumbnails logic
+        const thumbnails = document.querySelectorAll('.sidebar .thumbnail');
+        thumbnails.forEach(thumb => {
+            thumb.addEventListener('click', () => {
+                thumbnails.forEach(t => t.classList.remove('active'));
+                thumb.classList.add('active');
+                const cameraName = thumb.getAttribute('data-camera');
+                currentCamera = cameraName;
+                playWebRTCStream(cameraSources[cameraName]);
+            });
+        });
+
+        // Joystick and motion logic
+        const deadzone = 0.3;
+        const baseSpeed = 1.0;
+        let gamepadIndex = null;
+
+        let lastEmitTime = 0;
+        const emitInterval = 500; // in ms
+        let lastPan = 0, lastTilt = 0, lastSpeed = 0;
+        let hasStopped = false;
+
+        let visibleLightOn = false;
+        let irLightOn = false;
+        let cameraOn = false;
+        let scanning = false;
+        let lastButtonStates = [];
+
+        window.addEventListener('gamepadconnected', (e) => {
+            console.log(`Gamepad connected: ${e.gamepad.id}`);
+            gamepadIndex = e.gamepad.index;
+            requestAnimationFrame(pollGamepad);
+        });
+
+        function normalize(value, deadzone) {
+            if (Math.abs(value) < deadzone) return 0;
+            const sign = Math.sign(value);
+            const adjusted = (Math.abs(value) - deadzone) / (1 - deadzone);
+            return sign * adjusted;
+        }
+
+        function pollGamepad() {
+            if (gamepadIndex === null) {
+                requestAnimationFrame(pollGamepad);
+                return;
+            }
+
+            const gp = navigator.getGamepads()[gamepadIndex];
+            if (!gp) {
+                requestAnimationFrame(pollGamepad);
+                return;
+            }
+
+            handleJoystick(gp);
+            handleButtons(gp);
+
+            requestAnimationFrame(pollGamepad);
+        }
+
+        function handleJoystick(gp) {
+            let pan = normalize(gp.axes[0], deadzone);
+            let tilt = -normalize(gp.axes[1], deadzone);
+            const speedFactor = Math.max(Math.abs(pan), Math.abs(tilt)) * baseSpeed;
+
+            const now = performance.now();
+            const panDiff = Math.abs(pan - lastPan);
+            const tiltDiff = Math.abs(tilt - lastTilt);
+            const speedDiff = Math.abs(speedFactor - lastSpeed);
+
+            const inDeadzone = (Math.abs(pan) < deadzone && Math.abs(tilt) < deadzone);
+
+            if (inDeadzone) {
+                if (!hasStopped) {
+                    socket.emit('stop');
+                    hasStopped = true;
+                }
+            } else {
+                hasStopped = false;
+                if ((panDiff > 0.05 || tiltDiff > 0.05 || speedDiff > 0.05) && (now - lastEmitTime > emitInterval)) {
+                    socket.emit('motion', { pan, tilt, speed: speedFactor });
+                    lastPan = pan;
+                    lastTilt = tilt;
+                    lastSpeed = speedFactor;
+                    lastEmitTime = now;
+                }
+            }
+        }
+
+        function handleButtons(gp) {
+            if (lastButtonStates.length === 0) {
+                lastButtonStates = gp.buttons.map(b => b.pressed);
+            }
+
+            // Button Mappings:
+            // A (0): Toggle visible light
+            // B (1): Toggle IR light
+            // X (2): Toggle Camera On/Off
+            // Y (3): Default Position
+
+            gp.buttons.forEach((button, index) => {
+                const wasPressed = lastButtonStates[index];
+                const isPressed = button.pressed;
+                if (!wasPressed && isPressed) {
+                    handleButtonPress(index);
+                }
+                lastButtonStates[index] = isPressed;
+            });
+        }
+
+        function handleButtonPress(buttonIndex) {
+            switch (buttonIndex) {
+                case 0: // A: Toggle visible light
+                    visibleLightOn = !visibleLightOn;
+                    socket.emit('cmd', { cmd: visibleLightOn ? 'lights-on' : 'lights-off' });
+                    break;
+                case 1: // B: Toggle IR light
+                    irLightOn = !irLightOn;
+                    socket.emit('cmd', { cmd: irLightOn ? 'ir-lights-on' : 'ir-lights-off' });
+                    break;
+                case 2: // X: Toggle Scan On/Off
+                    scanning = !scanning;
+                    socket.emit('cmd', { cmd: scanning ? 'start-scan' : 'stop-scan' });
+                    break;
+                case 3: // Y: Default Position
+                    socket.emit('cmd', { cmd: 'default-position' });
+                    break;
+                case 17: // X: Toggle Camera On/Off
+                    cameraOn = !cameraOn;
+                    socket.emit('cmd', { cmd: cameraOn ? 'PTZ-on' : 'PTZ-off' });
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        // Action bar buttons
+        document.getElementById('power-ptz').addEventListener('click', () => {
+            // Toggle PTZ power if implemented
+            socket.emit('cmd', { cmd: 'camera-on' }); // or camera-off as needed
+        });
+
+        document.getElementById('power-visible-light').addEventListener('click', () => {
+            visibleLightOn = !visibleLightOn;
+            socket.emit('cmd', { cmd: visibleLightOn ? 'lights-on' : 'lights-off' });
+        });
+
+        document.getElementById('power-ir-light').addEventListener('click', () => {
+            irLightOn = !irLightOn;
+            socket.emit('cmd', { cmd: irLightOn ? 'ir-lights-on' : 'ir-lights-off' });
+        });
+
+        document.getElementById('default-position').addEventListener('click', () => {
+            socket.emit('cmd', { cmd: 'default-position' });
+        });
+
+        document.getElementById('start-scan').addEventListener('click', () => {
+            socket.emit('cmd', { cmd: 'start-scan' });
+        });
+
+        document.getElementById('stop-scan').addEventListener('click', () => {
+            socket.emit('cmd', { cmd: 'stop-scan' });
+        });
+
+        document.getElementById('camera-onoff').addEventListener('click', () => {
+            cameraOn = !cameraOn;
+            socket.emit('cmd', { cmd: cameraOn ? 'camera-on' : 'camera-off' });
+        });
+
+        // Toggle Thermal / Visible
+        document.getElementById('toggle-thermal').addEventListener('click', () => {
+            socket.emit('cmd', { cmd: 'toggleThermal' });
+        });
+    </script>
+</body>
+</html>

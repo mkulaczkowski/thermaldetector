@@ -285,7 +285,7 @@ def index():
     """
     Serve the main page.
     """
-    return render_template('index_v2.html')
+    return render_template('index_v3.html')
 
 
 if __name__ == "__main__":

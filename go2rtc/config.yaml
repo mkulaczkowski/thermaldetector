@@ -5,24 +5,23 @@ streams:
     - "rtsp://192.168.137.102:554/ONVIFMedia"
   PTZ_Visual:
     - "rtsp://192.168.137.103:554/user=admin_password=oTyLhoPM_channel=1_stream=0&onvif=0.sdp?real_stream"
-
+  PTZ_Front_Thermal:
+    - "rtsp://192.168.137.101:554/ONVIFMedia"
 api:
   listen: ":1984"  # Port for the web interface and API
   username: "admin"  # Optional: API authentication username
   password: "password"  # Optional: API authentication password
+  origin: "*"  # Optional: Access-Control-Allow-Origin header for the API
 
 webrtc:
-  candidates:
-    - stun:stun.l.google.com:19302  # Example STUN server
-    - stun:stun1.l.google.com:19302  # Additional STUN server for fallback
-  ice_servers:
-    - urls:
-        - stun:stun.l.google.com:19302
-        - stun:stun1.l.google.com:19302
+  listen: ":8555" # external TCP/UDP port
 
 ffmpeg:
   binary: ffmpeg  # Optional: Path to the ffmpeg binary if required for transcoding
   debug: false    # Enable debug mode for ffmpeg logging
 
 log:
-  level: info  # Logging level (debug, info, warn, error)
+  level: debug  # Logging level (debug, info, warn, error)
+  rtsp: info
+  streams: info
+  webrtc: info
