@@ -5,13 +5,16 @@ streams:
     - "rtsp://192.168.137.102:554/ONVIFMedia"
   PTZ_Visual:
     - "rtsp://192.168.137.103:554/user=admin_password=oTyLhoPM_channel=1_stream=0&onvif=0.sdp?real_stream"
-  PTZ_Front_Thermal:
+  Front_Thermal:
     - "rtsp://192.168.137.101:554/ONVIFMedia"
 api:
   listen: ":1984"  # Port for the web interface and API
-  username: "admin"  # Optional: API authentication username
-  password: "password"  # Optional: API authentication password
+#  username: "admin"  # Optional: API authentication username
+#  password: "Ranger8182"  # Optional: API authentication password
   origin: "*"  # Optional: Access-Control-Allow-Origin header for the API
+  tls_listen: ":1985" # default "", enable HTTPS server
+  tls_cert: "/Users/mkulaczkowski/Aiprojects/thermaldetector/go2rtc/ssl/public.pem"
+  tls_key: "/Users/mkulaczkowski/Aiprojects/thermaldetector/go2rtc/ssl/private.pem"
 
 webrtc:
   listen: ":8555" # external TCP/UDP port

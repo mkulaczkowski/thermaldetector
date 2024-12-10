@@ -27,14 +27,22 @@ const noFeedMessageEl = document.getElementById('no-feed-message');
 const vehicleDataEl = document.getElementById('vehicle-data');
 const cameraVideo = document.getElementById('cameraVideo');
 
-// Camera sources
-const cameraSources = {
-    "PTZ Thermal Camera": "http://192.168.137.238:1984/api/webrtc?src=PTZ_Thermal",
-    "PTZ Visible Camera": "http://192.168.137.238:1984/api/webrtc?src=PTZ_Visual",
-    "Front Camera": "http://192.168.137.238:1984/api/webrtc?src=Front_Camera"
-};
+// Dynamically determine the host IP from the serving location
+const host = window.location.hostname;
+// If needed, you can also check protocol or port:
+// const protocol = window.location.protocol; // e.g. "http:"
+// const port = window.location.port; // e.g. "8080"
 
-const socket = io();
+// Construct URLs dynamically
+const basePort = 1985; // adjust if your streaming server runs on a different port
+const baseUrl = `https://${host}:${basePort}/api/webrtc?src=`;
+
+const cameraSources = {
+    "PTZ Thermal Camera": `${baseUrl}PTZ_Thermal`,
+    "PTZ Visible Camera": `${baseUrl}PTZ_Visual`,
+    "Front Camera": `${baseUrl}Front_Camera`
+};
+const socket = io.connect(`${location.protocol === 'https:' ? 'wss:' : 'ws:'}//${location.hostname}:${location.port || (location.protocol === 'https:' ? 443 : 80)}${location.pathname}`);
 
 // Socket events
 socket.on('connect', () => {
