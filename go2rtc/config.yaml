@@ -12,9 +12,9 @@ api:
 #  username: "admin"  # Optional: API authentication username
 #  password: "Ranger8182"  # Optional: API authentication password
   origin: "*"  # Optional: Access-Control-Allow-Origin header for the API
-  tls_listen: ":1985" # default "", enable HTTPS server
-  tls_cert: "/Users/mkulaczkowski/Aiprojects/thermaldetector/go2rtc/ssl/public.pem"
-  tls_key: "/Users/mkulaczkowski/Aiprojects/thermaldetector/go2rtc/ssl/private.pem"
+#  tls_listen: ":1985" # default "", enable HTTPS server
+#  tls_cert: "/Users/mkulaczkowski/Aiprojects/thermaldetector/go2rtc/ssl/public.pem"
+#  tls_key: "/Users/mkulaczkowski/Aiprojects/thermaldetector/go2rtc/ssl/private.pem"
 
 webrtc:
   listen: ":8555" # external TCP/UDP port

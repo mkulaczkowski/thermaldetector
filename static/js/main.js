@@ -30,12 +30,15 @@ const cameraVideo = document.getElementById('cameraVideo');
 // Dynamically determine the host IP from the serving location
 const host = window.location.hostname;
 // If needed, you can also check protocol or port:
-// const protocol = window.location.protocol; // e.g. "http:"
+const protocol = window.location.protocol; // e.g. "http:"
 // const port = window.location.port; // e.g. "8080"
 
 // Construct URLs dynamically
-const basePort = 1985; // adjust if your streaming server runs on a different port
-const baseUrl = `https://${host}:${basePort}/api/webrtc?src=`;
+let basePort = 1984; // adjust if your streaming server runs on a different port
+if(protocol === 'https:') {
+    basePort = 1985;
+}
+const baseUrl = `http://${host}:${basePort}/api/webrtc?src=`;
 
 const cameraSources = {
     "PTZ Thermal Camera": `${baseUrl}PTZ_Thermal`,

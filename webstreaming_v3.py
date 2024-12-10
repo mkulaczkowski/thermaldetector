@@ -311,13 +311,18 @@ if __name__ == "__main__":
         parser.add_argument("-i", "--ip", type=str, required=True, default='0.0.0.0', help="IP address of the device")
         parser.add_argument("-o", "--port", type=int, required=True, default=5000,
                             help="Port number of the server (1024 to 65535)")
-        parser.add_argument("--certfile", type=str, default="/public.pem", help="Path to the SSL certificate file")
-        parser.add_argument("--keyfile", type=str, default="/private.pem", help="Path to the SSL key file")
+        parser.add_argument("--use-ssl", action="store_true", help="Enable SSL with the provided cert and key files")
+        parser.add_argument("--certfile", type=str, help="Path to the SSL certificate file")
+        parser.add_argument("--keyfile", type=str, help="Path to the SSL key file")
         args = parser.parse_args()
 
         print(f'Started on port {args.ip}:{args.port}')
-        # Create an SSL context
-        context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
-        context.load_cert_chain(certfile=args.certfile, keyfile=args.keyfile)
-        # Run the server over HTTPS
-        socketio.run(app, host=args.ip, port=args.port, debug=False, ssl_context=context)
+        if args.use_ssl:
+            # Create an SSL context
+            context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+            context.load_cert_chain(certfile=args.certfile, keyfile=args.keyfile)
+            # Run the server over HTTPS
+            socketio.run(app, host=args.ip, port=args.port, debug=False, ssl_context=context)
+        else:
+            # Run the server over HTTP
+            socketio.run(app, host=args.ip, port=args.port, debug=True)
