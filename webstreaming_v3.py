@@ -8,6 +8,7 @@ import atexit
 from flask import Flask, render_template
 from flask_socketio import SocketIO
 from JetsonNano_PTZ.pelco.pelco_controller import PELCO_Functions
+from controlers.swtich_controller import RelayModuleController
 
 # Initialize Flask app and SocketIO
 app = Flask(__name__, template_folder='templates', static_folder='static', static_url_path='/static')
@@ -20,37 +21,11 @@ def shutdown_go2rtc():
         app.go2rtc_process.terminate()
         app.logger.debug("Terminating go2rtc...")
 
-if __name__ == "__main__":
-
-    with app.app_context():
-        # Ensure that go2rtc binary is accessible (e.g., in PATH or specify full path)
-        app.logger.debug("Starting go2rtc...")
-        go2rtc_path = os.path.join(os.path.dirname(__file__), 'go2rtc', 'go2rtc')
-        config_path = os.path.join(os.path.dirname(__file__), 'go2rtc', 'config.yml')
-        go2rtc_cmd = [go2rtc_path, '-c', config_path]
-
-        app.go2rtc_process = subprocess.Popen(
-            go2rtc_cmd,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE
-        )
-
-    if __name__ == '__main__':
-        import argparse
-
-        parser = argparse.ArgumentParser()
-        parser.add_argument("-i", "--ip", type=str, required=True, default='0.0.0.0', help="IP address of the device")
-        parser.add_argument("-o", "--port", type=int, required=True, default=5000, help="Port number of the server (1024 to 65535)")
-        parser.add_argument("-f", "--frame-count", type=int, default=25,
-                            help="# of frames used to construct the background model")
-        args = parser.parse_args()
-
-        print(f'Started on port {args.ip}:{args.port}')
-
-        socketio.run(app, host=args.ip, port=args.port, debug=True)
 
 # Initialize PTZ controller
 ptz_controller = PELCO_Functions(ip_address='192.168.137.99')
+
+relay_controller = RelayModuleController(ip_address=os.getenv('PTZ_RELAY', '192.168.137.100'))
 
 # Shared PTZ state with thread lock
 ptz_lock = threading.Lock()
@@ -128,12 +103,52 @@ def handle_stop_event():
 
 @socketio.on('connect')
 def handle_connect():
-    """
-    Handle a new client connection.
-    """
     app.logger.info("Client connected")
 
+@socketio.on('handshake')
+def handle_handshake():
+    global query_angles
+    app.logger.info("Received handshake from client.")
+    query_angles = True
 
+@socketio.on("get_relay_status")
+def get_relay_status():
+    # app.logger.debug(f'Received GET RELAY STATUS')
+    socketio.emit("relay", {"visible_lights": relay_controller.get_channel_status(1),
+                   "ir_lights": relay_controller.get_channel_status(2)})
+@socketio.on('cmd')
+def handle_cmd(data):
+    cmd = data.get('cmd')
+    app.logger.info(f"Received cmd: {cmd}")
+    # Handle various commands
+    if cmd == 'lights-on':
+        #relay_controller.ch2_activate()
+        socketio.emit('status', {'message': 'lights on command sent'})
+    elif cmd == 'lights-off':
+        #relay_controller.ch2_deactivate()
+        socketio.emit('status', {'message': 'lights off command sent'})
+    elif cmd == 'ir-lights-on':
+        # Implement IR lights on if supported
+        #relay_controller.ch1_activate()
+        socketio.emit('status', {'message': 'IR lights on command sent'})
+    elif cmd == 'ir-lights-off':
+        # Implement IR lights off if supported
+        #relay_controller.ch1_deactivate()
+        socketio.emit('status', {'message': 'IR lights off command sent'})
+    elif cmd == 'PTZ-on':
+        # Implement camera on logic
+        ptz_controller.turn_on_light()
+        socketio.emit('status', {'message': 'PTZ on command sent'})
+    elif cmd == 'PTZ-off':
+        # Implement camera off logic
+        ptz_controller.turn_off_light()
+        socketio.emit('status', {'message': 'PTZ off command sent'})
+    elif cmd == 'default-position':
+        # Implement default position logic if device supports preset/home position
+        ptz_controller.move_to_default_position()
+        socketio.emit('status', {'message': 'Moved to default position'})
+    else:
+        app.logger.warning(f"Unknown command received: {cmd}")
 @socketio.on('motion')
 def handle_motion_event(json):
     """
@@ -200,3 +215,32 @@ def index():
     Serve the main page.
     """
     return render_template('index_v2.html')
+
+if __name__ == "__main__":
+
+    with app.app_context():
+        # Ensure that go2rtc binary is accessible (e.g., in PATH or specify full path)
+        app.logger.debug("Starting go2rtc...")
+        go2rtc_path = os.path.join(os.path.dirname(__file__), 'go2rtc', 'go2rtc')
+        config_path = os.path.join(os.path.dirname(__file__), 'go2rtc', 'config.yaml')
+        go2rtc_cmd = [go2rtc_path, '-c', config_path]
+
+        app.go2rtc_process = subprocess.Popen(
+            go2rtc_cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE
+        )
+
+    if __name__ == '__main__':
+        import argparse
+
+        parser = argparse.ArgumentParser()
+        parser.add_argument("-i", "--ip", type=str, required=True, default='0.0.0.0', help="IP address of the device")
+        parser.add_argument("-o", "--port", type=int, required=True, default=5000, help="Port number of the server (1024 to 65535)")
+        parser.add_argument("-f", "--frame-count", type=int, default=25,
+                            help="# of frames used to construct the background model")
+        args = parser.parse_args()
+
+        print(f'Started on port {args.ip}:{args.port}')
+
+        socketio.run(app, host=args.ip, port=args.port, debug=True)

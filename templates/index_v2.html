@@ -16,9 +16,14 @@
     let gamepadIndex = null;
 
     let lastEmitTime = 0;
-    const emitInterval = 500; // in ms
+    const emitInterval = 500; // ms
     let lastPan = 0, lastTilt = 0, lastSpeed = 0;
-    let hasStopped = false; // Track if stop command was sent
+    let hasStopped = false;
+
+    let visibleLightOn = false;
+    let irLightOn = false;
+    let cameraOn = false;
+    let lastButtonStates = [];
 
     function normalize(value, deadzone) {
         if (Math.abs(value) < deadzone) return 0;
@@ -26,6 +31,18 @@
         const adjusted = (Math.abs(value) - deadzone) / (1 - deadzone);
         return sign * adjusted;
     }
+
+    socket.on('connect', () => {
+        console.log("Connected to server");
+        socket.emit('handshake'); // Send handshake on connect
+    });
+
+    socket.on('ptz-angles', (data) => {
+        // data: {horizontal: number, vertical: number}
+        console.log(`Horizontal: ${data.horizontal}, Vertical: ${data.vertical}`);
+        // Update UI elements if needed
+    });
+
 
     window.addEventListener('gamepadconnected', (e) => {
         console.log(`Gamepad connected: ${e.gamepad.id}`);
@@ -45,6 +62,13 @@
             return;
         }
 
+        handleJoystick(gp);
+        handleButtons(gp);
+
+        requestAnimationFrame(pollGamepad);
+    }
+
+    function handleJoystick(gp) {
         let pan = normalize(gp.axes[0], deadzone);
         let tilt = -normalize(gp.axes[1], deadzone); // invert so up is positive
         const speedFactor = Math.max(Math.abs(pan), Math.abs(tilt)) * baseSpeed;
@@ -57,25 +81,64 @@
         const inDeadzone = (Math.abs(pan) < deadzone && Math.abs(tilt) < deadzone);
 
         if (inDeadzone) {
-            // If we are in the deadzone and haven't stopped yet, emit 'stop' once
             if (!hasStopped) {
                 socket.emit('stop');
                 hasStopped = true;
             }
         } else {
-            // Joystick moved out of deadzone
             hasStopped = false;
-            // Only emit motion if changes are significant and interval passed
             if ((panDiff > 0.05 || tiltDiff > 0.05 || speedDiff > 0.05) && (now - lastEmitTime > emitInterval)) {
-                socket.emit('motion', {pan, tilt, speed: speedFactor});
+                socket.emit('motion', { pan, tilt, speed: speedFactor });
                 lastPan = pan;
                 lastTilt = tilt;
                 lastSpeed = speedFactor;
                 lastEmitTime = now;
             }
         }
+    }
 
-        requestAnimationFrame(pollGamepad);
+    function handleButtons(gp) {
+        if (lastButtonStates.length === 0) {
+            lastButtonStates = gp.buttons.map(b => b.pressed);
+        }
+
+        // Button Mappings:
+        // A (0): Toggle visible light
+        // B (1): Toggle IR light
+        // X (2): Toggle Camera On/Off
+        // Y (3): Default Position
+
+        gp.buttons.forEach((button, index) => {
+            const wasPressed = lastButtonStates[index];
+            const isPressed = button.pressed;
+            if (!wasPressed && isPressed) {
+                handleButtonPress(index);
+            }
+            lastButtonStates[index] = isPressed;
+        });
+    }
+
+    function handleButtonPress(buttonIndex) {
+        switch (buttonIndex) {
+            case 0: // A: Toggle visible light
+                visibleLightOn = !visibleLightOn;
+                socket.emit('cmd', { cmd: visibleLightOn ? 'lights-on' : 'lights-off' });
+                break;
+            case 1: // B: Toggle IR light
+                irLightOn = !irLightOn;
+                socket.emit('cmd', { cmd: irLightOn ? 'ir-lights-on' : 'ir-lights-off' });
+                break;
+            case 2: // X: Toggle Camera On/Off
+                cameraOn = !cameraOn;
+                socket.emit('cmd', { cmd: cameraOn ? 'PTZ-on' : 'PTZ-off' });
+                break;
+            case 3: // Y: Default Position
+                socket.emit('cmd', { cmd: 'default-position' });
+                break;
+            default:
+                // Add more buttons if needed
+                break;
+        }
     }
 </script>
 </body>

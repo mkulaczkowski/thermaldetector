@@ -1,6 +1,6 @@
 import socket
 class RelayModuleController:
-    def __init__(self, ip_address='192.168.20.100', tcp_port=6722):
+    def __init__(self, ip_address='192.168.1.100', tcp_port=6722):
         self.ip_address = ip_address
         self.tcp_port = tcp_port
 

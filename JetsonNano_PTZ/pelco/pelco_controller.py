@@ -221,6 +221,13 @@ class PELCO_Functions:
             return self.vertical_angle
         return None
 
+    def move_to_default_position(self):
+        """Move the camera to a predefined default position if supported."""
+        # Implement logic here to move the camera to a default position.
+        # For example, move to a preset position, or home position.
+        # For now, just stop the camera.
+        self.horizontal_positioning('HORIZONTAL_90')
+
     @staticmethod
     def parse_angle(dataH, dataL):
         """Parse angle from response data."""
@@ -234,8 +241,8 @@ class PELCO_Functions:
         if position not in POSITIONS:
             logger.error(f"Position '{position}' not found in POSITIONS.")
             return False
-        # The original code does not actually use data1, data2 from POSITIONS.
+        data1, data2 = POSITIONS[position]
         # Add logic here if your device supports direct positioning using these values.
         # For now, just send the HORIZONTAL_POSITION command.
-        self.construct_cmd('HORIZONTAL_POSITION')
+        self.construct_cmd('HORIZONTAL_POSITION',data1,data2)
         return True
