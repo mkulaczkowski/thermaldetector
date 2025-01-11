@@ -1,6 +1,10 @@
 streams:
-  cam1:
+  Gorman:
     - "rtsp://192.168.11.123:554/1/h264major/track0"
+  PTZ_Thermal:
+    - "rtsp://192.168.137.102:554/ONVIFMedia"
+  PTZ_Visual:
+    - "rtsp://192.168.137.103:554/user=admin_password=oTyLhoPM_channel=1_stream=0&onvif=0.sdp?real_stream"
 
 api:
   listen: ":1984"  # Port for the web interface and API

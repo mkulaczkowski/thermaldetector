@@ -140,7 +140,7 @@ class PELCO_Functions:
 
     def stop_monitoring(self):
         self.running = False
-        self.monitor_thread.join()
+        #self.monitor_thread.join()
 
     def __del__(self):
         self.stop_monitoring()
