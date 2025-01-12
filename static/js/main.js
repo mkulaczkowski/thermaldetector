@@ -29,25 +29,25 @@ const cameraVideo = document.getElementById('cameraVideo');
 
 // Dynamically determine the host IP from the serving location
 const host = window.location.hostname;
-// If needed, you can also check protocol or port:
 const protocol = window.location.protocol; // e.g. "http:"
 // const port = window.location.port; // e.g. "8080"
 
-// Construct URLs dynamically
 let basePort = 1984; // adjust if your streaming server runs on a different port
-if(protocol === 'https:') {
+if (protocol === 'https:') {
     basePort = 1985;
 }
 const baseUrl = `http://${host}:${basePort}/api/webrtc?src=`;
 
+// Map camera names to actual streaming URLs
 const cameraSources = {
     "PTZ Thermal Camera": `${baseUrl}PTZ_Thermal`,
     "PTZ Visible Camera": `${baseUrl}PTZ_Visual`,
     "Front Camera": `${baseUrl}Front_Camera`
 };
+
+// Socket setup
 const socket = io.connect(`${location.protocol === 'https:' ? 'wss:' : 'ws:'}//${location.hostname}:${location.port || (location.protocol === 'https:' ? 443 : 80)}${location.pathname}`);
 
-// Socket events
 socket.on('connect', () => {
     logMessage("WS: Connected to server");
     socket.emit('handshake');
@@ -57,7 +57,9 @@ socket.on('ptz-angles', (data) => {
     cameraOverlay.innerHTML = `PTZ Rotation: ${data.horizontal.toFixed(2)}°<br>Tilt: ${data.vertical.toFixed(2)}°`;
 });
 
-// Main functions
+/**
+ * Safely stop and close an RTCPeerConnection
+ */
 function stopRTCPeerConnection(connection) {
     if (connection) {
         connection.getSenders().forEach(s => s.track && s.track.stop());
@@ -66,18 +68,21 @@ function stopRTCPeerConnection(connection) {
     }
 }
 
+/**
+ * Play a camera stream in a given <video> element via WebRTC
+ */
 async function playCameraStream(url, videoEl) {
     let localPc = null;
     try {
         logMessage(`Action: Attempting to set video source: ${url}`);
 
-        // Create and configure the RTCPeerConnection
+        // Create and configure RTCPeerConnection
         localPc = new RTCPeerConnection();
 
-        // Add a transceiver for video in recvonly mode
+        // Add a transceiver for video (recvonly)
         localPc.addTransceiver('video', { direction: 'recvonly' });
 
-        // When a track is received, set it to the video element
+        // On track received, bind to video element
         localPc.ontrack = (event) => {
             if (event && event.streams && event.streams[0]) {
                 videoEl.srcObject = event.streams[0];
@@ -87,11 +92,11 @@ async function playCameraStream(url, videoEl) {
             }
         };
 
-        // Create an offer and set as local description
+        // Create offer, set local description
         const offer = await localPc.createOffer();
         await localPc.setLocalDescription(offer);
 
-        // Call your signaling endpoint with the offer
+        logMessage('Connection: Sending offer to server...');
         let response;
         try {
             response = await fetch(url, {
@@ -101,19 +106,17 @@ async function playCameraStream(url, videoEl) {
             });
         } catch (fetchErr) {
             logMessage(`Network error fetching camera feed: ${fetchErr}`);
-            // Clean up
             localPc.close();
             return { pc: null, success: false };
         }
 
-        // Check if response is OK
         if (!response.ok) {
             logMessage(`Error fetching camera feed. HTTP status: ${response.status}`);
             localPc.close();
             return { pc: null, success: false };
         }
 
-        // Attempt to parse the answer
+        // Parse server's answer
         let answer;
         try {
             answer = await response.json();
@@ -123,25 +126,20 @@ async function playCameraStream(url, videoEl) {
             return { pc: null, success: false };
         }
 
-        // Validate the SDP in the answer
         if (!answer || !answer.sdp) {
             logMessage('No valid SDP in answer, camera may be unavailable.');
             localPc.close();
             return { pc: null, success: false };
         }
 
-        // Set the remote description
+        // Set remote description
         await localPc.setRemoteDescription(new RTCSessionDescription(answer));
+        logMessage('Connection: Remote description set, waiting for tracks...');
 
-        // If we got this far, we succeeded
-        logMessage('Remote description successfully set, waiting for tracks...');
         return { pc: localPc, success: true };
 
     } catch (err) {
-        // Catch any other unexpected errors
         logMessage(`Unexpected error: ${err.message || err}`);
-
-        // Clean up the RTCPeerConnection if it exists
         if (localPc) {
             localPc.close();
         }
@@ -149,20 +147,27 @@ async function playCameraStream(url, videoEl) {
     }
 }
 
-
+/**
+ * Show the main camera in the primary video element
+ */
 async function showMainCamera(cameraName) {
     logMessage(`Action: Show main camera -> ${cameraName}`);
+
     stopRTCPeerConnection(pc);
     const url = cameraSources[cameraName];
+
     if (!url) {
         logMessage(`No source for ${cameraName}`);
         showNoFeedMessage(true);
         pc = null;
+        cameraOn = false;
     } else {
+        cameraOn = true; // Trying to turn camera on
         const result = await playCameraStream(url, cameraVideo);
         if (!result.success) {
             showNoFeedMessage(true);
             pc = null;
+            cameraOn = false;
         } else {
             pc = result.pc;
             showNoFeedMessage(false);
@@ -173,7 +178,11 @@ async function showMainCamera(cameraName) {
     updatePiP();
 }
 
+/**
+ * Show the PiP camera in the PiP <video> element
+ */
 async function showPiP() {
+    // If PiP is off, or the main camera is off, or the main camera is not PTZ, hide PiP
     if (!pipOn || !cameraOn || !(currentCamera === "PTZ Thermal Camera" || currentCamera === "PTZ Visible Camera")) {
         pipVideo.style.display = 'none';
         stopRTCPeerConnection(pipPc);
@@ -183,8 +192,10 @@ async function showPiP() {
 
     let pipCamera = currentCamera === "PTZ Thermal Camera" ? "PTZ Visible Camera" : "PTZ Thermal Camera";
     logMessage(`Action: Show PiP camera -> ${pipCamera}`);
+
     stopRTCPeerConnection(pipPc);
     const url = cameraSources[pipCamera];
+
     if (!url) {
         logMessage(`No PiP source for ${pipCamera}`);
         pipVideo.style.display = 'none';
@@ -202,14 +213,23 @@ async function showPiP() {
     }
 }
 
+/**
+ * Wrapper to update PiP state
+ */
 function updatePiP() {
     showPiP();
 }
 
+/**
+ * Show or hide the 'no feed' message
+ */
 function showNoFeedMessage(show) {
     noFeedMessageEl.style.display = show ? 'block' : 'none';
 }
 
+/**
+ * Update the PTZ-off message for PTZ cameras that aren't powered on
+ */
 function updatePTZOffMessage() {
     const isPTZCamera = (currentCamera === "PTZ Thermal Camera" || currentCamera === "PTZ Visible Camera");
     if (!cameraOn && isPTZCamera) {
@@ -219,10 +239,15 @@ function updatePTZOffMessage() {
     } else {
         ptzOffMessageEl.style.display = 'none';
         cameraOverlay.style.display = 'block';
-        if (pipOn && cameraOn && isPTZCamera) pipVideo.style.display = 'block';
+        if (pipOn && cameraOn && isPTZCamera) {
+            pipVideo.style.display = 'block';
+        }
     }
 }
 
+/**
+ * Send motion commands to the server
+ */
 function handleMotion(pan, tilt) {
     const speedFactor = Math.max(Math.abs(pan), Math.abs(tilt)) * baseSpeed;
     const now = performance.now();
@@ -240,7 +265,7 @@ function handleMotion(pan, tilt) {
     } else {
         hasStopped = false;
         if ((panDiff > 0.05 || tiltDiff > 0.05 || speedDiff > 0.05) && (now - lastEmitTime > emitInterval)) {
-            socket.emit('motion', {pan, tilt, speed: speedFactor});
+            socket.emit('motion', { pan, tilt, speed: speedFactor });
             logMessage(`Motion: pan=${pan.toFixed(2)} tilt=${tilt.toFixed(2)} speed=${speedFactor.toFixed(2)}`);
             lastPan = pan;
             lastTilt = tilt;
@@ -250,6 +275,9 @@ function handleMotion(pan, tilt) {
     }
 }
 
+/**
+ * Request browser geolocation for logging or display
+ */
 function requestLocation() {
     logMessage("Requesting location...");
     if ('geolocation' in navigator) {
@@ -265,7 +293,7 @@ function requestLocation() {
                 logMessage(`GPS Error: ${err.message}`);
                 vehicleDataEl.textContent = "Lat: N/A, Lon: N/A, MGRS: N/A (GPS unavailable)";
             },
-            {enableHighAccuracy: true, timeout: 10000, maximumAge: 0}
+            { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
         );
     } else {
         logMessage("GPS not supported by this browser");
@@ -273,14 +301,21 @@ function requestLocation() {
     }
 }
 
-// Handle camera thumbnails
-const thumbnails = document.querySelectorAll('.sidebar .thumbnail');
+/**
+ * Camera thumbnails
+ *
+ * NOTE: Updated selector to match '.camera-select .thumbnail'
+ */
+const thumbnails = document.querySelectorAll('.camera-select .thumbnail');
 thumbnails.forEach(thumb => {
     thumb.addEventListener('click', () => {
         const cameraName = thumb.getAttribute('data-camera');
         logMessage(`User: Selected camera: ${cameraName}`);
+
+        // Update active thumbnail
         thumbnails.forEach(t => t.classList.remove('active'));
         thumb.classList.add('active');
+
         currentCamera = cameraName;
         showMainCamera(currentCamera);
 
@@ -291,10 +326,27 @@ thumbnails.forEach(thumb => {
     });
 });
 
+/**
+ * Handle Picture-in-Picture button (if desired)
+ */
+const pipButton = document.getElementById('pip-button');
+pipButton.addEventListener('click', () => {
+    pipOn = !pipOn;
+    logMessage(`User toggled PiP: ${pipOn ? 'ON' : 'OFF'}`);
+    updatePiP();
+});
+
 // Initial camera load
 showMainCamera(currentCamera);
 
 // Update UI state
-updateButtonState();
 updatePTZOffMessage();
 
+/**
+ * Example function for other button states (if you have them)
+ * Stubbed out here
+ */
+function updateButtonState() {
+    // If you have other buttons to disable/enable, do so here
+    // e.g., toggling IR/visible light, etc.
+}

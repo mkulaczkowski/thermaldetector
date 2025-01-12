@@ -1,27 +1,30 @@
-// logging.js
-
 const debugPanel = document.getElementById('debug-panel');
-const logToggleBtn = document.getElementById('log-toggle');
-const logHideBtn = document.getElementById('log-hide');
-let logPanelOpen = false;
+const debugContent = document.getElementById('debug-content');
+const logToggleButton = document.getElementById('log-toggle');
 
-function logMessage(msg) {
-    const entry = document.createElement('div');
-    entry.textContent = msg;
-    debugPanel.appendChild(entry);
-    debugPanel.scrollTop = debugPanel.scrollHeight;
+/**
+ * Appends a log entry to #debug-content and logs to console
+ */
+function logMessage(message) {
+    console.log("[APP LOG] " + message);
+    const p = document.createElement('p');
+    p.textContent = message;
+    debugContent.appendChild(p);
+
+    // Auto-scroll to the newest log
+    debugContent.scrollTop = debugContent.scrollHeight;
 }
 
-logToggleBtn.addEventListener('click', () => {
-    if (!logPanelOpen) {
-        logPanelOpen = true;
+/**
+ * Toggles the visibility of the debug panel
+ */
+function toggleLogPanel() {
+    if (debugPanel.style.display === 'none') {
         debugPanel.style.display = 'block';
-        logMessage("Log panel -> OPEN");
+    } else {
+        debugPanel.style.display = 'none';
     }
-});
+}
 
-logHideBtn.addEventListener('click', () => {
-    logPanelOpen = false;
-    debugPanel.style.display = 'none';
-    logMessage("Log panel -> CLOSED");
-});
+// Attach event to the "Log" button
+logToggleButton.addEventListener('click', toggleLogPanel);
