@@ -67,32 +67,88 @@ function stopRTCPeerConnection(connection) {
 }
 
 async function playCameraStream(url, videoEl) {
-    logMessage(`Action: Setting video source: ${url}`);
-    const localPc = new RTCPeerConnection();
-    localPc.addTransceiver('video', {direction: 'recvonly'});
-    localPc.ontrack = event => {
-        videoEl.srcObject = event.streams[0];
-        logMessage("WS: Video track received");
-    };
+    let localPc = null;
+    try {
+        logMessage(`Action: Attempting to set video source: ${url}`);
 
-    const offer = await localPc.createOffer();
-    await localPc.setLocalDescription(offer);
+        // Create and configure the RTCPeerConnection
+        localPc = new RTCPeerConnection();
 
-    const response = await fetch(url, {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({type: 'offer', sdp: offer.sdp})
-    });
+        // Add a transceiver for video in recvonly mode
+        localPc.addTransceiver('video', { direction: 'recvonly' });
 
-    if (!response.ok) {
-        logMessage(`Error fetching camera feed: ${response.status}`);
-        return {pc: null, success: false};
+        // When a track is received, set it to the video element
+        localPc.ontrack = (event) => {
+            if (event && event.streams && event.streams[0]) {
+                videoEl.srcObject = event.streams[0];
+                logMessage('WS: Video track received');
+            } else {
+                logMessage('Warning: No valid video track in ontrack event.');
+            }
+        };
+
+        // Create an offer and set as local description
+        const offer = await localPc.createOffer();
+        await localPc.setLocalDescription(offer);
+
+        // Call your signaling endpoint with the offer
+        let response;
+        try {
+            response = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ type: 'offer', sdp: offer.sdp })
+            });
+        } catch (fetchErr) {
+            logMessage(`Network error fetching camera feed: ${fetchErr}`);
+            // Clean up
+            localPc.close();
+            return { pc: null, success: false };
+        }
+
+        // Check if response is OK
+        if (!response.ok) {
+            logMessage(`Error fetching camera feed. HTTP status: ${response.status}`);
+            localPc.close();
+            return { pc: null, success: false };
+        }
+
+        // Attempt to parse the answer
+        let answer;
+        try {
+            answer = await response.json();
+        } catch (parseErr) {
+            logMessage(`Failed to parse response JSON: ${parseErr}`);
+            localPc.close();
+            return { pc: null, success: false };
+        }
+
+        // Validate the SDP in the answer
+        if (!answer || !answer.sdp) {
+            logMessage('No valid SDP in answer, camera may be unavailable.');
+            localPc.close();
+            return { pc: null, success: false };
+        }
+
+        // Set the remote description
+        await localPc.setRemoteDescription(new RTCSessionDescription(answer));
+
+        // If we got this far, we succeeded
+        logMessage('Remote description successfully set, waiting for tracks...');
+        return { pc: localPc, success: true };
+
+    } catch (err) {
+        // Catch any other unexpected errors
+        logMessage(`Unexpected error: ${err.message || err}`);
+
+        // Clean up the RTCPeerConnection if it exists
+        if (localPc) {
+            localPc.close();
+        }
+        return { pc: null, success: false };
     }
-
-    const answer = await response.json();
-    await localPc.setRemoteDescription(new RTCSessionDescription(answer));
-    return {pc: localPc, success: true};
 }
+
 
 async function showMainCamera(cameraName) {
     logMessage(`Action: Show main camera -> ${cameraName}`);
